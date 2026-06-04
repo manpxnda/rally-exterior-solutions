@@ -189,6 +189,8 @@ section { padding: 96px 0; }
 /* ===== FAQ ===== */
 .faq-list { max-width: 800px; margin: 0 auto; }
 .faq-item { background: var(--white); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; border: 1px solid var(--navy-line); }
+details > summary { list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
 .faq-question { width: 100%; text-align: left; padding: 22px 28px; font-weight: 600; font-size: 1.0625rem; font-family: var(--serif); color: var(--navy); display: flex; justify-content: space-between; align-items: center; gap: 16px; transition: background .15s ease; }
 .faq-question:hover { background: var(--cream); }
 .faq-question .icon { width: 24px; height: 24px; flex-shrink: 0; color: var(--coral); transition: transform .25s ease; }
