@@ -21,8 +21,8 @@ export const site = {
     "https://rallyexteriorsolutions.com",
 
   // --- Contact (PLACEHOLDERS — update before launch) ----------------------
-  phoneDisplay: "(304) 555-0125",
-  phoneHref: "tel:+13045550125",
+  phoneDisplay: "(740) 208-8632",
+  phoneHref: "tel:+17402088632",
   email: "hello@rallyexteriorsolutions.com",
 
   // Used for the Local Business schema + footer. A service-area business can
