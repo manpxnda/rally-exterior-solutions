@@ -16,7 +16,7 @@ export function ServicesGrid({
         <SectionHeading
           eyebrow="What We Do"
           title="One trusted team for your entire exterior"
-          description="From dazzling lighting to deep-clean washing, Rally handles it all — so your property looks its best year-round without juggling contractors."
+          description="Lighting and deep-clean washing under one roof — no juggling contractors."
           className="mb-12"
         />
       )}

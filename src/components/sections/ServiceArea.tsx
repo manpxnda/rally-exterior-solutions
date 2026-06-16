@@ -14,10 +14,9 @@ export function ServiceArea() {
             align="left"
           />
           <p className="mt-4 text-ink-500">
-            Rally is locally owned and operates within roughly a{" "}
-            {site.geo.serviceRadiusMiles}-mile radius of Wheeling, WV — covering
-            communities on both sides of the Ohio River. Don&apos;t see your
-            town? Reach out; we likely cover you.
+            Locally owned, serving about a {site.geo.serviceRadiusMiles}-mile
+            radius of Wheeling, WV — both sides of the river. Don&apos;t see
+            your town? Just ask.
           </p>
           <div className="mt-6">
             <Button href="/contact">Check My Availability</Button>

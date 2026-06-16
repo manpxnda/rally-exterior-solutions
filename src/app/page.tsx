@@ -22,7 +22,7 @@ export default function HomePage() {
       <ProofSection />
       <WhyRally />
       <ProcessSteps />
-      <Testimonials />
+      <Testimonials limit={3} />
       <Guarantee />
       <ServiceArea />
       <FAQ />

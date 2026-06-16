@@ -7,7 +7,7 @@ export type Faq = { q: string; a: string };
 export const faqs: Faq[] = [
   {
     q: "How much does it cost?",
-    a: "Every property is different, so we give you a clear, itemized quote before any work begins — usually same-day. There are no hidden fees and no obligation. Most homeowners are surprised how affordable a dramatic transformation can be.",
+    a: "Every property is different, so we give you a clear, itemized quote up front — usually same-day, with no hidden fees and no obligation.",
   },
   {
     q: "Do you offer free estimates?",
@@ -19,7 +19,7 @@ export const faqs: Faq[] = [
   },
   {
     q: "Will pressure washing damage my home?",
-    a: "We use the right method for every surface. For siding, roofs, and delicate areas we use low-pressure 'soft washing' — specialized cleaning solutions and a gentle rinse — so there's no risk of cracked siding, broken shingles, or forced-in water.",
+    a: "We use the right method for every surface. Siding, roofs, and delicate areas get low-pressure 'soft washing' — so there's no risk of cracked siding, broken shingles, or water forced behind walls.",
   },
   {
     q: "What areas do you serve?",

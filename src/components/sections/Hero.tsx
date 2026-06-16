@@ -59,10 +59,9 @@ export function Hero() {
             the Block
           </h1>
 
-          <p className="mt-5 text-lg leading-relaxed text-ink-200">
-            Premium permanent lighting, holiday displays, and exterior cleaning
-            for homes &amp; businesses across the {regionLabel} region. Done
-            right, done on time, done by people who answer the phone.
+          <p className="mt-5 text-lg leading-relaxed text-ink-100 text-shadow-lg">
+            Lighting and exterior cleaning across the {regionLabel} region —
+            done right, on time, by people who answer the phone.
           </p>
 
           <ul className="mt-6 space-y-2.5">

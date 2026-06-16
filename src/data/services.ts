@@ -71,7 +71,7 @@ export const services: Service[] = [
     icon: "lighting",
     tagline: "Year-round curb appeal, one tap on your phone",
     summary:
-      "Custom-fit, color-changing LED lighting that disappears in daylight and transforms your home at night — controlled from an app.",
+      "App-controlled LEDs that vanish by day and light up your home any color at night.",
     heroHeadline: "Permanent Exterior Lighting That Makes Your Home the Best on the Block",
     heroSub:
       "Architectural-grade, app-controlled LEDs installed clean and tucked away. Holiday colors, game-day pride, soft evening accents — never climb a ladder again.",
@@ -116,7 +116,7 @@ export const services: Service[] = [
     icon: "snowflake",
     tagline: "Professional Christmas lights, zero hassle",
     summary:
-      "We design, install, maintain, take down, and store your holiday lighting — you just enjoy the show.",
+      "We design, hang, maintain, and take down your holiday lights. You just enjoy them.",
     heroHeadline: "Stress-Free Christmas Lighting, Professionally Installed",
     heroSub:
       "Custom-designed holiday displays with premium commercial bulbs. We hang it, maintain it all season, and take it down — you never touch a ladder.",
@@ -162,7 +162,7 @@ export const services: Service[] = [
     icon: "house",
     tagline: "Strip away years of grime — safely",
     summary:
-      "Gentle soft washing that removes dirt, mildew, cobwebs, and oxidation from siding without high-pressure damage.",
+      "Gentle soft washing that strips mildew, dirt, and grime from your siding — safely.",
     heroHeadline: "House Washing That Makes Your Home Look New Again",
     heroSub:
       "A low-pressure soft wash safely removes mildew, algae, dirt, and cobwebs from your siding — restoring the color you forgot you had.",
@@ -207,7 +207,7 @@ export const services: Service[] = [
     icon: "roof",
     tagline: "Erase black streaks, protect your roof",
     summary:
-      "Soft-wash roof cleaning that removes black algae streaks and moss — extending shingle life without damage.",
+      "Soft-wash cleaning that erases black streaks and moss, and adds years to your roof.",
     heroHeadline: "Roof Washing That Removes Black Streaks for Good",
     heroSub:
       "Those black streaks are living algae eating your shingles. Our no-pressure soft wash kills it at the source and restores your roof's appearance.",
@@ -251,7 +251,7 @@ export const services: Service[] = [
     icon: "droplet",
     tagline: "Gentle cleaning for delicate surfaces",
     summary:
-      "The safe, pressure-free method for fences, decks, soffits, gutters, awnings, and other surfaces pressure can ruin.",
+      "The pressure-free clean for fences, decks, gutters, and other delicate surfaces.",
     heroHeadline: "Soft Washing for the Surfaces Pressure Washing Can Ruin",
     heroSub:
       "Fences, decks, soffits, gutters, screens, and painted surfaces need a gentler touch. Our soft wash cleans deeply without the damage.",
@@ -295,7 +295,7 @@ export const services: Service[] = [
     icon: "concrete",
     tagline: "Driveways & patios that look brand new",
     summary:
-      "Surface cleaning that lifts oil, rust, algae, and years of grime from driveways, sidewalks, and patios.",
+      "Lifts oil, rust, and years of grime from driveways, sidewalks, and patios.",
     heroHeadline: "Concrete Cleaning That Makes Driveways & Patios Look New",
     heroSub:
       "Even, streak-free results on concrete, pavers, and brick — lifting oil stains, rust, algae, and ground-in dirt.",
@@ -339,7 +339,7 @@ export const services: Service[] = [
     icon: "shield",
     tagline: "Lock in the clean, protect your investment",
     summary:
-      "Professional sealing that protects pavers and concrete from stains, weeds, and weather — and locks in a rich finish.",
+      "Seals out stains, weeds, and weather — and locks in a rich, lasting finish.",
     heroHeadline: "Concrete & Paver Sealing That Protects Your Investment",
     heroSub:
       "Seal out stains, lock in joint sand, stop weeds, and give pavers a rich, finished look that lasts for years.",
@@ -383,7 +383,7 @@ export const services: Service[] = [
     icon: "building",
     tagline: "Spotless storefronts & properties, on schedule",
     summary:
-      "Reliable exterior cleaning for storefronts, plazas, HOAs, and facilities — building washing, flatwork, and more.",
+      "Dependable exterior cleaning for storefronts, plazas, HOAs, and facilities.",
     heroHeadline: "Commercial Exterior Cleaning That Protects Your Brand",
     heroSub:
       "Clean storefronts, sidewalks, dumpster pads, and facades — on a schedule that fits your business and budget.",

@@ -8,7 +8,7 @@ export function ProcessSteps() {
       <SectionHeading
         eyebrow="How It Works"
         title="Getting started is genuinely easy"
-        description="No high-pressure sales, no confusing process. Three simple steps from first call to finished project."
+        description="No pressure, no confusion — three simple steps from first call to finished job."
         className="mb-12"
       />
 

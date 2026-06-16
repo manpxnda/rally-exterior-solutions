@@ -12,7 +12,7 @@ export function ProofSection({ limit = 3 }: { limit?: number }) {
       <SectionHeading
         eyebrow="See The Difference"
         title="Transformations that speak for themselves"
-        description="Drag the slider to see real before-and-after results. This is the kind of curb appeal your neighbors will notice."
+        description="Drag any slider. This is the curb appeal your neighbors will notice."
         tone="light"
         className="mb-12"
       />
