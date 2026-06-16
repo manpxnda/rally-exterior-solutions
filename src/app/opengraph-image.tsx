@@ -17,32 +17,40 @@ export default function OgImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "linear-gradient(135deg, #0B1A2B 0%, #16273D 100%)",
+          background: "linear-gradient(135deg, #112F45 0%, #173D59 60%, #1C415C 100%)",
           padding: "80px",
           fontFamily: "sans-serif",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
+          {/* sun-over-water mark */}
           <div
             style={{
-              width: 64,
-              height: 64,
-              borderRadius: 16,
-              background: "linear-gradient(135deg, #E9B85C, #C9892A)",
+              width: 74,
+              height: 74,
+              borderRadius: 999,
+              background: "#FAF0D7",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: 40,
             }}
           >
-            ☀
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 999,
+                background: "#EA6F61",
+              }}
+            />
           </div>
           <div
             style={{
               color: "white",
-              fontSize: 34,
+              fontSize: 36,
               fontWeight: 800,
-              letterSpacing: -0.5,
+              letterSpacing: 1,
+              textTransform: "uppercase",
             }}
           >
             Rally Exterior Solutions
@@ -56,12 +64,12 @@ export default function OgImage() {
               fontSize: 68,
               fontWeight: 800,
               lineHeight: 1.05,
-              maxWidth: 900,
+              maxWidth: 920,
             }}
           >
             Brighter Homes. Cleaner Properties. Zero Hassle.
           </div>
-          <div style={{ color: "#9DB0C6", fontSize: 30 }}>
+          <div style={{ color: "#6CC2BE", fontSize: 30 }}>
             Permanent lighting · Holiday lighting · Exterior cleaning
           </div>
         </div>
@@ -71,7 +79,7 @@ export default function OgImage() {
             display: "flex",
             alignItems: "center",
             gap: 16,
-            color: "#E0A23B",
+            color: "#EA6F61",
             fontSize: 28,
             fontWeight: 700,
           }}

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Roboto_Slab } from "next/font/google";
 import "./globals.css";
 
 import { site } from "@/lib/site";
@@ -15,6 +15,14 @@ const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-sans",
+});
+
+// Slab serif to match the Rally wordmark — used for headings & the logo.
+const robotoSlab = Roboto_Slab({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-display",
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
 export const metadata: Metadata = {
@@ -64,7 +72,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0B1A2B",
+  themeColor: "#173D59",
   width: "device-width",
   initialScale: 1,
 };
@@ -75,7 +83,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={`${inter.variable} ${robotoSlab.variable}`}>
       <body className="flex min-h-screen flex-col">
         <JsonLd data={[localBusinessSchema(), websiteSchema()]} />
         <PromoBar />

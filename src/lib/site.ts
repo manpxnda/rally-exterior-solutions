@@ -23,7 +23,7 @@ export const site = {
   // --- Contact (PLACEHOLDERS — update before launch) ----------------------
   phoneDisplay: "(740) 208-8632",
   phoneHref: "tel:+17402088632",
-  email: "hello@rallyexteriorsolutions.com",
+  email: "info@rallyexteriorsolutions.com",
 
   // Used for the Local Business schema + footer. A service-area business can
   // hide the street address; keep city/region/postal for local SEO.
@@ -55,11 +55,13 @@ export const site = {
 
   hoursShort: "Mon–Fri 8a–6p · Sat 9a–4p",
 
-  // --- Trust / proof signals (update with real numbers) -------------------
+  // --- Trust / proof signals -----------------------------------------------
+  // ⚠️ CONFIRM these against your Google Business Profile before relying on
+  // them in ads. reviewCount/projectsCompleted are conservative estimates.
   stats: {
     yearFounded: 2021,
-    projectsCompleted: "750+",
-    reviewCount: 140,
+    projectsCompleted: "500+",
+    reviewCount: 35,
     reviewRating: 4.9,
     responseTime: "Same-day",
   },

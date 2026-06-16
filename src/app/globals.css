@@ -5,7 +5,7 @@
 @layer base {
   :root {
     --font-sans: "Inter", system-ui, sans-serif;
-    --font-display: "Inter", system-ui, sans-serif;
+    --font-display: "Roboto Slab", "Rockwell", Georgia, serif;
   }
 
   html {
@@ -37,12 +37,21 @@
 }
 
 @layer components {
-  /* Hero spotlight glow used behind lighting visuals */
+  /* Hero spotlight glow used behind lighting visuals (brand coral) */
   .glow-gold {
     background: radial-gradient(
       60% 60% at 50% 40%,
-      rgba(224, 162, 59, 0.35) 0%,
-      rgba(224, 162, 59, 0) 70%
+      rgba(234, 111, 97, 0.32) 0%,
+      rgba(234, 111, 97, 0) 70%
+    );
+  }
+
+  /* Optional secondary teal glow */
+  .glow-teal {
+    background: radial-gradient(
+      55% 55% at 50% 45%,
+      rgba(57, 171, 168, 0.28) 0%,
+      rgba(57, 171, 168, 0) 70%
     );
   }
 
