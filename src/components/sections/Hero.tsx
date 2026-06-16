@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { site, regionLabel } from "@/lib/site";
 import { Stars } from "@/components/ui/Stars";
 import { Icon } from "@/components/ui/Icon";
@@ -14,6 +15,21 @@ const heroBullets = [
 export function Hero() {
   return (
     <section className="relative overflow-hidden bg-ink-900 text-white">
+      {/* Real project photo background */}
+      <div className="pointer-events-none absolute inset-0">
+        <Image
+          src="/images/team/rally-driveway.png"
+          alt="Rally Exterior Solutions surface-cleaning a driveway in the Ohio Valley"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-[58%_30%]"
+        />
+        {/* readability overlays: opaque on the left where copy sits */}
+        <div className="absolute inset-0 bg-gradient-to-r from-ink-900 via-ink-900/92 to-ink-900/40" />
+        <div className="absolute inset-0 bg-ink-900/35" />
+      </div>
+
       {/* Ambient glow + texture */}
       <div className="glow-gold pointer-events-none absolute -top-40 right-0 h-[40rem] w-[40rem]" />
       <div
@@ -37,7 +53,7 @@ export function Hero() {
             </span>
           </div>
 
-          <h1 className="font-display text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.4rem]">
+          <h1 className="font-display text-4xl font-extrabold leading-[1.05] tracking-tight text-shadow-lg sm:text-5xl lg:text-[3.4rem]">
             Make Your Property the{" "}
             <span className="text-gold-300">Brightest &amp; Cleanest</span> on
             the Block
