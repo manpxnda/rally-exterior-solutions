@@ -9,7 +9,7 @@ import { analyticsConfig } from "@/lib/analytics";
  * Add IDs in: Project Settings → Environment Variables (see .env.example).
  */
 export function Analytics() {
-  const { ga4Id, googleAdsId, metaPixelId } = analyticsConfig;
+  const { ga4Id, googleAdsId, metaPixelId, clarityId } = analyticsConfig;
   // GA4 and Google Ads both use gtag.js; load it once if either is present.
   const gtagId = ga4Id || googleAdsId;
 
@@ -46,6 +46,19 @@ export function Analytics() {
             'https://connect.facebook.net/en_US/fbevents.js');
             fbq('init', '${metaPixelId}');
             fbq('track', 'PageView');
+          `}
+        </Script>
+      )}
+
+      {/* Microsoft Clarity — heatmaps + session recordings */}
+      {clarityId && (
+        <Script id="ms-clarity" strategy="afterInteractive">
+          {`
+            (function(c,l,a,r,i,t,y){
+              c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+              t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+              y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            })(window, document, "clarity", "script", "${clarityId}");
           `}
         </Script>
       )}

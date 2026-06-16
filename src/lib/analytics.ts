@@ -21,6 +21,7 @@ export const analyticsConfig = {
   googleAdsId: process.env.NEXT_PUBLIC_GOOGLE_ADS_ID,
   googleAdsLeadLabel: process.env.NEXT_PUBLIC_GOOGLE_ADS_LEAD_LABEL,
   metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID,
+  clarityId: process.env.NEXT_PUBLIC_CLARITY_ID,
 };
 
 /** Generic GA4 event. */

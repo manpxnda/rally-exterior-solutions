@@ -8,6 +8,8 @@ import { Footer } from "@/components/layout/Footer";
 import { PromoBar } from "@/components/layout/PromoBar";
 import { MobileCTABar } from "@/components/layout/MobileCTABar";
 import { Analytics } from "@/components/analytics/Analytics";
+import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { localBusinessSchema, websiteSchema } from "@/lib/schema";
 
@@ -93,6 +95,8 @@ export default function RootLayout({
         <Footer />
         <MobileCTABar />
         <Analytics />
+        <VercelAnalytics />
+        <SpeedInsights />
       </body>
     </html>
   );
