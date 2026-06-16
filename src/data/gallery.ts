@@ -59,7 +59,7 @@ export const beforeAfters: BeforeAfter[] = [
   {
     id: "gutter-1",
     title: "Gutter Cleaning & Brightening",
-    service: "soft-washing",
+    service: "house-washing",
     location: "Ohio Valley",
     before: "/images/gallery/gutter-cleaning-before-1.jpg",
     after: "/images/gallery/gutter-cleaning-after-1.jpg",
@@ -67,7 +67,7 @@ export const beforeAfters: BeforeAfter[] = [
   {
     id: "fence-1",
     title: "Fence Restoration",
-    service: "soft-washing",
+    service: "house-washing",
     location: "Ohio Valley",
     before: "/images/gallery/fence-restoration-before-1.jpg",
     after: "/images/gallery/fence-restoration-after-1.jpg",

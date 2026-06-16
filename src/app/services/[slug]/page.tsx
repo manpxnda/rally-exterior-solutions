@@ -107,10 +107,10 @@ export default async function ServicePage({ params }: Params) {
             <MediaFrame
               src={service.image}
               alt={`${service.name} in the ${regionLabel} region`}
-              aspect="wide"
+              aspect="photo"
               priority
               sizes="(max-width: 1200px) 100vw, 1200px"
-              className="shadow-card"
+              className="mx-auto max-w-4xl shadow-card"
             />
           </Container>
         </div>

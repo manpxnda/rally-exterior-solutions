@@ -240,50 +240,6 @@ export const services: Service[] = [
     ],
   },
   {
-    slug: "soft-washing",
-    image:
-      "https://images.unsplash.com/photo-1751050743813-03d46859896c?auto=format&fit=crop&w=1600&q=75",
-    name: "Exterior Soft Washing",
-    shortName: "Soft Washing",
-    category: "cleaning",
-    icon: "droplet",
-    tagline: "Gentle cleaning for delicate surfaces",
-    summary:
-      "The pressure-free clean for fences, decks, gutters, and other delicate surfaces.",
-    heroHeadline: "Soft Washing for the Surfaces Pressure Washing Can Ruin",
-    heroSub:
-      "Fences, decks, soffits, gutters, screens, and painted surfaces need a gentler touch. Our soft wash cleans deeply without the damage.",
-    problem:
-      "High-pressure washing can splinter wood, force water behind siding, strip paint, and dent gutters.",
-    outcome:
-      "A deep, even clean on every delicate surface of your property — with zero risk of pressure damage.",
-    description:
-      "Soft washing combines low pressure with specialized cleaning solutions to lift grime, mildew, and organic buildup from surfaces that high pressure would destroy. It's the right call for wood fences and decks, vinyl soffits, exterior screens, gutter faces, awnings, and painted trim — anywhere you want clean without collateral damage.",
-    benefits: [
-      "Safe for wood, vinyl, screens & paint",
-      "Cleans deeper than pressure-only methods",
-      "Prevents splintering & forced-in water",
-      "Brightens fences, decks & gutters",
-      "Even, streak-free finish",
-      "Tailored solution per surface type",
-    ],
-    bestFor: [
-      "Wood fences & decks losing their color",
-      "Dirty soffits, gutters & awnings",
-      "Delicate or painted exterior surfaces",
-    ],
-    priceNote: "Bundled with house washing for the best value. Free walkthrough quote.",
-    metaTitle: "Exterior Soft Washing Services | Wheeling WV & Ohio Valley",
-    metaDescription:
-      "Professional exterior soft washing in the Ohio Valley & Wheeling, WV for fences, decks, gutters, soffits & more. Deep clean without pressure damage. Free estimate.",
-    keywords: [
-      "soft washing Wheeling WV",
-      "exterior soft wash Ohio Valley",
-      "fence and deck cleaning",
-      "gutter and soffit cleaning",
-    ],
-  },
-  {
     slug: "concrete-cleaning",
     image:
       "https://images.unsplash.com/photo-1677956787377-a0f32c0974af?auto=format&fit=crop&w=1600&q=75",
@@ -374,7 +330,7 @@ export const services: Service[] = [
   {
     slug: "commercial-cleaning",
     image:
-      "https://images.unsplash.com/photo-1578593089381-98e8e66f0819?auto=format&fit=crop&w=1600&q=75",
+      "https://images.unsplash.com/photo-1563899911-1cd41c199d2a?auto=format&fit=crop&w=1600&q=75",
     name: "Commercial Exterior Cleaning",
     shortName: "Commercial Cleaning",
     category: "cleaning",

@@ -11,6 +11,26 @@ const nextConfig = {
       { protocol: "https", hostname: "res.cloudinary.com" },
     ],
   },
+  async redirects() {
+    // 301 redirects to capture traffic from the OLD SiteGround site's indexed
+    // URLs so nothing is wasted. Add more here if Search Console shows others.
+    return [
+      { source: "/contact-us", destination: "/contact", permanent: true },
+      { source: "/contact-us.html", destination: "/contact", permanent: true },
+      { source: "/house-washing", destination: "/services/house-washing", permanent: true },
+      { source: "/house-washing.html", destination: "/services/house-washing", permanent: true },
+      { source: "/about.html", destination: "/about", permanent: true },
+      { source: "/cleaning", destination: "/services", permanent: true },
+      { source: "/cleaning.html", destination: "/services", permanent: true },
+      { source: "/lighting", destination: "/services/permanent-lighting", permanent: true },
+      { source: "/lighting.html", destination: "/services/permanent-lighting", permanent: true },
+      { source: "/christmas-lighting", destination: "/services/holiday-lighting", permanent: true },
+      { source: "/christmas-lighting.html", destination: "/services/holiday-lighting", permanent: true },
+      { source: "/index.html", destination: "/", permanent: true },
+      // Removed service → closest current page
+      { source: "/services/soft-washing", destination: "/services/house-washing", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {
