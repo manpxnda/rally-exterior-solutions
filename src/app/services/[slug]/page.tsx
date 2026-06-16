@@ -26,7 +26,7 @@ import { ProcessSteps } from "@/components/sections/ProcessSteps";
 import { FAQ } from "@/components/sections/FAQ";
 import { CTASection } from "@/components/sections/CTASection";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { serviceSchema, breadcrumbSchema } from "@/lib/schema";
+import { serviceSchema, breadcrumbSchema, faqSchema } from "@/lib/schema";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -72,6 +72,7 @@ export default async function ServicePage({ params }: Params) {
             { name: "Services", url: "/services" },
             { name: service.name, url: `/services/${service.slug}` },
           ]),
+          faqSchema(),
         ]}
       />
 
