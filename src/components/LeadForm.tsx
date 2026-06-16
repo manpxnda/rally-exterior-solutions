@@ -143,7 +143,7 @@ export function LeadForm({
           name="phone"
           type="tel"
           autoComplete="tel"
-          placeholder="(304) 555-0123"
+          placeholder="(740) 555-0123"
           required
         />
       </div>
