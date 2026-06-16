@@ -13,6 +13,8 @@ import { regionLabel, site } from "@/lib/site";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Section, SectionHeading } from "@/components/ui/Section";
+import { Container } from "@/components/ui/Container";
+import { MediaFrame } from "@/components/ui/MediaFrame";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
 import { CallButton } from "@/components/CallButton";
@@ -96,6 +98,22 @@ export default async function ServicePage({ params }: Params) {
           />
         </div>
       </PageHeader>
+
+      {/* Hero image (illustrative) */}
+      {service.image && (
+        <div className="bg-white pt-12 sm:pt-16">
+          <Container>
+            <MediaFrame
+              src={service.image}
+              alt={`${service.name} in the ${regionLabel} region`}
+              aspect="wide"
+              priority
+              sizes="(max-width: 1200px) 100vw, 1200px"
+              className="shadow-card"
+            />
+          </Container>
+        </div>
+      )}
 
       {/* Main content + sticky form */}
       <Section tone="white">

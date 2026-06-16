@@ -103,9 +103,8 @@ export default function AboutPage() {
             </div>
           </div>
           <MediaFrame
-            alt="The Rally Exterior Solutions team on the job"
-            label="Rally team on the job"
-            icon="sparkle"
+            src="https://images.unsplash.com/photo-1505843513577-22bb7d21e455?auto=format&fit=crop&w=1400&q=75"
+            alt="A beautifully finished, well-kept home exterior at dusk"
             aspect="photo"
             className="shadow-cardHover"
           />

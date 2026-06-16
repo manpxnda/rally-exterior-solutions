@@ -11,6 +11,10 @@
  * `image` is OPTIONAL — when omitted, a branded placeholder renders so the
  * layout never looks broken. Drop a real photo in /public/images/services/
  * and set `image: "/images/services/your-file.jpg"`.
+ *
+ * NOTE: the current `image` values are TEMPORARY, license-free Unsplash stock
+ * (Unsplash License — free for commercial use) used as illustrative hero
+ * imagery. Replace them with real Rally project photos when available.
  */
 
 export type ServiceCategory = "lighting" | "cleaning";
@@ -59,6 +63,8 @@ export type Service = {
 export const services: Service[] = [
   {
     slug: "permanent-lighting",
+    image:
+      "https://images.unsplash.com/photo-1696266530873-30935fa5e549?auto=format&fit=crop&w=1600&q=75",
     name: "Permanent Exterior Lighting",
     shortName: "Permanent Lighting",
     category: "lighting",
@@ -102,6 +108,8 @@ export const services: Service[] = [
   },
   {
     slug: "holiday-lighting",
+    image:
+      "https://images.unsplash.com/photo-1642184665676-636ffd0c3afe?auto=format&fit=crop&w=1600&q=75",
     name: "Christmas & Holiday Lighting",
     shortName: "Holiday Lighting",
     category: "lighting",
@@ -146,6 +154,8 @@ export const services: Service[] = [
   },
   {
     slug: "house-washing",
+    image:
+      "https://images.unsplash.com/photo-1768941124460-6fa7161715ff?auto=format&fit=crop&w=1600&q=75",
     name: "House Washing",
     shortName: "House Washing",
     category: "cleaning",
@@ -189,6 +199,8 @@ export const services: Service[] = [
   },
   {
     slug: "roof-washing",
+    image:
+      "https://images.unsplash.com/photo-1518966870461-3b4d5b868fdd?auto=format&fit=crop&w=1600&q=75",
     name: "Roof Washing",
     shortName: "Roof Washing",
     category: "cleaning",
@@ -231,6 +243,8 @@ export const services: Service[] = [
   },
   {
     slug: "soft-washing",
+    image:
+      "https://images.unsplash.com/photo-1751050743813-03d46859896c?auto=format&fit=crop&w=1600&q=75",
     name: "Exterior Soft Washing",
     shortName: "Soft Washing",
     category: "cleaning",
@@ -273,6 +287,8 @@ export const services: Service[] = [
   },
   {
     slug: "concrete-cleaning",
+    image:
+      "https://images.unsplash.com/photo-1677956787377-a0f32c0974af?auto=format&fit=crop&w=1600&q=75",
     name: "Concrete Cleaning",
     shortName: "Concrete Cleaning",
     category: "cleaning",
@@ -315,6 +331,8 @@ export const services: Service[] = [
   },
   {
     slug: "concrete-paver-sealing",
+    image:
+      "https://images.unsplash.com/photo-1780838446281-9394772d07a8?auto=format&fit=crop&w=1600&q=75",
     name: "Concrete & Paver Sealing",
     shortName: "Concrete Sealing",
     category: "cleaning",
@@ -357,6 +375,8 @@ export const services: Service[] = [
   },
   {
     slug: "commercial-cleaning",
+    image:
+      "https://images.unsplash.com/photo-1578593089381-98e8e66f0819?auto=format&fit=crop&w=1600&q=75",
     name: "Commercial Exterior Cleaning",
     shortName: "Commercial Cleaning",
     category: "cleaning",
