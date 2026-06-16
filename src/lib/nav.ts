@@ -1,0 +1,32 @@
+import { services } from "@/data/services";
+
+export type NavLink = {
+  label: string;
+  href: string;
+  children?: { label: string; href: string }[];
+};
+
+export const mainNav: NavLink[] = [
+  {
+    label: "Services",
+    href: "/services",
+    children: services.map((s) => ({
+      label: s.name,
+      href: `/services/${s.slug}`,
+    })),
+  },
+  { label: "Gallery", href: "/gallery" },
+  { label: "About", href: "/about" },
+  { label: "Contact", href: "/contact" },
+];
+
+export const footerNav = {
+  services: services.map((s) => ({ label: s.name, href: `/services/${s.slug}` })),
+  company: [
+    { label: "About Rally", href: "/about" },
+    { label: "Project Gallery", href: "/gallery" },
+    { label: "Free Estimate", href: "/contact" },
+    { label: "Service Area", href: "/#service-area" },
+    { label: "Privacy Policy", href: "/privacy" },
+  ],
+};
