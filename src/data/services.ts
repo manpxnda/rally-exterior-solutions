@@ -63,8 +63,7 @@ export type Service = {
 export const services: Service[] = [
   {
     slug: "permanent-lighting",
-    image:
-      "https://images.unsplash.com/photo-1696266530873-30935fa5e549?auto=format&fit=crop&w=1600&q=75",
+    image: "/images/lighting/permanent-warm-white.jpg",
     name: "Permanent Exterior Lighting",
     shortName: "Permanent Lighting",
     category: "lighting",
@@ -108,8 +107,7 @@ export const services: Service[] = [
   },
   {
     slug: "holiday-lighting",
-    image:
-      "https://images.unsplash.com/photo-1642184665676-636ffd0c3afe?auto=format&fit=crop&w=1600&q=75",
+    image: "/images/lighting/christmas-warm-white.jpg",
     name: "Christmas & Holiday Lighting",
     shortName: "Holiday Lighting",
     category: "lighting",

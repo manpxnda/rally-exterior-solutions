@@ -1,11 +1,10 @@
 /**
- * GALLERY / PROOF assets.
+ * GALLERY / PROOF assets — real Rally project photos.
  * ----------------------------------------------------------------------------
- * Before/after items power the homepage proof slider and the /gallery page.
- * `before` / `after` are OPTIONAL image paths — when omitted a labeled
- * placeholder renders so the layout stays intact. To add real photos:
- *   1. Drop files in /public/images/gallery/
- *   2. Set before/after to "/images/gallery/your-file.jpg"
+ * Before/after pairs power the homepage proof slider, the gallery, and each
+ * service page's proof section. All pairs are portrait phone photos, shown in
+ * the portrait (3:4) slider. To add more: drop matched files in
+ * /public/images/gallery/ and add an entry here.
  */
 export type BeforeAfter = {
   id: string;
@@ -19,45 +18,64 @@ export type BeforeAfter = {
 export const beforeAfters: BeforeAfter[] = [
   {
     id: "house-1",
-    title: "Vinyl Siding Soft Wash",
+    title: "House Soft Wash",
     service: "house-washing",
-    location: "Wheeling, WV",
+    location: "Ohio Valley",
+    before: "/images/gallery/house-washing-before-1.jpg",
+    after: "/images/gallery/house-washing-after-1.jpg",
   },
   {
     id: "roof-1",
-    title: "Black Streak Roof Removal",
+    title: "Roof Cleaning",
     service: "roof-washing",
-    location: "Moundsville, WV",
+    location: "Ohio Valley",
+    before: "/images/gallery/roof-washing-before-1.jpg",
+    after: "/images/gallery/roof-washing-after-1.jpg",
   },
   {
     id: "concrete-1",
-    title: "Driveway Restoration",
+    title: "Driveway Cleaning",
     service: "concrete-cleaning",
-    location: "St. Clairsville, OH",
+    location: "Ohio Valley",
+    before: "/images/gallery/concrete-cleaning-before-1.jpg",
+    after: "/images/gallery/concrete-cleaning-after-1.jpg",
   },
   {
-    id: "lighting-1",
-    title: "Permanent Lighting — Holiday Scene",
-    service: "permanent-lighting",
-    location: "Bridgeport, OH",
+    id: "house-3",
+    title: "Exterior House Washing",
+    service: "house-washing",
+    location: "Ohio Valley",
+    before: "/images/gallery/house-washing-before-3.jpg",
+    after: "/images/gallery/house-washing-after-3.jpg",
   },
   {
-    id: "paver-1",
-    title: "Paver Patio Clean & Seal",
-    service: "concrete-paver-sealing",
-    location: "Wheeling, WV",
+    id: "concrete-3",
+    title: "Concrete Cleaning",
+    service: "concrete-cleaning",
+    location: "Ohio Valley",
+    before: "/images/gallery/concrete-cleaning-before-3.jpg",
+    after: "/images/gallery/concrete-cleaning-after-3.jpg",
   },
   {
-    id: "commercial-1",
-    title: "Storefront Building Wash",
-    service: "commercial-cleaning",
-    location: "Martins Ferry, OH",
+    id: "gutter-1",
+    title: "Gutter Cleaning & Brightening",
+    service: "soft-washing",
+    location: "Ohio Valley",
+    before: "/images/gallery/gutter-cleaning-before-1.jpg",
+    after: "/images/gallery/gutter-cleaning-after-1.jpg",
+  },
+  {
+    id: "fence-1",
+    title: "Fence Restoration",
+    service: "soft-washing",
+    location: "Ohio Valley",
+    before: "/images/gallery/fence-restoration-before-1.jpg",
+    after: "/images/gallery/fence-restoration-after-1.jpg",
   },
 ];
 
 /**
- * Showcase gallery (single images, e.g. finished lighting / clean exteriors).
- * Optional `src`; placeholder renders when omitted.
+ * Showcase gallery — finished single-image projects (lighting).
  */
 export type ShowcaseItem = {
   id: string;
@@ -67,10 +85,76 @@ export type ShowcaseItem = {
 };
 
 export const showcase: ShowcaseItem[] = [
-  { id: "show-1", title: "Warm White Roofline", service: "permanent-lighting" },
-  { id: "show-2", title: "Festive Red & Green", service: "holiday-lighting" },
-  { id: "show-3", title: "Freshly Washed Brick Home", service: "house-washing" },
-  { id: "show-4", title: "Restored Paver Walkway", service: "concrete-paver-sealing" },
-  { id: "show-5", title: "Game-Day Color Scene", service: "permanent-lighting" },
-  { id: "show-6", title: "Clean Commercial Facade", service: "commercial-cleaning" },
+  {
+    id: "perm-warm-white",
+    title: "Permanent Warm White Lighting",
+    service: "permanent-lighting",
+    src: "/images/lighting/permanent-warm-white.jpg",
+  },
+  {
+    id: "xmas-warm-white",
+    title: "Warm White Christmas Roofline",
+    service: "holiday-lighting",
+    src: "/images/lighting/christmas-warm-white.jpg",
+  },
+  {
+    id: "perm-independence",
+    title: "Red, White & Blue Scene",
+    service: "permanent-lighting",
+    src: "/images/lighting/permanent-independence.jpg",
+  },
+  {
+    id: "xmas-multicolor",
+    title: "Multicolor Holiday Display",
+    service: "holiday-lighting",
+    src: "/images/lighting/christmas-multicolor.jpg",
+  },
+  {
+    id: "perm-pure-white",
+    title: "Permanent Pure White",
+    service: "permanent-lighting",
+    src: "/images/lighting/permanent-pure-white.jpg",
+  },
+  {
+    id: "xmas-warm-white-brick",
+    title: "Warm White on Brick",
+    service: "holiday-lighting",
+    src: "/images/lighting/christmas-warm-white-brick.jpg",
+  },
+  {
+    id: "perm-green-blue",
+    title: "Custom Color Scene",
+    service: "permanent-lighting",
+    src: "/images/lighting/permanent-green-blue.jpg",
+  },
+  {
+    id: "xmas-cool-white",
+    title: "Cool White Christmas Lights",
+    service: "holiday-lighting",
+    src: "/images/lighting/christmas-cool-white.jpg",
+  },
+  {
+    id: "perm-forward-facing",
+    title: "Architectural Track Lighting",
+    service: "permanent-lighting",
+    src: "/images/lighting/permanent-forward-facing.jpg",
+  },
+  {
+    id: "xmas-gingerbread",
+    title: "Gingerbread Multicolor",
+    service: "holiday-lighting",
+    src: "/images/lighting/christmas-gingerbread.jpg",
+  },
+  {
+    id: "perm-pink",
+    title: "Custom Holiday Color",
+    service: "permanent-lighting",
+    src: "/images/lighting/permanent-pink.jpg",
+  },
+  {
+    id: "xmas-white",
+    title: "Classic White Christmas Lights",
+    service: "holiday-lighting",
+    src: "/images/lighting/christmas-white.jpg",
+  },
 ];

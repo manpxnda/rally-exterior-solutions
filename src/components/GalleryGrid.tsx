@@ -93,7 +93,7 @@ export function GalleryGrid() {
                     alt={item.title}
                     label={item.title}
                     icon={service?.icon ?? "image"}
-                    aspect="square"
+                    aspect="photo"
                     rounded="rounded-none"
                   />
                   <figcaption className="bg-white px-4 py-3">

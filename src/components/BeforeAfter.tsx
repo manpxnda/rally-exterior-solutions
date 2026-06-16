@@ -11,17 +11,25 @@ import { Icon } from "@/components/ui/Icon";
  * If images are missing, on-brand "before/after" placeholders render so the
  * proof section is fully demonstrable before real photos are dropped in.
  */
+const aspectClass = {
+  portrait: "aspect-[3/4]",
+  landscape: "aspect-[4/3]",
+  square: "aspect-square",
+} as const;
+
 export function BeforeAfter({
   before,
   after,
   beforeAlt = "Before",
   afterAlt = "After",
+  aspect = "portrait",
   className,
 }: {
   before?: string;
   after?: string;
   beforeAlt?: string;
   afterAlt?: string;
+  aspect?: keyof typeof aspectClass;
   className?: string;
 }) {
   const [pos, setPos] = useState(50);
@@ -40,7 +48,8 @@ export function BeforeAfter({
     <div
       ref={containerRef}
       className={cn(
-        "relative aspect-[4/3] w-full select-none overflow-hidden rounded-2xl bg-ink-800 shadow-card",
+        "relative w-full select-none overflow-hidden rounded-2xl bg-ink-800 shadow-card",
+        aspectClass[aspect],
         className
       )}
       onMouseDown={(e) => {
