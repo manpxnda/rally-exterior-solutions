@@ -7,6 +7,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { PromoBar } from "@/components/layout/PromoBar";
 import { MobileCTABar } from "@/components/layout/MobileCTABar";
+import { HideOnDashboard } from "@/components/layout/HideOnDashboard";
 import { Analytics } from "@/components/analytics/Analytics";
 import { Analytics as VercelAnalytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -88,12 +89,16 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${robotoSlab.variable}`}>
       <body className="flex min-h-screen flex-col">
         <JsonLd data={[localBusinessSchema(), websiteSchema()]} />
-        <PromoBar />
-        <Header />
+        <HideOnDashboard>
+          <PromoBar />
+          <Header />
+        </HideOnDashboard>
         {/* pb on mobile leaves room for the sticky CTA bar */}
         <main className="flex-1 pb-20 lg:pb-0">{children}</main>
-        <Footer />
-        <MobileCTABar />
+        <HideOnDashboard>
+          <Footer />
+          <MobileCTABar />
+        </HideOnDashboard>
         <Analytics />
         <VercelAnalytics />
         <SpeedInsights />
