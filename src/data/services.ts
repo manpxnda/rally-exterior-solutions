@@ -152,8 +152,7 @@ export const services: Service[] = [
   },
   {
     slug: "house-washing",
-    image:
-      "https://images.unsplash.com/photo-1768941124460-6fa7161715ff?auto=format&fit=crop&w=1600&q=75",
+    image: "/images/services/hero-house-washing.jpg",
     name: "House Washing",
     shortName: "House Washing",
     category: "cleaning",
@@ -197,8 +196,7 @@ export const services: Service[] = [
   },
   {
     slug: "roof-washing",
-    image:
-      "https://images.unsplash.com/photo-1518966870461-3b4d5b868fdd?auto=format&fit=crop&w=1600&q=75",
+    image: "/images/services/hero-roof-washing.jpg",
     name: "Roof Washing",
     shortName: "Roof Washing",
     category: "cleaning",
@@ -241,8 +239,7 @@ export const services: Service[] = [
   },
   {
     slug: "concrete-cleaning",
-    image:
-      "https://images.unsplash.com/photo-1677956787377-a0f32c0974af?auto=format&fit=crop&w=1600&q=75",
+    image: "/images/services/hero-concrete-cleaning.jpg",
     name: "Concrete Cleaning",
     shortName: "Concrete Cleaning",
     category: "cleaning",
