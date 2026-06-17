@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { site } from "@/lib/site";
 import { getServiceSlugs } from "@/data/services";
+import { getLocationSlugs } from "@/data/locations";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
@@ -8,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes = [
     { path: "/", priority: 1, freq: "weekly" as const },
     { path: "/services", priority: 0.9, freq: "weekly" as const },
+    { path: "/locations", priority: 0.8, freq: "weekly" as const },
     { path: "/gallery", priority: 0.7, freq: "monthly" as const },
     { path: "/about", priority: 0.6, freq: "monthly" as const },
     { path: "/contact", priority: 0.9, freq: "monthly" as const },
@@ -20,7 +22,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     freq: "monthly" as const,
   }));
 
-  return [...staticRoutes, ...serviceRoutes].map((r) => ({
+  const locationRoutes = getLocationSlugs().map((slug) => ({
+    path: `/locations/${slug}`,
+    priority: 0.7,
+    freq: "monthly" as const,
+  }));
+
+  return [...staticRoutes, ...serviceRoutes, ...locationRoutes].map((r) => ({
     url: `${site.url}${r.path}`,
     lastModified: now,
     changeFrequency: r.freq,

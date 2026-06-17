@@ -5,6 +5,7 @@
 import { site, serviceAreaCities } from "@/lib/site";
 import { services, type Service } from "@/data/services";
 import { faqs, type Faq } from "@/data/faqs";
+import { type Location } from "@/data/locations";
 
 const BUSINESS_ID = `${site.url}/#business`;
 
@@ -82,6 +83,36 @@ export function serviceSchema(service: Service) {
     provider: { "@id": BUSINESS_ID, "@type": "LocalBusiness", name: site.name },
     areaServed: serviceAreaCities.map((c) => ({ "@type": "City", name: c })),
     category: service.category === "lighting" ? "Lighting Installation" : "Exterior Cleaning",
+  };
+}
+
+/** Per-location LocalBusiness with areaServed = that city (local SEO). */
+export function locationSchema(loc: Location) {
+  return {
+    "@context": "https://schema.org",
+    "@type": ["HomeAndConstructionBusiness", "LocalBusiness"],
+    "@id": `${site.url}/locations/${loc.slug}#business`,
+    name: `${site.name} — ${loc.city}, ${loc.state}`,
+    description: loc.intro,
+    url: `${site.url}/locations/${loc.slug}`,
+    telephone: site.phoneHref.replace("tel:", ""),
+    email: site.email,
+    image: `${site.url}/opengraph-image`,
+    priceRange: "$$",
+    parentOrganization: { "@id": BUSINESS_ID },
+    areaServed: { "@type": "City", name: `${loc.city}, ${loc.state}` },
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: site.stats.reviewRating,
+      reviewCount: site.stats.reviewCount,
+    },
+    makesOffer: services.map((s) => ({
+      "@type": "Offer",
+      itemOffered: {
+        "@type": "Service",
+        name: `${s.name} in ${loc.city}, ${loc.state}`,
+      },
+    })),
   };
 }
 
