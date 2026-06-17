@@ -61,7 +61,7 @@ export const site = {
   stats: {
     yearFounded: 2021,
     projectsCompleted: "500+",
-    reviewCount: 35,
+    reviewCount: 30,
     reviewRating: 4.9,
     responseTime: "Same-day",
   },
