@@ -16,9 +16,10 @@ Conversion-focused marketing site for **Rally Exterior Solutions** — premium e
 - `src/data/*.ts` — content that drives the site:
   - `services.ts` — 7 services → auto-generates `/services/[slug]`, nav, schema. (Removed "Exterior Soft Washing".)
   - `gallery.ts` — `beforeAfters` (10 verified pairs) + `showcase` (12 lighting). `testimonials.ts`, `faqs.ts`, `content.ts`.
-  - `locations.ts` — 8 city landing pages (local SEO); keep `intro`/`context` UNIQUE per city.
-- `src/lib/schema.ts` — JSON-LD: localBusiness/service/faq/breadcrumb/**locationSchema** (areaServed per city). `nav.ts`, `analytics.ts`.
-- `src/app/` — routes: `/`, `/services` + `/services/[slug]`, `/locations` + `/locations/[slug]`, `/gallery`, `/about`, `/contact`, `/thank-you`, `/privacy`, `/dashboard` (private), `/api/lead`. Plus `sitemap.ts`, `robots.ts`, `manifest.ts`, `opengraph-image.tsx`.
+  - `locations.ts` — **12** city landing pages (local SEO); keep `intro`/`context` UNIQUE per city.
+  - `guides.ts` — data-driven `/guides/[slug]` content (SEO + lead capture). First: `house-washing-cost` (pricing guide w/ price table + FAQ). Copy a block to add one; pricing ranges are honest regional estimates, not quotes.
+- `src/lib/schema.ts` — JSON-LD: localBusiness/service/faq/breadcrumb/**locationSchema** (areaServed per city)/**articleSchema** (guides). `nav.ts`, `analytics.ts`.
+- `src/app/` — routes: `/`, `/services` + `/services/[slug]`, `/locations` + `/locations/[slug]`, `/guides` + `/guides/[slug]`, `/gallery`, `/about`, `/contact`, `/thank-you`, `/privacy`, `/dashboard` (private), `/api/lead`. Plus `sitemap.ts`, `robots.ts`, `manifest.ts`, `opengraph-image.tsx`.
 - `src/components/` — `layout/`, `sections/` (homepage blocks), `ui/` (Button, Section, Icon, MediaFrame, **BeforeAfter** slider…), `analytics/`.
 - `src/middleware.ts` — Basic Auth gate for `/dashboard`.
 - Favicons: `public/favicon.ico` + `public/icon.png` + `public/apple-icon.png` + `public/icon.svg`, declared via `metadata.icons` in `layout.tsx` (NOT app/icon convention — that conflicted).
@@ -40,7 +41,7 @@ Business details → `src/lib/site.ts`. Services/reviews/faqs/gallery/locations 
 - More source photos available in `~/Desktop/Rally Photos/`.
 
 ## Integrations (env var NAMES only — values in Vercel)
-- **Leads:** `POST /api/lead` → Resend email to **info@rallyexteriorsolutions.com** from `leads@` (domain verified). Env: `RESEND_API_KEY`, `LEAD_EMAIL_TO`, `LEAD_EMAIL_FROM`. Resend account = rallyohv@gmail.com.
+- **Leads:** 3 paths — (1) `LeadForm` `POST /api/lead` → Resend email to **info@rallyexteriorsolutions.com** from `leads@` (domain verified; env `RESEND_API_KEY`, `LEAD_EMAIL_TO`, `LEAD_EMAIL_FROM`; Resend account = rallyohv@gmail.com); (2) **call** (`tel:` via `CallButton`/`CallLink`, `trackCallClick`); (3) **text** (`sms:` via `TextButton`/`TextLink` + `site.smsHref` pre-filled, `trackTextClick`). Mobile sticky bar = Call/Text/Free-Quote.
 - **Analytics (live):** GA4 (`NEXT_PUBLIC_GA4_ID`), Clarity (`NEXT_PUBLIC_CLARITY_ID`), Vercel Analytics + Speed Insights. Lead form fires `generate_lead` + `call_click`. **Search Console verified + sitemap submitted (Success, 13→now ~22 pages).**
 - **Owner dashboard:** `/dashboard` — Basic Auth (`DASHBOARD_USER`/`DASHBOARD_PASSWORD`), `HideOnDashboard` hides marketing chrome, embeds Looker Studio when `NEXT_PUBLIC_LOOKER_EMBED_URL` set.
 - **Redirects (`next.config.mjs`):** old SiteGround paths → current pages; **host-based 301 for old domain `rallyohv.com` → rallyexteriorsolutions.com (preserves path)**. rallyohv.com is added to the Vercel project.
