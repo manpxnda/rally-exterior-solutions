@@ -19,7 +19,8 @@ Conversion-focused marketing site for **Rally Exterior Solutions** — premium e
   - `locations.ts` — **12** city landing pages (local SEO); keep `intro`/`context` UNIQUE per city.
   - `guides.ts` — data-driven `/guides/[slug]` content (SEO + lead capture). First: `house-washing-cost` (pricing guide w/ price table + FAQ). Copy a block to add one; pricing ranges are honest regional estimates, not quotes.
 - `src/lib/schema.ts` — JSON-LD: localBusiness/service/faq/breadcrumb/**locationSchema** (areaServed per city)/**articleSchema** (guides). `nav.ts`, `analytics.ts`.
-- `src/app/` — routes: `/`, `/services` + `/services/[slug]`, `/locations` + `/locations/[slug]`, `/guides` + `/guides/[slug]`, `/gallery`, `/about`, `/contact`, `/thank-you`, `/privacy`, `/dashboard` (private), `/api/lead`. Plus `sitemap.ts`, `robots.ts`, `manifest.ts`, `opengraph-image.tsx`.
+- `src/app/` — routes: `/`, `/services` + `/services/[slug]`, `/locations` + `/locations/[slug]`, `/guides` + `/guides/[slug]`, `/gallery`, `/about`, `/contact`, `/thank-you`, `/privacy`, `/dashboard` (private), **`/lp/[slug]`** (paid-traffic landing pages — distraction-free, `noindex`, single CTA), `/api/lead`. Plus `sitemap.ts`, `robots.ts`, `manifest.ts`, `opengraph-image.tsx`.
+- **`HideOnDashboard`** hides global nav chrome on **`/dashboard` AND `/lp`** (`BARE_ROUTES`). `/lp/[slug]` renders its own minimal header/footer (use `<div>` not landmark tags — it's nested in root `<main>`). `TrackedCall` = style-able tracked phone link for custom CTAs.
 - `src/components/` — `layout/`, `sections/` (homepage blocks), `ui/` (Button, Section, Icon, MediaFrame, **BeforeAfter** slider…), `analytics/`.
 - `src/middleware.ts` — Basic Auth gate for `/dashboard`.
 - Favicons: `public/favicon.ico` + `public/icon.png` + `public/apple-icon.png` + `public/icon.svg`, declared via `metadata.icons` in `layout.tsx` (NOT app/icon convention — that conflicted).
@@ -51,7 +52,8 @@ Business details → `src/lib/site.ts`. Services/reviews/faqs/gallery/locations 
 - **Google Business Profile** optimization (biggest local-ranking lever) — see `docs/LOCAL-SEO.md`. User-driven.
 - **Looker Studio** report is blank — user needs to add charts (template) + resend embed URL.
 - Request Indexing on key pages in Search Console; confirm review/project stats; real address/hours.
-- Future: more city pages (`src/data/locations.ts`), Google Ads (`NEXT_PUBLIC_GOOGLE_ADS_ID`/`_LEAD_LABEL`) + Meta Pixel (`NEXT_PUBLIC_META_PIXEL_ID`) when ads start.
+- **Ads (in progress):** user chose **LSA first** (cleaning) → playbook `docs/LOCAL-SERVICES-ADS.md`; **Search Ads for permanent lighting** → `docs/SEARCH-ADS-PERMANENT-LIGHTING.md` (LSA has no lighting category). Landing page `/lp/permanent-lighting` built. Conversion tracking is pre-wired — user sets `NEXT_PUBLIC_GOOGLE_ADS_ID` + `NEXT_PUBLIC_GOOGLE_ADS_LEAD_LABEL` in Vercel + redeploy; lead form auto-fires the conversion. Meta Pixel (`NEXT_PUBLIC_META_PIXEL_ID`) when ads start.
+- Future: more city pages + guides (copy a block in the data files).
 
 ## Working preference
 After any editing session, run a quick **sales-forward + SEO-forward** pass and implement safe wins before wrapping up.
