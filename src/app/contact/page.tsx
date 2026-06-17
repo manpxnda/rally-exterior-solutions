@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Section } from "@/components/ui/Section";
 import { LeadForm } from "@/components/LeadForm";
 import { Icon } from "@/components/ui/Icon";
-import { CallLink } from "@/components/CallButton";
+import { CallLink, TextLink } from "@/components/CallButton";
 import { Stars } from "@/components/ui/Stars";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/schema";
@@ -64,6 +64,14 @@ export default async function ContactPage({
                 >
                   {site.phoneDisplay}
                 </CallLink>
+                <div className="mt-1">
+                  <TextLink
+                    source="contact_page"
+                    className="text-sm font-semibold text-gold-600 hover:text-gold-700"
+                  >
+                    Text us instead →
+                  </TextLink>
+                </div>
               </ContactRow>
               <ContactRow icon="mail" label="Email">
                 <a

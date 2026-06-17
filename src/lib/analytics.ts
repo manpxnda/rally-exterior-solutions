@@ -42,6 +42,12 @@ export function trackCallClick(source = "site") {
   trackMeta("Contact", { source });
 }
 
+/** A text/SMS click (text intent — a softer but real lead signal). */
+export function trackTextClick(source = "site") {
+  trackEvent("text_click", { source });
+  trackMeta("Contact", { source, method: "sms" });
+}
+
 /**
  * The primary conversion: a submitted estimate request.
  * Fires GA4, Meta Pixel Lead, and a Google Ads conversion (if configured).

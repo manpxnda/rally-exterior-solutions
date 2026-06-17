@@ -23,6 +23,10 @@ export const site = {
   // --- Contact (PLACEHOLDERS — update before launch) ----------------------
   phoneDisplay: "(740) 208-8632",
   phoneHref: "tel:+17402088632",
+  // `?&body=` works cross-platform (iOS + Android). Pre-fills the text so
+  // customers send in one tap.
+  smsHref:
+    "sms:+17402088632?&body=Hi%20Rally!%20I%27d%20like%20a%20free%20estimate%20for%20",
   email: "info@rallyexteriorsolutions.com",
 
   // Used for the Local Business schema + footer. A service-area business can
