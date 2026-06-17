@@ -6,6 +6,7 @@ import { site, serviceAreaCities } from "@/lib/site";
 import { services, type Service } from "@/data/services";
 import { faqs, type Faq } from "@/data/faqs";
 import { type Location } from "@/data/locations";
+import { type Guide } from "@/data/guides";
 
 const BUSINESS_ID = `${site.url}/#business`;
 
@@ -138,6 +139,24 @@ export function breadcrumbSchema(trail: { name: string; url: string }[]) {
       name: item.name,
       item: `${site.url}${item.url}`,
     })),
+  };
+}
+
+/** Article schema for a guide/resource page (authored by the business). */
+export function articleSchema(guide: Guide) {
+  const url = `${site.url}/guides/${guide.slug}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: guide.title,
+    description: guide.metaDescription,
+    url,
+    mainEntityOfPage: url,
+    image: `${site.url}/opengraph-image`,
+    datePublished: guide.updated,
+    dateModified: guide.updated,
+    author: { "@id": BUSINESS_ID, "@type": "Organization", name: site.name },
+    publisher: { "@id": BUSINESS_ID, "@type": "Organization", name: site.name },
   };
 }
 

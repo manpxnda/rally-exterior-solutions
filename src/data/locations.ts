@@ -117,6 +117,54 @@ export const locations: Location[] = [
       "Ornate older homes need careful, damage-free cleaning. Our soft washing protects delicate trim and paint, and our permanent lighting shows off Barnesville's architecture year-round.",
     nearby: ["Bethesda", "Belmont", "Quaker City", "Morristown"],
   },
+  {
+    slug: "triadelphia-wv",
+    city: "Triadelphia",
+    state: "WV",
+    stateName: "West Virginia",
+    county: "Ohio County",
+    intro:
+      "Just east of Wheeling along the National Road, Triadelphia and the booming Highlands corridor are home to growing neighborhoods and busy storefronts. Rally keeps them clean and brightly lit.",
+    context:
+      "From new subdivisions in the hills to retail along The Highlands, Triadelphia properties pick up road grime and algae fast. We soft-wash homes and businesses, brighten concrete, and install lighting that makes them stand out day or night.",
+    nearby: ["Valley Grove", "Dallas", "Elm Grove", "Wheeling"],
+  },
+  {
+    slug: "bethlehem-wv",
+    city: "Bethlehem",
+    state: "WV",
+    stateName: "West Virginia",
+    county: "Ohio County",
+    intro:
+      "A quiet village on the hilltops just south of Wheeling, Bethlehem's well-kept homes deserve exteriors that match. Rally delivers premium cleaning and lighting close to home.",
+    context:
+      "Bethlehem's tree-lined streets mean shade, leaf debris, and roof algae are common. We soft-wash siding and roofs, brighten driveways and walkways, and install permanent lighting for effortless year-round curb appeal.",
+    nearby: ["Mozart", "Wheeling", "Elm Grove", "Woodsdale"],
+  },
+  {
+    slug: "powhatan-point-oh",
+    city: "Powhatan Point",
+    state: "OH",
+    stateName: "Ohio",
+    county: "Belmont County",
+    intro:
+      "Tucked along the Ohio River in southern Belmont County, Powhatan Point's riverfront homes take on humidity, mildew, and roof staining. Rally restores their curb appeal and lights them up.",
+    context:
+      "River-valley moisture is hard on siding and roofs here. Our low-pressure soft washing removes algae and black streaks without damage, and our concrete cleaning and lighting round out a fresh, cared-for look.",
+    nearby: ["Clarington", "Sardis", "Shadyside", "Bellaire"],
+  },
+  {
+    slug: "cadiz-oh",
+    city: "Cadiz",
+    state: "OH",
+    stateName: "Ohio",
+    county: "Harrison County",
+    intro:
+      "The seat of Harrison County and birthplace of Clark Gable, Cadiz pairs a historic downtown with hilltop homes that deserve to look their best. Rally brings premium exterior cleaning and lighting to town.",
+    context:
+      "Harrison County's rolling, wooded terrain means homes here battle shade, moss, and roof algae. Our soft-wash methods clear them safely, and our permanent lighting gives Cadiz's classic homes year-round curb appeal.",
+    nearby: ["Hopedale", "Jewett", "Scio", "Harrisville"],
+  },
 ];
 
 export function getLocation(slug: string): Location | undefined {
