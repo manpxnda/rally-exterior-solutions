@@ -7,7 +7,7 @@ import {
   services,
   type Service,
 } from "@/data/services";
-import { beforeAfters } from "@/data/gallery";
+import { beforeAfters, showcase } from "@/data/gallery";
 import { testimonialsForService } from "@/data/testimonials";
 import { regionLabel, site } from "@/lib/site";
 
@@ -56,7 +56,10 @@ export default async function ServicePage({ params }: Params) {
   const service = getService(slug);
   if (!service) notFound();
 
-  const proof = beforeAfters.filter((b) => b.service === service.slug);
+  const proof = beforeAfters
+    .filter((b) => b.service === service.slug)
+    .slice(0, 4);
+  const serviceShowcase = showcase.filter((s) => s.service === service.slug);
   const related = services.filter((s) => s.slug !== service.slug).slice(0, 3);
   const reviews = testimonialsForService(service.slug, 3);
   const categoryLabel =
@@ -215,6 +218,37 @@ export default async function ServicePage({ params }: Params) {
                 />
                 <figcaption className="mt-3 text-sm text-ink-300">
                   {item.title} · {item.location}
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* Lighting gallery (only renders for services with showcase photos) */}
+      {serviceShowcase.length > 0 && (
+        <Section tone="white">
+          <SectionHeading
+            eyebrow="Gallery"
+            title={`${service.shortName} we've installed`}
+            className="mb-10"
+          />
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {serviceShowcase.map((item) => (
+              <figure
+                key={item.id}
+                className="overflow-hidden rounded-2xl shadow-card"
+              >
+                <MediaFrame
+                  src={item.src}
+                  alt={item.title}
+                  label={item.title}
+                  icon={service.icon}
+                  aspect="photo"
+                  rounded="rounded-none"
+                />
+                <figcaption className="bg-white px-4 py-3 text-sm font-semibold text-ink-900">
+                  {item.title}
                 </figcaption>
               </figure>
             ))}
