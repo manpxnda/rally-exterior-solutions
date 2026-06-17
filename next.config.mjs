@@ -15,6 +15,20 @@ const nextConfig = {
     // 301 redirects to capture traffic from the OLD SiteGround site's indexed
     // URLs so nothing is wasted. Add more here if Search Console shows others.
     return [
+      // Old domain rallyohv.com → current site, preserving the path. The path
+      // rules below then map old paths (e.g. /house-washing) to the new pages.
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "rallyohv.com" }],
+        destination: "https://rallyexteriorsolutions.com/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.rallyohv.com" }],
+        destination: "https://rallyexteriorsolutions.com/:path*",
+        permanent: true,
+      },
       { source: "/contact-us", destination: "/contact", permanent: true },
       { source: "/contact-us.html", destination: "/contact", permanent: true },
       { source: "/house-washing", destination: "/services/house-washing", permanent: true },
