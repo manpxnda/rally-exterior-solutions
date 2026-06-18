@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getLocation, getLocationSlugs } from "@/data/locations";
+import { Fragment } from "react";
+import { getLocation, getLocationSlugs, getLocationByCity } from "@/data/locations";
 import { services } from "@/data/services";
 import { site } from "@/lib/site";
 
@@ -135,9 +136,33 @@ export default async function LocationPage({ params }: Params) {
             title={`Proudly serving ${loc.city} & nearby`}
           />
           <p className="mt-4 text-ink-500">
-            We also serve {loc.nearby.slice(0, -1).join(", ")} and{" "}
-            {loc.nearby[loc.nearby.length - 1]}, plus the surrounding{" "}
-            {loc.county} area. Not sure if you&apos;re in range? Just ask.
+            We also serve{" "}
+            {loc.nearby.map((name, i) => {
+              const match = getLocationByCity(name);
+              const sep =
+                i < loc.nearby.length - 2
+                  ? ", "
+                  : i === loc.nearby.length - 2
+                    ? " and "
+                    : "";
+              return (
+                <Fragment key={name}>
+                  {match ? (
+                    <Link
+                      href={`/locations/${match.slug}`}
+                      className="font-medium text-ink-700 underline decoration-ink-200 underline-offset-2 transition-colors hover:text-gold-600"
+                    >
+                      {name}
+                    </Link>
+                  ) : (
+                    name
+                  )}
+                  {sep}
+                </Fragment>
+              );
+            })}
+            , plus the surrounding {loc.county} area. Not sure if you&apos;re in
+            range? Just ask.
           </p>
           <div className="mt-6">
             <Button href="/locations" variant="outline">

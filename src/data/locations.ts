@@ -642,3 +642,10 @@ export function getLocation(slug: string): Location | undefined {
 export function getLocationSlugs(): string[] {
   return locations.map((l) => l.slug);
 }
+
+/** Find a location page by its city name (case-insensitive) — used to turn
+ *  "nearby town" mentions into internal links when that town has its own page. */
+export function getLocationByCity(city: string): Location | undefined {
+  const c = city.trim().toLowerCase();
+  return locations.find((l) => l.city.toLowerCase() === c);
+}
