@@ -136,6 +136,8 @@ export async function getSearchRankings(
 
     return { configured: true, rows, range: { start: fmt(start), end: fmt(end) } };
   } catch (e) {
-    return { configured: true, rows: [], range: null, error: e instanceof Error ? e.message : "error" };
+    const msg = e instanceof Error ? e.message : "error";
+    // Surface the email actually loaded from env so credential mismatches are obvious.
+    return { configured: true, rows: [], range: null, error: `${msg} [using email=${email}]` };
   }
 }
