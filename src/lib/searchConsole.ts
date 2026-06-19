@@ -82,13 +82,15 @@ export async function getSearchRankings(
   rowLimit = 100,
   offsetDays = 0
 ): Promise<RankingsResult> {
-  const email = process.env.GSC_CLIENT_EMAIL;
+  // Defensive: strip wrapping quotes + whitespace that often sneak in on paste.
+  const clean = (v?: string) => v?.trim().replace(/^["']|["']$/g, "").trim();
+  const email = clean(process.env.GSC_CLIENT_EMAIL);
   const rawKey = process.env.GSC_PRIVATE_KEY;
-  const siteUrl = process.env.GSC_SITE_URL;
+  const siteUrl = clean(process.env.GSC_SITE_URL);
   if (!email || !rawKey || !siteUrl) {
     return { configured: false, rows: [], range: null };
   }
-  const privateKey = rawKey.replace(/\\n/g, "\n");
+  const privateKey = (clean(rawKey) ?? "").replace(/\\n/g, "\n");
 
   try {
     const token = await getAccessToken(email, privateKey);
