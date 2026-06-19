@@ -55,6 +55,13 @@ const tools: Tool[] = [
     tone: "coral",
   },
   {
+    title: "Review QR Card",
+    desc: "Printable card → your Google review link",
+    href: "/review-card",
+    icon: "star",
+    tone: "coral",
+  },
+  {
     title: "Lead Email Logs",
     desc: "Resend — every lead sent & delivered",
     href: "https://resend.com/emails",

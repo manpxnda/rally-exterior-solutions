@@ -29,6 +29,14 @@ const nextConfig = {
         destination: "https://rallyexteriorsolutions.com/:path*",
         permanent: true,
       },
+      // Vanity short link for review requests (QR cards, in-person asks,
+      // past-customer texts). Temporary (307) so the Google destination can be
+      // changed later without reprinting any QR codes.
+      {
+        source: "/review",
+        destination: "https://g.page/r/CaY2UgCpz3LrEAI/review",
+        permanent: false,
+      },
       { source: "/contact-us", destination: "/contact", permanent: true },
       { source: "/contact-us.html", destination: "/contact", permanent: true },
       { source: "/house-washing", destination: "/services/house-washing", permanent: true },

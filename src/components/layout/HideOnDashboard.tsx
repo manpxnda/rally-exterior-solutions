@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 
 /** Routes that render without the shared marketing chrome (header/footer/etc.). */
-const BARE_ROUTES = ["/dashboard", "/lp"];
+const BARE_ROUTES = ["/dashboard", "/lp", "/review-card"];
 
 /**
  * Hides marketing chrome on routes that need a focused, distraction-free shell:
