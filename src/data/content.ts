@@ -3,23 +3,26 @@
  * Centralized so messaging stays consistent and is easy to tweak.
  */
 
-export type Step = { number: string; title: string; body: string };
+export type Step = { number: string; title: string; body: string; icon: string };
 
 export const processSteps: Step[] = [
   {
     number: "1",
     title: "Request your free estimate",
-    body: "Tell us what you need in 60 seconds — online or by phone. No pressure, no obligation.",
+    body: "Tell us what you need online or by phone — about 60 seconds, no obligation.",
+    icon: "chat",
   },
   {
     number: "2",
     title: "Get a clear, written quote",
-    body: "We assess your property and send a firm, itemized price — usually the same day. No surprises.",
+    body: "A firm, itemized price for your property — usually the same day.",
+    icon: "tag",
   },
   {
     number: "3",
     title: "Relax — we make it shine",
-    body: "Our insured crew shows up on time, does meticulous work, and leaves your property transformed.",
+    body: "Our insured crew shows up on time and leaves your property transformed.",
+    icon: "sparkle",
   },
 ];
 

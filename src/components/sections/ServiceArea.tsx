@@ -2,6 +2,7 @@ import { serviceAreaCities, regionLabel, site } from "@/lib/site";
 import { Section, SectionHeading } from "@/components/ui/Section";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
+import { ServiceRadiusMap } from "@/components/ui/ServiceRadiusMap";
 
 export function ServiceArea() {
   return (
@@ -14,10 +15,12 @@ export function ServiceArea() {
             align="left"
           />
           <p className="mt-4 text-ink-500">
-            Locally owned, serving about a {site.geo.serviceRadiusMiles}-mile
-            radius of Wheeling, WV — both sides of the river. Don&apos;t see
-            your town? Just ask.
+            Locally owned, both sides of the river. Don&apos;t see your town?
+            Just ask.
           </p>
+          <div className="mt-6 flex justify-center lg:justify-start">
+            <ServiceRadiusMap radiusMiles={site.geo.serviceRadiusMiles} />
+          </div>
           <div className="mt-6">
             <Button href="/contact">Check My Availability</Button>
           </div>
