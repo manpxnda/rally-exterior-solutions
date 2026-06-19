@@ -82,3 +82,18 @@ export const colorSchemes: ColorScheme[] = [
 export function schemesFor(typeId: LightingTypeId): ColorScheme[] {
   return colorSchemes.filter((s) => s.forTypes.includes(typeId));
 }
+
+/**
+ * Known-size reference objects for manual scale calibration. The customer drags
+ * a line across one of these in their photo and we compute pixels-per-inch, so
+ * 6"/12" spacing (and bulb size) render to true scale.
+ */
+export type ReferenceObject = { id: string; name: string; inches: number };
+
+export const referenceObjects: ReferenceObject[] = [
+  { id: "double-garage", name: "Double garage door — width (16 ft)", inches: 192 },
+  { id: "single-garage", name: "Single garage door — width (8 ft)", inches: 96 },
+  { id: "entry-door", name: "Entry door — height (6 ft 8 in)", inches: 80 },
+  { id: "window", name: "Standard window — width (3 ft)", inches: 36 },
+  { id: "custom", name: "Custom length…", inches: 0 },
+];

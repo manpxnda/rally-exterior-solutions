@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { site, regionLabel } from "@/lib/site";
 import { Stars } from "@/components/ui/Stars";
 import { Icon } from "@/components/ui/Icon";
@@ -7,9 +8,9 @@ import { CallButton } from "@/components/CallButton";
 import { LeadForm } from "@/components/LeadForm";
 
 const heroBullets = [
-  "Permanent & holiday lighting",
-  "House, roof & soft washing",
-  "Concrete cleaning & sealing",
+  { label: "Permanent & holiday lighting", href: "/services/permanent-lighting" },
+  { label: "House, roof & soft washing", href: "/services/house-washing" },
+  { label: "Concrete cleaning & sealing", href: "/services/concrete-cleaning" },
 ];
 
 export function Hero() {
@@ -66,11 +67,20 @@ export function Hero() {
 
           <ul className="mt-6 space-y-2.5">
             {heroBullets.map((b) => (
-              <li key={b} className="flex items-center gap-3 text-ink-100">
+              <li key={b.href} className="flex items-center gap-3 text-ink-100">
                 <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gold-400/15 text-gold-300">
                   <Icon name="check" className="h-4 w-4" strokeWidth={2.5} />
                 </span>
-                {b}
+                <Link
+                  href={b.href}
+                  className="group inline-flex items-center gap-1.5 decoration-gold-300/50 underline-offset-4 transition-colors hover:text-white hover:underline"
+                >
+                  {b.label}
+                  <Icon
+                    name="arrowRight"
+                    className="h-3.5 w-3.5 -translate-x-1 text-gold-300 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-80"
+                  />
+                </Link>
               </li>
             ))}
           </ul>

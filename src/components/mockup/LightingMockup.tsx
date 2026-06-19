@@ -6,6 +6,7 @@ import {
   facings,
   spacings,
   schemesFor,
+  referenceObjects,
   type LightingTypeId,
   type FacingId,
   type SpacingId,
@@ -17,25 +18,37 @@ import { cn } from "@/lib/cn";
 
 type Pt = { x: number; y: number };
 type Status = "idle" | "submitting" | "success" | "error";
+type Mode = "roof" | "scale";
 
 const MAX_CANVAS_W = 900;
+const TAP_SLOP = 6; // px movement under which a pointer interaction counts as a "tap"
 
 function hexToRgb(hex: string): [number, number, number] {
   const h = hex.replace("#", "");
   const n = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16);
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
+const dist = (a: Pt, b: Pt) => Math.hypot(a.x - b.x, a.y - b.y);
 
 export function LightingMockup() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const pointsRef = useRef<Pt[]>([]);
+  const scaleRef = useRef<[Pt, Pt] | null>(null);
+  const modeRef = useRef<Mode>("roof");
+  // pointer interaction bookkeeping
   const dragRef = useRef<number | null>(null);
+  const downPosRef = useRef<Pt>({ x: 0, y: 0 });
+  const movedRef = useRef(false);
+  const onExistingRef = useRef(false);
+  const scaleEndRef = useRef<0 | 1 | null>(null);
 
   const [hasImage, setHasImage] = useState(false);
   const [dims, setDims] = useState({ w: 0, h: 0 });
   const [points, setPoints] = useState<Pt[]>([]);
+  const [scaleLine, setScaleLine] = useState<[Pt, Pt] | null>(null);
+  const [mode, setMode] = useState<Mode>("roof");
 
   const [typeId, setTypeId] = useState<LightingTypeId>("permanent");
   const [facing, setFacing] = useState<FacingId>("downward");
@@ -43,24 +56,30 @@ export function LightingMockup() {
   const [schemeId, setSchemeId] = useState("warm-white");
   const [night, setNight] = useState(true);
 
+  const [refId, setRefId] = useState("double-garage");
+  const [customInches, setCustomInches] = useState("");
+
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState("");
 
   const schemes = schemesFor(typeId);
   const scheme = schemes.find((s) => s.id === schemeId) ?? schemes[0];
 
-  // keep refs in sync for pointer handlers
-  useEffect(() => {
-    pointsRef.current = points;
-  }, [points]);
+  const refInches =
+    refId === "custom"
+      ? parseFloat(customInches) || 0
+      : referenceObjects.find((r) => r.id === refId)?.inches ?? 0;
+  const pxPerInch =
+    scaleLine && refInches > 0 ? dist(scaleLine[0], scaleLine[1]) / refInches : null;
 
-  // when switching to a scheme not valid for the new type, reset it
+  useEffect(() => { pointsRef.current = points; }, [points]);
+  useEffect(() => { scaleRef.current = scaleLine; }, [scaleLine]);
+  useEffect(() => { modeRef.current = mode; }, [mode]);
   useEffect(() => {
     if (!schemes.find((s) => s.id === schemeId)) setSchemeId(schemes[0].id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [typeId]);
 
-  /** Fit the canvas to the container and (re)scale existing points. */
   const fitCanvas = useCallback(() => {
     const img = imgRef.current;
     const container = containerRef.current;
@@ -71,71 +90,79 @@ export function LightingMockup() {
       if (prev.w && prev.w !== cw) {
         const s = cw / prev.w;
         setPoints((pts) => pts.map((p) => ({ x: p.x * s, y: p.y * s })));
+        setScaleLine((sl) => (sl ? [{ x: sl[0].x * s, y: sl[0].y * s }, { x: sl[1].x * s, y: sl[1].y * s }] : sl));
       }
       return { w: cw, h: ch };
     });
   }, []);
 
-  /** Best-effort sky/silhouette roofline detection → seed adjustable points. */
+  /**
+   * Roofline auto-detect: per column, find the row of strongest bright→dark
+   * vertical gradient (sky → roof edge) confirmed by sky brightness above.
+   * Reject outliers (chimneys/trees) by limiting jumps between samples + smoothing.
+   */
   const detectRoofline = useCallback((img: HTMLImageElement, cw: number, ch: number): Pt[] => {
     try {
-      const aw = 160;
+      const aw = 200;
       const ah = Math.max(1, Math.round((aw * img.naturalHeight) / img.naturalWidth));
       const off = document.createElement("canvas");
       off.width = aw;
       off.height = ah;
       const octx = off.getContext("2d", { willReadFrequently: true });
-      if (!octx) return [];
+      if (!octx) return fallback(cw, ch);
       octx.drawImage(img, 0, 0, aw, ah);
-      const data = octx.getImageData(0, 0, aw, ah).data;
-      const edges: (number | null)[] = [];
+      const d = octx.getImageData(0, 0, aw, ah).data;
+      const bright = (x: number, y: number) => {
+        const i = (y * aw + x) * 4;
+        return (d[i] + d[i + 1] + d[i + 2]) / 765;
+      };
+      const limitY = Math.floor(ah * 0.72);
+      const raw: (number | null)[] = [];
       for (let x = 0; x < aw; x++) {
-        let sky = 0;
-        let edge: number | null = null;
-        for (let y = 0; y < ah; y++) {
-          const i = (y * aw + x) * 4;
-          const r = data[i], g = data[i + 1], b = data[i + 2];
-          const bright = (r + g + b) / 765; // 0..1
-          const isSky = bright > 0.5 && b >= r - 8;
-          if (isSky) {
-            sky++;
-          } else if (sky >= 3) {
-            edge = y; // first non-sky after a sky run = silhouette
-            break;
-          } else {
-            sky = 0;
+        let bestG = 0;
+        let bestY: number | null = null;
+        for (let y = 3; y < limitY; y++) {
+          const above = (bright(x, y - 3) + bright(x, y - 2) + bright(x, y - 1)) / 3;
+          const below = (bright(x, y + 1) + bright(x, y + 2) + bright(x, y + 3)) / 3;
+          const g = above - below; // strong positive = sky above, roof below
+          if (g > bestG && above > 0.45) {
+            bestG = g;
+            bestY = y;
           }
         }
-        edges.push(edge);
+        raw.push(bestG > 0.12 ? bestY : null);
       }
-      // sample ~12 evenly spaced detected columns
+      // sample N columns with local median + neighbor-jump clamping
+      const N = 14;
       const pts: Pt[] = [];
-      const N = 12;
+      let prevY: number | null = null;
       for (let k = 0; k <= N; k++) {
         const ax = Math.round((k / N) * (aw - 1));
-        // local median around ax for stability
         const win: number[] = [];
-        for (let dx = -3; dx <= 3; dx++) {
-          const e = edges[ax + dx];
-          if (e != null) win.push(e);
+        for (let dx = -4; dx <= 4; dx++) {
+          const v = raw[ax + dx];
+          if (v != null) win.push(v);
         }
-        if (win.length) {
-          win.sort((a, b) => a - b);
-          const my = win[Math.floor(win.length / 2)];
-          pts.push({ x: (ax / (aw - 1)) * cw, y: (my / ah) * ch });
+        if (!win.length) continue;
+        win.sort((a, b) => a - b);
+        let my = win[Math.floor(win.length / 2)];
+        if (prevY != null && Math.abs(my - prevY) > ah * 0.18) {
+          my = prevY + Math.sign(my - prevY) * ah * 0.18; // clamp large jumps
         }
+        prevY = my;
+        pts.push({ x: (ax / (aw - 1)) * cw, y: (my / ah) * ch });
       }
-      // need a usable spread, else bail to fallback
-      if (pts.length >= 5) return pts;
+      // smooth
+      const sm = pts.map((p, i) => {
+        const a = pts[Math.max(0, i - 1)];
+        const b = pts[Math.min(pts.length - 1, i + 1)];
+        return { x: p.x, y: (a.y + p.y + b.y) / 3 };
+      });
+      if (sm.length >= 6) return sm;
     } catch {
-      /* fall through to fallback */
+      /* fall through */
     }
-    // Fallback: a generic gable guess across the upper third
-    return [
-      { x: cw * 0.12, y: ch * 0.5 },
-      { x: cw * 0.5, y: ch * 0.32 },
-      { x: cw * 0.88, y: ch * 0.5 },
-    ];
+    return fallback(cw, ch);
   }, []);
 
   const onFile = useCallback(
@@ -150,6 +177,8 @@ export function LightingMockup() {
         const ch = Math.round((cw * img.naturalHeight) / img.naturalWidth);
         setDims({ w: cw, h: ch });
         setPoints(detectRoofline(img, cw, ch));
+        setScaleLine(null);
+        setMode("roof");
         setHasImage(true);
         setStatus("idle");
         URL.revokeObjectURL(url);
@@ -159,7 +188,7 @@ export function LightingMockup() {
     [detectRoofline]
   );
 
-  // Draw everything whenever inputs change
+  // draw
   useEffect(() => {
     const canvas = canvasRef.current;
     const img = imgRef.current;
@@ -173,11 +202,9 @@ export function LightingMockup() {
     if (!ctx) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    // base photo
     ctx.clearRect(0, 0, dims.w, dims.h);
     ctx.drawImage(img, 0, 0, dims.w, dims.h);
 
-    // dusk overlay so lights pop
     if (night) {
       const grad = ctx.createLinearGradient(0, 0, 0, dims.h);
       grad.addColorStop(0, "rgba(10,16,40,0.45)");
@@ -187,27 +214,43 @@ export function LightingMockup() {
     }
 
     drawLights(ctx, points, {
-      typeId,
-      facing,
-      spacing,
+      typeId, facing, spacing,
       colors: scheme?.colors ?? ["#FFE2B0"],
-      night,
-      cw: dims.w,
+      night, cw: dims.w, pxPerInch,
     });
 
-    // editable handles
+    // roofline handles (only meaningful in roof mode, but always grab-able)
     points.forEach((p) => {
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(255,255,255,0.9)";
+      ctx.arc(p.x, p.y, mode === "roof" ? 7 : 5, 0, Math.PI * 2);
+      ctx.fillStyle = mode === "roof" ? "rgba(255,255,255,0.95)" : "rgba(255,255,255,0.5)";
       ctx.fill();
       ctx.lineWidth = 2;
       ctx.strokeStyle = "#173D59";
       ctx.stroke();
     });
-  }, [points, dims, typeId, facing, spacing, scheme, night]);
 
-  // window resize
+    // scale line
+    if (scaleLine) {
+      ctx.save();
+      ctx.strokeStyle = "#39ABA8";
+      ctx.lineWidth = 3;
+      ctx.setLineDash([6, 5]);
+      ctx.beginPath();
+      ctx.moveTo(scaleLine[0].x, scaleLine[0].y);
+      ctx.lineTo(scaleLine[1].x, scaleLine[1].y);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      [scaleLine[0], scaleLine[1]].forEach((p) => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = "#39ABA8";
+        ctx.fill();
+      });
+      ctx.restore();
+    }
+  }, [points, dims, typeId, facing, spacing, scheme, night, scaleLine, mode, pxPerInch]);
+
   useEffect(() => {
     if (!hasImage) return;
     const onResize = () => fitCanvas();
@@ -215,7 +258,7 @@ export function LightingMockup() {
     return () => window.removeEventListener("resize", onResize);
   }, [hasImage, fitCanvas]);
 
-  // ---- pointer editing ----
+  // ---- pointer ----
   function posFromEvent(e: React.PointerEvent<HTMLCanvasElement>): Pt {
     const rect = e.currentTarget.getBoundingClientRect();
     return { x: e.clientX - rect.left, y: e.clientY - rect.top };
@@ -223,21 +266,35 @@ export function LightingMockup() {
   function onPointerDown(e: React.PointerEvent<HTMLCanvasElement>) {
     if (!hasImage) return;
     const pos = posFromEvent(e);
+    downPosRef.current = pos;
+    movedRef.current = false;
+    e.currentTarget.setPointerCapture(e.pointerId);
+
+    if (modeRef.current === "scale") {
+      const sl = scaleRef.current;
+      // grab an existing endpoint, else start a fresh line
+      if (sl && dist(sl[0], pos) < 18) scaleEndRef.current = 0;
+      else if (sl && dist(sl[1], pos) < 18) scaleEndRef.current = 1;
+      else {
+        scaleEndRef.current = 1;
+        setScaleLine([pos, pos]);
+      }
+      return;
+    }
+
+    // roof mode
     const pts = pointsRef.current;
     let hit = -1;
-    let best = 18;
+    let best = 20;
     pts.forEach((p, i) => {
-      const d = Math.hypot(p.x - pos.x, p.y - pos.y);
-      if (d < best) {
-        best = d;
-        hit = i;
-      }
+      const dd = dist(p, pos);
+      if (dd < best) { best = dd; hit = i; }
     });
-    e.currentTarget.setPointerCapture(e.pointerId);
     if (hit >= 0) {
       dragRef.current = hit;
+      onExistingRef.current = true;
     } else {
-      // insert a new point, keeping left-to-right order
+      onExistingRef.current = false;
       setPoints((prev) => {
         const next = [...prev, pos].sort((a, b) => a.x - b.x);
         dragRef.current = next.findIndex((p) => p === pos);
@@ -246,32 +303,44 @@ export function LightingMockup() {
     }
   }
   function onPointerMove(e: React.PointerEvent<HTMLCanvasElement>) {
-    if (dragRef.current == null) return;
     const pos = posFromEvent(e);
+    if (dist(pos, downPosRef.current) > TAP_SLOP) movedRef.current = true;
+
+    if (modeRef.current === "scale") {
+      if (scaleEndRef.current == null) return;
+      const end = scaleEndRef.current;
+      const clamped = { x: Math.max(0, Math.min(dims.w, pos.x)), y: Math.max(0, Math.min(dims.h, pos.y)) };
+      setScaleLine((prev) => {
+        const base = prev ?? [clamped, clamped];
+        const next: [Pt, Pt] = [base[0], base[1]];
+        next[end] = clamped;
+        return next;
+      });
+      return;
+    }
+
+    if (dragRef.current == null) return;
     const idx = dragRef.current;
-    setPoints((prev) =>
-      prev.map((p, i) =>
-        i === idx
-          ? { x: Math.max(0, Math.min(dims.w, pos.x)), y: Math.max(0, Math.min(dims.h, pos.y)) }
-          : p
-      )
-    );
+    const clamped = { x: Math.max(0, Math.min(dims.w, pos.x)), y: Math.max(0, Math.min(dims.h, pos.y)) };
+    setPoints((prev) => prev.map((p, i) => (i === idx ? clamped : p)));
   }
   function onPointerUp(e: React.PointerEvent<HTMLCanvasElement>) {
-    dragRef.current = null;
-    try {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    } catch {
-      /* noop */
+    // tap on an existing roofline handle (no real movement) = delete it
+    if (
+      modeRef.current === "roof" &&
+      onExistingRef.current &&
+      !movedRef.current &&
+      dragRef.current != null
+    ) {
+      const idx = dragRef.current;
+      setPoints((prev) => prev.filter((_, i) => i !== idx));
     }
+    dragRef.current = null;
+    scaleEndRef.current = null;
+    onExistingRef.current = false;
+    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* noop */ }
   }
 
-  function undoPoint() {
-    setPoints((p) => p.slice(0, -1));
-  }
-  function clearPoints() {
-    setPoints([]);
-  }
   function redetect() {
     const img = imgRef.current;
     if (img && dims.w) setPoints(detectRoofline(img, dims.w, dims.h));
@@ -282,10 +351,7 @@ export function LightingMockup() {
     e.preventDefault();
     const form = e.currentTarget;
     const fd = new FormData(form);
-    if (fd.get("company")) {
-      setStatus("success");
-      return;
-    }
+    if (fd.get("company")) { setStatus("success"); return; }
     const name = String(fd.get("name") || "").trim();
     const phone = String(fd.get("phone") || "").trim();
     if (!name || !phone) {
@@ -295,14 +361,12 @@ export function LightingMockup() {
     }
     setStatus("submitting");
     setError("");
-
     const canvas = canvasRef.current;
     const preview = canvas ? canvas.toDataURL("image/jpeg", 0.85) : "";
     const photo = imgRef.current ? compressImage(imgRef.current, 1400, 0.8) : "";
 
     const payload = {
-      name,
-      phone,
+      name, phone,
       email: String(fd.get("email") || "").trim(),
       address: String(fd.get("address") || "").trim(),
       notes: String(fd.get("notes") || "").trim(),
@@ -313,10 +377,8 @@ export function LightingMockup() {
       source: "lighting_mockup",
       submittedAt: new Date().toISOString(),
       attribution: getAttribution(),
-      preview,
-      photo,
+      preview, photo,
     };
-
     try {
       const res = await fetch("/api/mockup", {
         method: "POST",
@@ -342,7 +404,6 @@ export function LightingMockup() {
     a.click();
   }
 
-  // ---------------- UI ----------------
   return (
     <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
       {/* Canvas / uploader */}
@@ -351,38 +412,27 @@ export function LightingMockup() {
           ref={containerRef}
           className="relative overflow-hidden rounded-2xl border border-ink-100 bg-ink-50"
           onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            e.preventDefault();
-            const f = e.dataTransfer.files?.[0];
-            if (f) onFile(f);
-          }}
+          onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) onFile(f); }}
         >
           {!hasImage ? (
             <label className="flex aspect-[4/3] cursor-pointer flex-col items-center justify-center gap-3 p-8 text-center">
               <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-gold-600 shadow-card">
                 <Icon name="image" className="h-8 w-8" />
               </span>
-              <span className="font-display text-xl font-bold text-ink-900">
-                Upload a photo of your home
-              </span>
+              <span className="font-display text-xl font-bold text-ink-900">Upload a photo of your home</span>
               <span className="max-w-sm text-sm text-ink-500">
-                Take it from across the street in good light. Drag &amp; drop, or
-                tap to choose. Your photo stays private.
+                Take it straight-on from across the street in good light. Drag &amp; drop, or tap to choose. Your photo stays private.
               </span>
               <span className="mt-1 inline-flex items-center gap-2 rounded-full bg-gold-400 px-5 py-2.5 text-sm font-bold text-ink-900 shadow-cta">
                 <Icon name="image" className="h-4 w-4" /> Choose photo
               </span>
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])}
-              />
+              <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
             </label>
           ) : (
             <canvas
               ref={canvasRef}
               className="block w-full touch-none select-none"
+              style={{ cursor: mode === "scale" ? "crosshair" : "pointer" }}
               onPointerDown={onPointerDown}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
@@ -392,30 +442,63 @@ export function LightingMockup() {
         </div>
 
         {hasImage && (
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-            <span className="mr-1 inline-flex items-center gap-1.5 font-semibold text-ink-600">
-              <Icon name="sparkle" className="h-4 w-4 text-gold-600" />
-              Drag the dots to trace your roofline · tap to add
-            </span>
-            <button onClick={redetect} type="button" className="rounded-lg border border-ink-200 px-3 py-1.5 font-semibold text-ink-700 hover:bg-ink-50">
-              Auto-detect
-            </button>
-            <button onClick={undoPoint} type="button" className="rounded-lg border border-ink-200 px-3 py-1.5 font-semibold text-ink-700 hover:bg-ink-50">
-              Undo
-            </button>
-            <button onClick={clearPoints} type="button" className="rounded-lg border border-ink-200 px-3 py-1.5 font-semibold text-ink-700 hover:bg-ink-50">
-              Clear
-            </button>
-            <button
-              onClick={() => setNight((n) => !n)}
-              type="button"
-              className={cn(
-                "ml-auto rounded-lg px-3 py-1.5 font-semibold",
-                night ? "bg-ink-900 text-white" : "border border-ink-200 text-ink-700 hover:bg-ink-50"
-              )}
-            >
-              {night ? "🌙 Night" : "☀ Day"}
-            </button>
+          <div className="mt-3 space-y-3">
+            {/* mode tabs */}
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setMode("roof")}
+                className={cn("flex-1 rounded-lg px-3 py-2 text-sm font-bold", mode === "roof" ? "bg-ink-900 text-white" : "border border-ink-200 text-ink-700 hover:bg-ink-50")}>
+                ✏️ Trace roofline
+              </button>
+              <button type="button" onClick={() => setMode("scale")}
+                className={cn("flex-1 rounded-lg px-3 py-2 text-sm font-bold", mode === "scale" ? "bg-ink-900 text-white" : "border border-ink-200 text-ink-700 hover:bg-ink-50")}>
+                📏 Set scale {pxPerInch ? "✓" : ""}
+              </button>
+              <button type="button" onClick={() => setNight((n) => !n)}
+                className={cn("rounded-lg px-3 py-2 text-sm font-bold", night ? "bg-ink-900 text-white" : "border border-ink-200 text-ink-700 hover:bg-ink-50")}>
+                {night ? "🌙" : "☀"}
+              </button>
+            </div>
+
+            {mode === "roof" ? (
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="mr-1 inline-flex items-center gap-1.5 font-semibold text-ink-600">
+                  <Icon name="sparkle" className="h-4 w-4 text-gold-600" />
+                  Drag dots to trace · tap empty space to add · tap a dot to remove
+                </span>
+                <button onClick={redetect} type="button" className={toolBtn}>Auto-detect</button>
+                <button onClick={() => setPoints((p) => p.slice(0, -1))} type="button" className={toolBtn}>Undo</button>
+                <button onClick={() => setPoints([])} type="button" className={toolBtn}>Clear</button>
+              </div>
+            ) : (
+              <div className="rounded-xl border border-sky-200 bg-sky-50/60 p-3 text-sm">
+                <p className="font-semibold text-ink-800">
+                  Drag a line across a known object to set the scale — so 6&quot;/12&quot; spacing is exact.
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <select value={refId} onChange={(e) => setRefId(e.target.value)} className="rounded-lg border border-ink-200 bg-white px-2.5 py-1.5 font-medium text-ink-800">
+                    {referenceObjects.map((r) => (
+                      <option key={r.id} value={r.id}>{r.name}</option>
+                    ))}
+                  </select>
+                  {refId === "custom" && (
+                    <input type="number" inputMode="decimal" value={customInches} onChange={(e) => setCustomInches(e.target.value)}
+                      placeholder="length in inches" className="w-36 rounded-lg border border-ink-200 px-2.5 py-1.5" />
+                  )}
+                  {pxPerInch ? (
+                    <span className="inline-flex items-center gap-1 font-bold text-green-700">
+                      <Icon name="check" className="h-4 w-4" strokeWidth={2.5} /> Scale set
+                    </span>
+                  ) : (
+                    <span className="text-ink-400">Drag the line on your photo →</span>
+                  )}
+                </div>
+              </div>
+            )}
+            {!pxPerInch && mode === "roof" && (
+              <p className="text-xs text-ink-400">
+                Tip: spacing is approximate until you tap <strong>📏 Set scale</strong> and trace a garage/entry door.
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -428,63 +511,26 @@ export function LightingMockup() {
               <Icon name="check" className="h-7 w-7" strokeWidth={2.5} />
             </span>
             <h3 className="font-display text-xl font-bold text-ink-900">Mockup request sent!</h3>
-            <p className="text-ink-500">
-              We&apos;ll create your custom lighting mockup and reach out with it
-              plus a free quote — usually same-day.
-            </p>
-            <Button href="/services/permanent-lighting" variant="outline" className="mt-2">
-              Learn about permanent lighting
-            </Button>
+            <p className="text-ink-500">We&apos;ll create your custom lighting mockup and reach out with it plus a free quote — usually same-day.</p>
+            <Button href="/services/permanent-lighting" variant="outline" className="mt-2">Learn about permanent lighting</Button>
           </div>
         ) : (
           <>
-            <Choice
-              label="1. Lighting type"
-              options={lightingTypes}
-              value={typeId}
-              onChange={(v) => setTypeId(v as LightingTypeId)}
-            />
-
+            <Choice label="1. Lighting type" options={lightingTypes} value={typeId} onChange={(v) => setTypeId(v as LightingTypeId)} />
             {typeId === "permanent" && (
-              <Choice
-                label="2. Facing direction"
-                options={facings}
-                value={facing}
-                onChange={(v) => setFacing(v as FacingId)}
-              />
+              <Choice label="2. Facing direction" options={facings} value={facing} onChange={(v) => setFacing(v as FacingId)} />
             )}
+            <Choice label={`${typeId === "permanent" ? "3" : "2"}. Bulb spacing`} options={spacings} value={spacing} onChange={(v) => setSpacing(v as SpacingId)} />
 
-            <Choice
-              label={`${typeId === "permanent" ? "3" : "2"}. Bulb spacing`}
-              options={spacings}
-              value={spacing}
-              onChange={(v) => setSpacing(v as SpacingId)}
-            />
-
-            {/* color schemes */}
-            <p className="mb-2 mt-5 text-sm font-bold text-ink-900">
-              {typeId === "permanent" ? "4" : "3"}. Color scheme
-            </p>
+            <p className="mb-2 mt-5 text-sm font-bold text-ink-900">{typeId === "permanent" ? "4" : "3"}. Color scheme</p>
             <div className="flex flex-wrap gap-2">
               {schemes.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => setSchemeId(s.id)}
-                  className={cn(
-                    "flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold",
-                    schemeId === s.id
-                      ? "border-gold-400 bg-gold-50 text-ink-900"
-                      : "border-ink-200 text-ink-600 hover:bg-ink-50"
-                  )}
-                >
+                <button key={s.id} type="button" onClick={() => setSchemeId(s.id)}
+                  className={cn("flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold",
+                    schemeId === s.id ? "border-gold-400 bg-gold-50 text-ink-900" : "border-ink-200 text-ink-600 hover:bg-ink-50")}>
                   <span className="flex">
                     {s.colors.map((c) => (
-                      <span
-                        key={c}
-                        className="h-3.5 w-3.5 rounded-full ring-1 ring-black/10"
-                        style={{ background: c, marginLeft: -2 }}
-                      />
+                      <span key={c} className="h-3.5 w-3.5 rounded-full ring-1 ring-black/10" style={{ background: c, marginLeft: -2 }} />
                     ))}
                   </span>
                   {s.name}
@@ -492,14 +538,11 @@ export function LightingMockup() {
               ))}
             </div>
 
-            {/* Request form */}
             <form onSubmit={handleSubmit} className="mt-6 space-y-3" noValidate>
               <div className="absolute left-[-9999px]" aria-hidden="true">
                 <input name="company" tabIndex={-1} autoComplete="off" />
               </div>
-              <p className="text-sm font-bold text-ink-900">
-                {typeId === "permanent" ? "5" : "4"}. Get your free pro mockup + quote
-              </p>
+              <p className="text-sm font-bold text-ink-900">{typeId === "permanent" ? "5" : "4"}. Get your free pro mockup + quote</p>
               <div className="grid grid-cols-2 gap-3">
                 <input name="name" required placeholder="Full name *" className={inputCls} />
                 <input name="phone" type="tel" required placeholder="Phone *" className={inputCls} />
@@ -507,24 +550,16 @@ export function LightingMockup() {
               <input name="email" type="email" placeholder="Email (optional)" className={inputCls} />
               <input name="address" placeholder="Street or city (optional)" className={inputCls} />
               <textarea name="notes" rows={2} placeholder="Anything else? (optional)" className={inputCls} />
-
               {status === "error" && (
                 <p className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{error}</p>
               )}
-
               <Button type="submit" fullWidth size="lg" className={status === "submitting" ? "pointer-events-none" : ""}>
                 {status === "submitting" ? "Sending…" : "Send Me My Free Mockup"}
                 {status !== "submitting" && <Icon name="arrowRight" className="h-5 w-5" />}
               </Button>
-              <p className="text-center text-xs text-ink-400">
-                We&apos;ll send a designer-made mockup + quote. No spam, no obligation.
-              </p>
+              <p className="text-center text-xs text-ink-400">We&apos;ll send a designer-made mockup + quote. No spam, no obligation.</p>
               {hasImage && (
-                <button
-                  type="button"
-                  onClick={downloadPreview}
-                  className="mx-auto block text-sm font-semibold text-ink-500 underline hover:text-ink-900"
-                >
+                <button type="button" onClick={downloadPreview} className="mx-auto block text-sm font-semibold text-ink-500 underline hover:text-ink-900">
                   Download my preview
                 </button>
               )}
@@ -536,14 +571,20 @@ export function LightingMockup() {
   );
 }
 
+const toolBtn = "rounded-lg border border-ink-200 px-3 py-1.5 font-semibold text-ink-700 hover:bg-ink-50";
 const inputCls =
   "w-full rounded-xl border border-ink-200 bg-white px-3.5 py-2.5 text-ink-900 placeholder:text-ink-300 focus:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-400/40";
 
+function fallback(cw: number, ch: number): Pt[] {
+  return [
+    { x: cw * 0.12, y: ch * 0.5 },
+    { x: cw * 0.5, y: ch * 0.32 },
+    { x: cw * 0.88, y: ch * 0.5 },
+  ];
+}
+
 function Choice<T extends string>({
-  label,
-  options,
-  value,
-  onChange,
+  label, options, value, onChange,
 }: {
   label: string;
   options: { id: T; name: string; blurb: string }[];
@@ -555,17 +596,8 @@ function Choice<T extends string>({
       <p className="mb-2 text-sm font-bold text-ink-900">{label}</p>
       <div className="grid gap-2">
         {options.map((o) => (
-          <button
-            key={o.id}
-            type="button"
-            onClick={() => onChange(o.id)}
-            className={cn(
-              "rounded-xl border p-3 text-left transition-colors",
-              value === o.id
-                ? "border-gold-400 bg-gold-50"
-                : "border-ink-200 hover:bg-ink-50"
-            )}
-          >
+          <button key={o.id} type="button" onClick={() => onChange(o.id)}
+            className={cn("rounded-xl border p-3 text-left transition-colors", value === o.id ? "border-gold-400 bg-gold-50" : "border-ink-200 hover:bg-ink-50")}>
             <span className="block text-sm font-bold text-ink-900">{o.name}</span>
             <span className="block text-xs text-ink-500">{o.blurb}</span>
           </button>
@@ -575,56 +607,56 @@ function Choice<T extends string>({
   );
 }
 
-// ---- rendering helpers ----
+// ---- rendering ----
 function drawLights(
   ctx: CanvasRenderingContext2D,
   points: Pt[],
   cfg: {
-    typeId: LightingTypeId;
-    facing: FacingId;
-    spacing: SpacingId;
-    colors: string[];
-    night: boolean;
-    cw: number;
+    typeId: LightingTypeId; facing: FacingId; spacing: SpacingId;
+    colors: string[]; night: boolean; cw: number; pxPerInch: number | null;
   }
 ) {
   if (points.length < 2) return;
-  const gap = cfg.cw / (cfg.spacing === "6" ? 52 : 30);
   const isC9 = cfg.typeId === "christmas-c9";
-  const glowR = (isC9 ? 16 : 12) * (cfg.night ? 1.25 : 0.85);
-  const coreR = isC9 ? 4.5 : 3;
+  const inches = cfg.spacing === "6" ? 6 : 12;
+
+  // gap: true scale if calibrated, else a sensible relative fallback
+  const gap = cfg.pxPerInch
+    ? Math.max(5, cfg.pxPerInch * inches)
+    : cfg.cw / (cfg.spacing === "6" ? 52 : 30);
+
+  // bulb size: physical if calibrated, else fixed
+  const nightF = cfg.night ? 1.25 : 0.85;
+  const glowR = cfg.pxPerInch
+    ? clamp(cfg.pxPerInch * (isC9 ? 2.2 : 1.4) * nightF, 6, 46)
+    : (isC9 ? 16 : 12) * nightF;
+  const coreR = cfg.pxPerInch
+    ? clamp(cfg.pxPerInch * (isC9 ? 0.55 : 0.32), 2, 9)
+    : (isC9 ? 4.5 : 3);
+  const off = isC9 ? Math.max(6, coreR * 1.4) : Math.max(5, coreR * 1.4);
 
   let ci = 0;
   for (let i = 0; i < points.length - 1; i++) {
     const a = points[i];
     const b = points[i + 1];
-    const segLen = Math.hypot(b.x - a.x, b.y - a.y);
+    const segLen = dist(a, b);
     if (segLen < 1) continue;
     const dx = (b.x - a.x) / segLen;
     const dy = (b.y - a.y) / segLen;
-    // downward normal
-    let nx = -dy;
-    let ny = dx;
-    if (ny < 0) {
-      nx = -nx;
-      ny = -ny;
-    }
-    let dir = 0; // facing offset multiplier along downward normal
-    if (cfg.typeId === "permanent") {
-      dir = cfg.facing === "downward" ? 1 : cfg.facing === "inward" ? -1 : 0;
-    } else {
-      dir = 0.5; // C9 bulbs hang slightly below the line
-    }
-    for (let d = 0; d <= segLen; d += gap) {
-      const px = a.x + dx * d;
-      const py = a.y + dy * d;
-      const ox = px + nx * dir * (isC9 ? 6 : 5);
-      const oy = py + ny * dir * (isC9 ? 6 : 5);
+    let nx = -dy, ny = dx;
+    if (ny < 0) { nx = -nx; ny = -ny; }
+    const dir = cfg.typeId === "permanent"
+      ? (cfg.facing === "downward" ? 1 : cfg.facing === "inward" ? -1 : 0)
+      : 0.5;
+    for (let dd = 0; dd <= segLen; dd += gap) {
+      const px = a.x + dx * dd;
+      const py = a.y + dy * dd;
+      const ox = px + nx * dir * off;
+      const oy = py + ny * dir * off;
       const color = cfg.colors[ci % cfg.colors.length];
       ci++;
       const [r, g, bl] = hexToRgb(color);
 
-      // glow (additive)
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
       const grad = ctx.createRadialGradient(ox, oy, 0, ox, oy, glowR);
@@ -637,18 +669,16 @@ function drawLights(
       ctx.fill();
       ctx.restore();
 
-      // bulb core
       ctx.beginPath();
-      if (isC9) {
-        ctx.ellipse(ox, oy, coreR, coreR * 1.4, 0, 0, Math.PI * 2);
-      } else {
-        ctx.arc(ox, oy, coreR, 0, Math.PI * 2);
-      }
+      if (isC9) ctx.ellipse(ox, oy, coreR, coreR * 1.4, 0, 0, Math.PI * 2);
+      else ctx.arc(ox, oy, coreR, 0, Math.PI * 2);
       ctx.fillStyle = `rgb(${Math.min(255, r + 90)},${Math.min(255, g + 90)},${Math.min(255, bl + 90)})`;
       ctx.fill();
     }
   }
 }
+
+const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
 function compressImage(img: HTMLImageElement, maxW: number, quality: number): string {
   const scale = Math.min(1, maxW / img.naturalWidth);
