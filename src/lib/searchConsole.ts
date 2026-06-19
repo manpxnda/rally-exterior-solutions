@@ -72,8 +72,16 @@ async function getAccessToken(email: string, privateKey: string): Promise<string
 
 const fmt = (d: Date) => d.toISOString().slice(0, 10);
 
-/** Top queries the site ranks for, last `days` days (default 28). */
-export async function getSearchRankings(days = 28, rowLimit = 100): Promise<RankingsResult> {
+/**
+ * Top queries the site ranks for over a `days` window.
+ * `offsetDays` shifts the window into the past (e.g. 28 = the prior 28-day
+ * period) so we can compute trends.
+ */
+export async function getSearchRankings(
+  days = 28,
+  rowLimit = 100,
+  offsetDays = 0
+): Promise<RankingsResult> {
   const email = process.env.GSC_CLIENT_EMAIL;
   const rawKey = process.env.GSC_PRIVATE_KEY;
   const siteUrl = process.env.GSC_SITE_URL;
@@ -85,7 +93,8 @@ export async function getSearchRankings(days = 28, rowLimit = 100): Promise<Rank
   try {
     const token = await getAccessToken(email, privateKey);
     const end = new Date();
-    const start = new Date();
+    end.setDate(end.getDate() - offsetDays);
+    const start = new Date(end);
     start.setDate(start.getDate() - days);
 
     const res = await fetch(

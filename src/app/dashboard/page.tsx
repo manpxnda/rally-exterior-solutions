@@ -3,7 +3,9 @@ import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { BrandMark } from "@/components/layout/Logo";
+import { getSearchRankings } from "@/lib/searchConsole";
 import { RankingsPanel } from "@/components/dashboard/RankingsPanel";
+import { TargetKeywordsPanel } from "@/components/dashboard/TargetKeywordsPanel";
 
 export const metadata: Metadata = {
   title: "Owner Dashboard",
@@ -87,8 +89,14 @@ const toneClass: Record<Tool["tone"], string> = {
   navy: "bg-ink-900 text-gold-300",
 };
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
   const lookerUrl = process.env.NEXT_PUBLIC_LOOKER_EMBED_URL;
+
+  // One set of GSC calls feeds both panels: current 28 days + prior 28 (trend).
+  const current = await getSearchRankings(28, 1000, 0);
+  const previous = current.configured
+    ? await getSearchRankings(28, 1000, 28)
+    : current;
 
   return (
     <div className="min-h-screen bg-ink-50">
@@ -114,8 +122,9 @@ export default function DashboardPage() {
       </header>
 
       <Container className="py-10">
-        {/* Live keyword rankings (Search Console) */}
-        <RankingsPanel />
+        {/* Target keywords (owner-picked) + all-queries (Search Console) */}
+        <TargetKeywordsPanel current={current} previous={previous} />
+        <RankingsPanel result={current} />
 
         {/* Combined analytics report */}
         <section className="mb-10">

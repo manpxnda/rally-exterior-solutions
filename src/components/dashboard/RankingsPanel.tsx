@@ -1,9 +1,9 @@
-import { getSearchRankings } from "@/lib/searchConsole";
+import type { RankingsResult } from "@/lib/searchConsole";
 import { Icon } from "@/components/ui/Icon";
 
 /** Live keyword rankings from Search Console (server-rendered, behind auth). */
-export async function RankingsPanel() {
-  const { configured, rows, range, error } = await getSearchRankings();
+export function RankingsPanel({ result }: { result: RankingsResult }) {
+  const { configured, rows, range, error } = result;
 
   if (!configured) {
     return (
