@@ -26,6 +26,7 @@ export const footerNav = {
   company: [
     { label: "About Rally", href: "/about" },
     { label: "Project Gallery", href: "/gallery" },
+    { label: "Free Lighting Mockup", href: "/mockup" },
     { label: "Guides & Pricing", href: "/guides" },
     { label: "Free Estimate", href: "/contact" },
     { label: "Service Area", href: "/locations" },
