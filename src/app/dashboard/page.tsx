@@ -3,12 +3,16 @@ import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { BrandMark } from "@/components/layout/Logo";
+import { RankingsPanel } from "@/components/dashboard/RankingsPanel";
 
 export const metadata: Metadata = {
   title: "Owner Dashboard",
   // Private internal page — never index.
   robots: { index: false, follow: false, nocache: true },
 };
+
+// Pulls live Search Console data per load — never cache.
+export const dynamic = "force-dynamic";
 
 type Tool = {
   title: string;
@@ -110,6 +114,9 @@ export default function DashboardPage() {
       </header>
 
       <Container className="py-10">
+        {/* Live keyword rankings (Search Console) */}
+        <RankingsPanel />
+
         {/* Combined analytics report */}
         <section className="mb-10">
           <h2 className="mb-4 font-display text-xl font-bold text-ink-900">
