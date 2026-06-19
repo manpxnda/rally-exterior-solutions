@@ -51,6 +51,18 @@ const nextConfig = {
       { source: "/index.html", destination: "/", permanent: true },
       // Removed service → closest current page
       { source: "/services/soft-washing", destination: "/services/house-washing", permanent: true },
+      // Old rallyohv.com service-area pages → closest current page (after the
+      // host redirect lands them on the main domain, preserving the path).
+      {
+        source: "/:slug(industrial-pressure-washing.*)",
+        destination: "/services/pressure-washing",
+        permanent: true,
+      },
+      {
+        source: "/:slug(commercial-pressure-washing.*)",
+        destination: "/services/commercial-cleaning",
+        permanent: true,
+      },
     ];
   },
   async headers() {
