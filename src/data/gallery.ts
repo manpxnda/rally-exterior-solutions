@@ -25,6 +25,14 @@ export const beforeAfters: BeforeAfter[] = [
     after: "/images/gallery/house-washing-after-1.jpg",
   },
   {
+    id: "roof-3",
+    title: "Metal Roof Cleaning",
+    service: "roof-washing",
+    location: "Ohio Valley",
+    before: "/images/gallery/featured-roof-before.jpg",
+    after: "/images/gallery/featured-roof-after.jpg",
+  },
+  {
     id: "roof-1",
     title: "Roof Cleaning",
     service: "roof-washing",
@@ -67,7 +75,7 @@ export const beforeAfters: BeforeAfter[] = [
   {
     id: "gutter-1",
     title: "Gutter Cleanout",
-    service: "house-washing",
+    service: "gutter-cleaning",
     location: "Ohio Valley",
     before: "/images/gallery/gutter-cleaning-before-1.jpg",
     after: "/images/gallery/gutter-cleaning-after-1.jpg",
@@ -83,10 +91,18 @@ export const beforeAfters: BeforeAfter[] = [
   {
     id: "gutter-3",
     title: "Gutter Cleaning",
-    service: "house-washing",
+    service: "gutter-cleaning",
     location: "Ohio Valley",
     before: "/images/gallery/gutter-cleaning-before-3.jpg",
     after: "/images/gallery/gutter-cleaning-after-3.jpg",
+  },
+  {
+    id: "gutter-brightening-1",
+    title: "Gutter Brightening",
+    service: "gutter-cleaning",
+    location: "Ohio Valley",
+    before: "/images/gallery/gutter-brightening-before-1.jpg",
+    after: "/images/gallery/gutter-brightening-after-1.jpg",
   },
   {
     id: "fence-restoration-1",
@@ -95,6 +111,38 @@ export const beforeAfters: BeforeAfter[] = [
     location: "Ohio Valley",
     before: "/images/gallery/fence-restoration-before-1.jpg",
     after: "/images/gallery/fence-restoration-after-1.jpg",
+  },
+];
+
+/**
+ * Hand-picked before/afters featured on the HOMEPAGE proof slider. Kept
+ * separate from the full gallery so the owner can curate exactly what greets
+ * visitors. These use dedicated, framing-matched crops of the best projects.
+ */
+export const homepageProof: BeforeAfter[] = [
+  {
+    id: "feat-house",
+    title: "House Soft Washing",
+    service: "house-washing",
+    location: "Ohio Valley",
+    before: "/images/gallery/featured-house-before.jpg",
+    after: "/images/gallery/featured-house-after.jpg",
+  },
+  {
+    id: "feat-roof",
+    title: "Metal Roof Cleaning",
+    service: "roof-washing",
+    location: "Ohio Valley",
+    before: "/images/gallery/featured-roof-before.jpg",
+    after: "/images/gallery/featured-roof-after.jpg",
+  },
+  {
+    id: "feat-concrete",
+    title: "Concrete Cleaning",
+    service: "concrete-cleaning",
+    location: "Ohio Valley",
+    before: "/images/gallery/concrete-cleaning-before-1.jpg",
+    after: "/images/gallery/concrete-cleaning-after-1.jpg",
   },
 ];
 

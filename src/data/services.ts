@@ -25,6 +25,7 @@ export type ServiceIcon =
   | "roof"
   | "droplet"
   | "concrete"
+  | "gutter"
   | "shield"
   | "building";
 
@@ -289,6 +290,51 @@ export const services: Service[] = [
       "black streak removal Ohio Valley",
       "soft wash roof washing",
       "roof moss removal near me",
+    ],
+  },
+  {
+    slug: "gutter-cleaning",
+    image: "/images/services/hero-gutter-cleaning.jpg",
+    tileImage: "/images/services/tile-gutter-cleaning.jpg",
+    name: "Gutter Cleaning & Brightening",
+    shortName: "Gutter Cleaning",
+    category: "cleaning",
+    icon: "gutter",
+    tagline: "Flowing gutters, streak-free exterior",
+    summary:
+      "We clear clogged gutters and scrub away the black 'tiger stripes' for a like-new exterior.",
+    heroHeadline: "Gutter Cleaning & Brightening for a Like-New Exterior",
+    heroSub:
+      "We flush out the clogs that cause leaks and rot — then scrub away the ugly black 'tiger stripes' so your gutters look brand new again.",
+    problem:
+      "Clogged gutters overflow and rot your fascia and soffit, and even clean gutters get streaked with stubborn black oxidation that no amount of rinsing removes.",
+    outcome:
+      "Free-flowing gutters that protect your home — plus a bright, uniform exterior with the black streaks gone for good.",
+    description:
+      "Two services in one visit. Our gutter cleaning clears leaves, shingle grit, and debris so water flows where it should — protecting your roof, fascia, and foundation. Gutter brightening then tackles the black vertical 'tiger stripes' (oxidation and grime baked into the gutter face) with a specialized brightener, restoring that clean, factory-new look. Done from the ground wherever possible, with zero damage to your landscaping.",
+    benefits: [
+      "Clears clogs that cause leaks & overflow",
+      "Removes black 'tiger stripe' oxidation stains",
+      "Protects fascia, soffit & foundation from water",
+      "Specialized gutter brightener — not just a rinse",
+      "Prevents pests & ice dams from debris buildup",
+      "Pairs perfectly with a house wash",
+    ],
+    bestFor: [
+      "Homes with overflowing or clogged gutters",
+      "Gutters streaked with black vertical stains",
+      "Fall & spring exterior maintenance",
+    ],
+    priceNote:
+      "Priced by home size & linear footage. Bundles with house washing for the best value.",
+    metaTitle: "Gutter Cleaning & Gutter Brightening | Wheeling WV & Ohio Valley",
+    metaDescription:
+      "Gutter cleaning & gutter brightening in the Ohio Valley & Wheeling, WV. Clear clogged gutters and erase black tiger-stripe stains. Fully insured. Free estimate.",
+    keywords: [
+      "gutter cleaning Wheeling WV",
+      "gutter brightening Ohio Valley",
+      "gutter whitening near me",
+      "clogged gutter cleaning",
     ],
   },
   {

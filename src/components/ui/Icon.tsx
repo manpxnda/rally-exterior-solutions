@@ -8,6 +8,7 @@ export type IconName =
   | "roof"
   | "droplet"
   | "concrete"
+  | "gutter"
   | "shield"
   | "building"
   // trust / why
@@ -64,6 +65,13 @@ const paths: Record<IconName, React.ReactNode> = {
     <>
       <rect x="3" y="5" width="18" height="14" rx="1.5" />
       <path d="M3 10h18M3 14.5h18M9 5v5M15 10v4.5M9 14.5V19" />
+    </>
+  ),
+  gutter: (
+    <>
+      <path d="M3 9l9-5 9 5" />
+      <path d="M4 11h16v2.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 13.5V11Z" />
+      <path d="M17 15v3.5a1.5 1.5 0 0 1-1.5 1.5H13" />
     </>
   ),
   shield: (

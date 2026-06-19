@@ -1,11 +1,11 @@
-import { beforeAfters } from "@/data/gallery";
+import { homepageProof } from "@/data/gallery";
 import { getService } from "@/data/services";
 import { Section, SectionHeading } from "@/components/ui/Section";
 import { BeforeAfter } from "@/components/BeforeAfter";
 import { Button } from "@/components/ui/Button";
 
 export function ProofSection({ limit = 3 }: { limit?: number }) {
-  const items = beforeAfters.slice(0, limit);
+  const items = homepageProof.slice(0, limit);
 
   return (
     <Section tone="gradient" id="proof">

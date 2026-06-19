@@ -21,7 +21,7 @@ export function ServicesGrid({
         />
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3">
         {services.map((service) => (
           <ServiceCard key={service.slug} service={service} variant="tile" />
         ))}
