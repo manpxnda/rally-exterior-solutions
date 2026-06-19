@@ -58,7 +58,7 @@ Business details → `src/lib/site.ts`. Services/reviews/faqs/gallery/locations 
 - **Google Business Profile** optimization (biggest local-ranking lever) — see `docs/LOCAL-SEO.md`. User-driven.
 - **Looker Studio** report is blank — user needs to add charts (template) + resend embed URL.
 - Request Indexing on key pages in Search Console; confirm review/project stats; real address/hours.
-- **Ads (in progress):** user chose **LSA first** (cleaning) → playbook `docs/LOCAL-SERVICES-ADS.md`; **Search Ads for permanent lighting** → `docs/SEARCH-ADS-PERMANENT-LIGHTING.md` (LSA has no lighting category). Landing page `/lp/permanent-lighting` built. Conversion tracking is pre-wired — user sets `NEXT_PUBLIC_GOOGLE_ADS_ID` + `NEXT_PUBLIC_GOOGLE_ADS_LEAD_LABEL` in Vercel + redeploy; lead form auto-fires the conversion. Meta Pixel (`NEXT_PUBLIC_META_PIXEL_ID`) when ads start.
+- **Ads:** LSA **not available** for Rally's category/area → using **Google Search Ads**. Conversion tracking **LIVE** (`NEXT_PUBLIC_GOOGLE_ADS_ID=AW-16570854340` + `NEXT_PUBLIC_GOOGLE_ADS_LEAD_LABEL` in Vercel; lead form auto-fires). Campaign plans: `docs/SEARCH-ADS-CLEANING.md` (run now, summer) + `docs/SEARCH-ADS-PERMANENT-LIGHTING.md` (Aug–Sept). Ad destinations = `/lp/[slug]` pages. Optional later: call/text-from-website conversion (`NEXT_PUBLIC_GOOGLE_ADS_CALL_LABEL`), Meta Pixel (`NEXT_PUBLIC_META_PIXEL_ID`).
 - Future: more city pages + guides (copy a block in the data files).
 
 ## Working preference
