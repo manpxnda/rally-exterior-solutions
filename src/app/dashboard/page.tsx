@@ -6,6 +6,7 @@ import { BrandMark } from "@/components/layout/Logo";
 import { getSearchRankings } from "@/lib/searchConsole";
 import { RankingsPanel } from "@/components/dashboard/RankingsPanel";
 import { TargetKeywordsPanel } from "@/components/dashboard/TargetKeywordsPanel";
+import { IndexStatusPanel } from "@/components/dashboard/IndexStatusPanel";
 
 export const metadata: Metadata = {
   title: "Owner Dashboard",
@@ -122,7 +123,8 @@ export default async function DashboardPage() {
       </header>
 
       <Container className="py-10">
-        {/* Target keywords (owner-picked) + all-queries (Search Console) */}
+        {/* SEO: index status + target keywords + all-queries (Search Console) */}
+        <IndexStatusPanel />
         <TargetKeywordsPanel current={current} previous={previous} />
         <RankingsPanel result={current} />
 

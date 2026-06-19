@@ -40,6 +40,21 @@ Project → Settings → Environment Variables (Production):
 Push any commit (or redeploy in Vercel) so the env vars load. Open **/dashboard** —
 the **Keyword rankings** panel will list everything you rank for, refreshed each visit.
 
+## Index status panel (optional — needs Full permission)
+The dashboard also shows a **Google index status** panel (which pages are indexed).
+That uses the URL Inspection API, which requires the service account to be a
+**Full** user, not "Restricted." To enable it: Search Console → *Settings → Users
+and permissions* → change `rally-gsc-reader@…` from **Restricted → Full**. (The
+keyword-rankings panels work fine with Restricted; only this panel needs Full.)
+
+## How to actually get pages indexed (Request Indexing)
+Google indexes on its own schedule, but you can nudge it:
+1. In Search Console, paste a URL (e.g. `https://rallyexteriorsolutions.com/services/permanent-lighting`)
+   into the **search bar at the top** ("Inspect any URL").
+2. Click **Request Indexing**. (Limit ~10–20 URLs/day.)
+3. Do this for each service page + key pages. New domains can take days to weeks.
+4. Keep the sitemap submitted (already done) — it's how Google discovers everything.
+
 ## Notes
 - Read-only: the service account can only *read* Search Console, nothing else.
 - Data lag: Search Console data is ~2 days behind; new sites take a few weeks to

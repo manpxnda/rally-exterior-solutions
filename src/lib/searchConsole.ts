@@ -141,3 +141,72 @@ export async function getSearchRankings(
     return { configured: true, rows: [], range: null, error: `${msg} [using email=${email}]` };
   }
 }
+
+export type IndexStatus = {
+  path: string;
+  url: string;
+  verdict: string; // PASS = indexed
+  coverageState: string; // human-readable, e.g. "Submitted and indexed"
+  lastCrawl: string | null;
+  indexed: boolean;
+};
+
+export type IndexResult = {
+  configured: boolean;
+  rows: IndexStatus[];
+  error?: string;
+};
+
+const SITE_BASE =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://rallyexteriorsolutions.com";
+
+/**
+ * Per-URL Google index status via the URL Inspection API.
+ * NOTE: this endpoint requires the service account to be a FULL/owner user on
+ * the property (not "Restricted"); a 403 means it needs upgraded permission.
+ */
+export async function getIndexStatus(paths: string[]): Promise<IndexResult> {
+  const clean = (v?: string) => v?.trim().replace(/^["']|["']$/g, "").trim();
+  const email = clean(process.env.GSC_CLIENT_EMAIL);
+  const rawKey = process.env.GSC_PRIVATE_KEY;
+  const siteUrl = clean(process.env.GSC_SITE_URL);
+  if (!email || !rawKey || !siteUrl) return { configured: false, rows: [] };
+  const privateKey = (clean(rawKey) ?? "").replace(/\\n/g, "\n");
+
+  try {
+    const token = await getAccessToken(email, privateKey);
+    const rows = await Promise.all(
+      paths.map(async (path) => {
+        const url = `${SITE_BASE}${path}`;
+        const res = await fetch(
+          "https://searchconsole.googleapis.com/v1/urlInspection/index:inspect",
+          {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ inspectionUrl: url, siteUrl, languageCode: "en-US" }),
+            cache: "no-store",
+          }
+        );
+        if (!res.ok) throw new Error(`${res.status}`);
+        const json = (await res.json()) as {
+          inspectionResult?: {
+            indexStatusResult?: { verdict?: string; coverageState?: string; lastCrawlTime?: string };
+          };
+        };
+        const r = json.inspectionResult?.indexStatusResult ?? {};
+        const verdict = r.verdict ?? "VERDICT_UNSPECIFIED";
+        return {
+          path,
+          url,
+          verdict,
+          coverageState: r.coverageState ?? "Unknown to Google",
+          lastCrawl: r.lastCrawlTime ?? null,
+          indexed: verdict === "PASS",
+        } as IndexStatus;
+      })
+    );
+    return { configured: true, rows };
+  } catch (e) {
+    return { configured: true, rows: [], error: e instanceof Error ? e.message : "error" };
+  }
+}
