@@ -151,6 +151,52 @@ export const services: Service[] = [
     featured: true,
   },
   {
+    slug: "pressure-washing",
+    image: "/images/services/hero-concrete-cleaning.jpg",
+    name: "Pressure & Power Washing",
+    shortName: "Pressure Washing",
+    category: "cleaning",
+    icon: "droplet",
+    tagline: "Power washing, done the right way for every surface",
+    summary:
+      "Pressure washing for concrete and hard surfaces — plus safe soft washing for siding and roofs.",
+    heroHeadline: "Pressure Washing & Power Washing in the Ohio Valley",
+    heroSub:
+      "From driveways and patios to siding and roofs, Rally power washes every exterior surface — strong pressure where it's safe, and gentle soft washing where high pressure would cause damage.",
+    problem:
+      "Most people search for “pressure washing,” but blasting siding or a roof with high pressure can crack, gouge, and force water where it doesn't belong.",
+    outcome:
+      "Every surface cleaned the correct way — high pressure where it helps, low-pressure soft washing where it protects — for a spotless property with zero damage.",
+    description:
+      "“Pressure washing” and “power washing” are what most people call exterior cleaning, and Rally does it all. We use strong, surface-safe pressure on concrete, driveways, sidewalks, and patios, and the industry-preferred soft wash method on delicate surfaces like vinyl siding, stucco, and shingles. One local, insured team for your whole exterior — the right approach for every surface.",
+    benefits: [
+      "Driveways, sidewalks, patios & pool decks",
+      "House siding, brick & stucco",
+      "Roofs, decks, fences & gutters",
+      "Right pressure for every surface — no damage",
+      "Eco-conscious detergents that clean at the root",
+      "One insured team for the whole property",
+    ],
+    bestFor: [
+      "Dirty, stained, or algae-covered concrete",
+      "Whole-home exterior refreshes",
+      "Pre-sale or pre-event clean-ups",
+    ],
+    priceNote: "Priced by surface & square footage. Free, same-day quotes.",
+    metaTitle: "Pressure Washing & Power Washing | Wheeling WV & Ohio Valley",
+    metaDescription:
+      "Professional pressure washing & power washing in the Ohio Valley & Wheeling, WV — driveways, concrete, siding, roofs & more. The right pressure for every surface. Free estimate.",
+    keywords: [
+      "pressure washing Wheeling WV",
+      "power washing Ohio Valley",
+      "pressure washing near me",
+      "power washing near me",
+      "pressure washing services",
+      "driveway pressure washing",
+    ],
+    featured: true,
+  },
+  {
     slug: "house-washing",
     image: "/images/services/hero-house-washing.jpg",
     name: "House Washing",

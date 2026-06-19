@@ -381,6 +381,92 @@ export const guides: Guide[] = [
     ],
     relatedService: "roof-washing",
   },
+  {
+    slug: "pressure-washing-cost",
+    title: "How Much Does Pressure Washing Cost? (2026 Guide)",
+    category: "Pricing Guide",
+    intro:
+      "Pressure washing in the Ohio Valley typically runs $0.15–$0.45 per square foot, which puts most jobs between about $150 and $600 depending on what's being cleaned. A driveway might be $150–$300, a full house wash $250–$600, and a whole-property package more. Here's how pricing works by surface — and why the cheapest quote often isn't the best value.",
+    updated: "2026-06-19",
+    readMinutes: 5,
+    metaTitle: "Pressure Washing Cost | Power Washing Prices — Wheeling WV & Ohio Valley",
+    metaDescription:
+      "Pressure washing costs about $0.15–$0.45/sq ft — most jobs $150–$600. See power washing prices by surface (driveway, house, roof) and get a free Rally quote.",
+    keywords: [
+      "pressure washing cost",
+      "how much does pressure washing cost",
+      "power washing cost",
+      "pressure washing prices",
+      "cost to pressure wash a driveway",
+      "pressure washing wheeling wv cost",
+    ],
+    priceTable: {
+      caption: "Typical pressure / power washing prices",
+      rows: [
+        { label: "Driveway / sidewalk", range: "$150 – $300", note: "by square footage" },
+        { label: "House wash (soft wash siding)", range: "$250 – $600", note: "by size & stories" },
+        { label: "Patio / pool deck", range: "$150 – $400", note: "concrete or pavers" },
+        { label: "Roof (soft wash)", range: "$350 – $700", note: "never high pressure" },
+        { label: "Whole-property package", range: "bundle & save", note: "house + concrete + more" },
+      ],
+      disclaimer:
+        "Ranges are typical Ohio Valley estimates for illustration only — not a quote. Every Rally estimate is free, exact, and in writing.",
+    },
+    sections: [
+      {
+        heading: "What drives the price",
+        body: ["Pressure washing is priced by the surface and how much there is of it. The main factors:"],
+        bullets: [
+          "Square footage — the biggest factor on every job",
+          "Surface type — concrete, siding, brick, roof, and wood each need a different approach",
+          "Level of buildup — heavy oil, rust, algae, or mildew takes more time and product",
+          "Access & height — two-story walls, steep roofs, and tight spots add labor",
+          "Add-ons & bundles — combining house + driveway + more usually lowers the per-item price",
+        ],
+      },
+      {
+        heading: "Pressure washing vs. soft washing — what you're actually paying for",
+        body: [
+          "Here's what separates a good company from a cheap one: not everything should be blasted with high pressure. Concrete and flatwork can take strong pressure, but siding, roofs, and wood need low-pressure “soft washing” with cleaning solutions — high pressure there cracks siding, strips paint, and damages shingles.",
+          "A rock-bottom “pressure washing” quote that blasts everything can turn a cheap clean into an expensive repair. Rally uses the right pressure for each surface, so you get a deep clean with zero damage.",
+        ],
+      },
+      {
+        heading: "How to compare quotes",
+        bullets: [
+          "Will they soft-wash delicate surfaces, or blast everything with high pressure?",
+          "Are they insured? Damage from an uninsured cleaner is on you.",
+          "Is the quote itemized by surface and in writing?",
+          "Do they bundle (house + concrete) to save you money?",
+        ],
+      },
+      {
+        heading: "Get your exact price — free",
+        body: [
+          "Online ranges are a starting point; your property is unique. Rally gives free, no-pressure quotes — usually same-day — itemized by surface so you know exactly what you're paying for.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: "How much does it cost to pressure wash a house?",
+        a: "Most house washes in the Ohio Valley run $250–$600 depending on size and number of stories. Note that siding should be soft-washed (low pressure), not blasted — which is included in that price when done right. Rally gives a free, exact quote.",
+      },
+      {
+        q: "How much to pressure wash a driveway?",
+        a: "Most driveways and sidewalks run $150–$300 depending on square footage and how stained they are. Bundling with a house wash usually lowers the total.",
+      },
+      {
+        q: "Is power washing the same as pressure washing?",
+        a: "People use the terms interchangeably. Technically power washing uses heated water; pressure washing doesn't. What matters more is using the right pressure for each surface — strong for concrete, gentle soft washing for siding and roofs.",
+      },
+      {
+        q: "Why are some quotes so much cheaper?",
+        a: "Often because they blast every surface with high pressure (fast, but can damage siding and roofs) or aren't insured. The right method costs about the same to do safely and lasts longer. Always compare what's actually included.",
+      },
+    ],
+    relatedService: "pressure-washing",
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {
