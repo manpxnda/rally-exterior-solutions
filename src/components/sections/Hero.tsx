@@ -9,7 +9,7 @@ import { LeadForm } from "@/components/LeadForm";
 
 const heroBullets = [
   { label: "Permanent & holiday lighting", href: "/services/permanent-lighting" },
-  { label: "House, roof & soft washing", href: "/services/house-washing" },
+  { label: "House & Roof Softwashing", href: "/services/house-washing" },
   { label: "Concrete cleaning & sealing", href: "/services/concrete-cleaning" },
 ];
 
