@@ -14,10 +14,10 @@ Conversion-focused marketing site for **Rally Exterior Solutions** — premium e
 ## Architecture — where things live
 - `src/lib/site.ts` — **single source of truth** for business info (NAP, hours, stats, offer). Phone (740) 208-8632, email info@rallyexteriorsolutions.com.
 - `src/data/*.ts` — content that drives the site:
-  - `services.ts` — 7 services → auto-generates `/services/[slug]`, nav, schema. (Removed "Exterior Soft Washing".)
+  - `services.ts` — **8 services** → auto-generates `/services/[slug]`, nav, schema, homepage grid, `/lp/[slug]`. (Removed "Exterior Soft Washing"; added **"Pressure & Power Washing"** as the umbrella page owning the head terms the public searches.)
   - `gallery.ts` — `beforeAfters` (10 verified pairs) + `showcase` (12 lighting). `testimonials.ts`, `faqs.ts`, `content.ts`.
   - `locations.ts` — **51** city landing pages (local SEO): the original 12 + every OH/WV town within ~30 mi of 43963 (Tiltonsville HQ), verified by geocoding. Keep `intro`/`context` UNIQUE per city. `getLocationByCity()` links "nearby" mentions to their own pages (internal linking on `/locations/[slug]`).
-  - `guides.ts` — data-driven `/guides/[slug]` content (SEO + lead capture). **4 pricing guides**: house-washing-cost, permanent-lighting-cost, christmas-light-installation-cost, roof-cleaning-cost (price table + FAQ each). `getGuideForService(slug)` powers the "How much does it cost?" callout on service pages. Copy a block to add one; ranges are honest regional estimates, not quotes.
+  - `guides.ts` — data-driven `/guides/[slug]` content (SEO + lead capture). **5 pricing guides**: house-washing-cost, permanent-lighting-cost, christmas-light-installation-cost, roof-cleaning-cost, pressure-washing-cost (price table + FAQ each). `getGuideForService(slug)` powers the "How much does it cost?" callout on service pages. Copy a block to add one; ranges are honest regional estimates, not quotes.
   - `targetKeywords.ts` — generative service×town matrix (~67 terms) tracked by the dashboard.
   - `mockup.ts` — options for the **lighting mockup tool** (`/mockup`): lighting types (C9 vs permanent), facings, 6"/12" spacing, color schemes (hex). Editable lists drive the tool + emailed request.
 - `src/lib/schema.ts` — JSON-LD: localBusiness/service/faq/breadcrumb/**locationSchema** (areaServed per city)/**articleSchema** (guides). `nav.ts`, `analytics.ts`.
