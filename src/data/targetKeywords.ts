@@ -57,7 +57,19 @@ const EXTRAS = [
   "paver sealing wheeling wv",
   "gutter cleaning wheeling wv",
   "commercial pressure washing wheeling",
-  "permanent christmas lights wheeling",
+  // From Google Ads Keyword Planner (2026-06) — measured local demand.
+  // "christmas lights wheeling wv" = 500/mo, LOW competition (the big one);
+  // lighting terms carry the real local volume in this market.
+  "christmas lights wheeling wv",
+  "christmas lights ohio valley",
+  "christmas lights steubenville ohio",
+  "christmas lights st clairsville ohio",
+  "christmas lights moundsville wv",
+  "christmas light installers wheeling wv",
+  "holiday lighting wheeling wv",
+  "permanent christmas lights wheeling wv",
+  "outdoor lighting wheeling wv",
+  "landscape lighting wheeling wv",
 ];
 
 export const targetKeywords: string[] = [...matrix, ...EXTRAS];
