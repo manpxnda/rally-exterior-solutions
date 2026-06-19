@@ -8,6 +8,7 @@ import {
   type Service,
 } from "@/data/services";
 import { beforeAfters, showcase } from "@/data/gallery";
+import { getGuideForService } from "@/data/guides";
 import { testimonialsForService } from "@/data/testimonials";
 import { regionLabel, site } from "@/lib/site";
 
@@ -62,8 +63,9 @@ export default async function ServicePage({ params }: Params) {
   const serviceShowcase = showcase.filter((s) => s.service === service.slug);
   const related = services.filter((s) => s.slug !== service.slug).slice(0, 3);
   const reviews = testimonialsForService(service.slug, 3);
-  const categoryLabel =
-    service.category === "lighting" ? "Exterior Lighting" : "Exterior Cleaning";
+  const guide = getGuideForService(service.slug);
+  const isLighting = service.category === "lighting";
+  const categoryLabel = isLighting ? "Exterior Lighting" : "Exterior Cleaning";
 
   return (
     <>
@@ -177,6 +179,48 @@ export default async function ServicePage({ params }: Params) {
                 </span>
               ))}
             </div>
+
+            {/* Internal links: pricing guide + (lighting) mockup */}
+            {(guide || isLighting) && (
+              <div className="mt-10 grid gap-4 sm:grid-cols-2">
+                {guide && (
+                  <Link
+                    href={`/guides/${guide.slug}`}
+                    className="flex items-center gap-3 rounded-2xl border border-ink-100 bg-ink-50 p-5 transition-colors hover:border-gold-200 hover:bg-white"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-gold-600 shadow-card">
+                      <Icon name="tag" className="h-5 w-5" />
+                    </span>
+                    <span>
+                      <span className="block text-sm font-bold text-ink-900">
+                        How much does it cost?
+                      </span>
+                      <span className="block text-xs text-ink-500">
+                        See the {service.shortName.toLowerCase()} pricing guide →
+                      </span>
+                    </span>
+                  </Link>
+                )}
+                {isLighting && (
+                  <Link
+                    href="/mockup"
+                    className="flex items-center gap-3 rounded-2xl border border-ink-100 bg-ink-50 p-5 transition-colors hover:border-gold-200 hover:bg-white"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-gold-600 shadow-card">
+                      <Icon name="sparkle" className="h-5 w-5" />
+                    </span>
+                    <span>
+                      <span className="block text-sm font-bold text-ink-900">
+                        See it on your home
+                      </span>
+                      <span className="block text-xs text-ink-500">
+                        Try the free lighting mockup →
+                      </span>
+                    </span>
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Sticky lead form */}

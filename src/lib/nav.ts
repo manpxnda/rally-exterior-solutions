@@ -15,6 +15,7 @@ export const mainNav: NavLink[] = [
       href: `/services/${s.slug}`,
     })),
   },
+  { label: "Free Mockup", href: "/mockup" },
   { label: "Gallery", href: "/gallery" },
   { label: "Service Area", href: "/locations" },
   { label: "About", href: "/about" },

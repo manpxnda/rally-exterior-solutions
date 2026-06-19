@@ -3,6 +3,7 @@ import { TrustBar } from "@/components/sections/TrustBar";
 import { ServicesGrid } from "@/components/sections/ServicesGrid";
 import { ProofSection } from "@/components/sections/ProofSection";
 import { WhyRally } from "@/components/sections/WhyRally";
+import { MockupPromo } from "@/components/sections/MockupPromo";
 import { ProcessSteps } from "@/components/sections/ProcessSteps";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { Guarantee } from "@/components/sections/Guarantee";
@@ -21,6 +22,7 @@ export default function HomePage() {
       <ServicesGrid />
       <ProofSection />
       <WhyRally />
+      <MockupPromo />
       <ProcessSteps />
       <Testimonials limit={3} />
       <Guarantee />

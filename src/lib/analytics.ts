@@ -20,9 +20,21 @@ export const analyticsConfig = {
   ga4Id: process.env.NEXT_PUBLIC_GA4_ID,
   googleAdsId: process.env.NEXT_PUBLIC_GOOGLE_ADS_ID,
   googleAdsLeadLabel: process.env.NEXT_PUBLIC_GOOGLE_ADS_LEAD_LABEL,
+  // Optional: a separate Google Ads conversion action for phone-call/text leads.
+  googleAdsCallLabel: process.env.NEXT_PUBLIC_GOOGLE_ADS_CALL_LABEL,
   metaPixelId: process.env.NEXT_PUBLIC_META_PIXEL_ID,
   clarityId: process.env.NEXT_PUBLIC_CLARITY_ID,
 };
+
+/** Fire a Google Ads conversion for a given label, if Ads is configured. */
+function trackAdsConversion(label?: string, detail: Record<string, unknown> = {}) {
+  if (typeof window === "undefined") return;
+  if (!analyticsConfig.googleAdsId || !label) return;
+  window.gtag?.("event", "conversion", {
+    send_to: `${analyticsConfig.googleAdsId}/${label}`,
+    ...detail,
+  });
+}
 
 /** Generic GA4 event. */
 export function trackEvent(name: string, params: Record<string, unknown> = {}) {
@@ -36,16 +48,18 @@ export function trackMeta(event: string, params: Record<string, unknown> = {}) {
   window.fbq?.("track", event, params);
 }
 
-/** A phone-number click (call intent). */
+/** A phone-number click (call intent). Counts as an Ads conversion if a call label is set. */
 export function trackCallClick(source = "site") {
   trackEvent("call_click", { source });
   trackMeta("Contact", { source });
+  trackAdsConversion(analyticsConfig.googleAdsCallLabel, { source, method: "call" });
 }
 
 /** A text/SMS click (text intent — a softer but real lead signal). */
 export function trackTextClick(source = "site") {
   trackEvent("text_click", { source });
   trackMeta("Contact", { source, method: "sms" });
+  trackAdsConversion(analyticsConfig.googleAdsCallLabel, { source, method: "sms" });
 }
 
 /**
@@ -55,13 +69,7 @@ export function trackTextClick(source = "site") {
 export function trackLeadSubmit(detail: Record<string, unknown> = {}) {
   trackEvent("generate_lead", { ...detail, currency: "USD" });
   trackMeta("Lead", detail);
-
-  if (analyticsConfig.googleAdsId && analyticsConfig.googleAdsLeadLabel) {
-    trackEvent("conversion", {
-      send_to: `${analyticsConfig.googleAdsId}/${analyticsConfig.googleAdsLeadLabel}`,
-      ...detail,
-    });
-  }
+  trackAdsConversion(analyticsConfig.googleAdsLeadLabel, detail);
 }
 
 /** Read UTM + referral params so they ride along with the lead. */

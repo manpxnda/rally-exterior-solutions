@@ -154,6 +154,233 @@ export const guides: Guide[] = [
     ],
     relatedService: "house-washing",
   },
+  {
+    slug: "permanent-lighting-cost",
+    title: "How Much Does Permanent Outdoor Lighting Cost? (2026 Guide)",
+    category: "Pricing Guide",
+    intro:
+      "Permanent outdoor lighting is usually priced per linear foot — typically $25–$45 installed — which puts most whole-home installs in the Ohio Valley between about $2,500 and $6,000, with the average single-family home around $3,500–$4,500. The exact price comes down to how much roofline you light, your home's height, and the product tier. Here's how it really breaks down.",
+    updated: "2026-06-18",
+    readMinutes: 5,
+    metaTitle: "Permanent Outdoor Lighting Cost | Wheeling WV & Ohio Valley Prices",
+    metaDescription:
+      "Permanent lighting runs about $25–$45 per linear foot — most homes $2,500–$6,000 installed. See what drives the price and get a free exact quote from Rally.",
+    keywords: [
+      "permanent lighting cost",
+      "how much does permanent lighting cost",
+      "permanent outdoor lighting price",
+      "permanent christmas lights cost",
+      "jellyfish lighting cost",
+      "permanent lighting wheeling wv cost",
+    ],
+    priceTable: {
+      caption: "Typical permanent lighting prices (installed)",
+      rows: [
+        { label: "Per linear foot", range: "$25 – $45", note: "the standard way it's quoted" },
+        { label: "Smaller / single-story home", range: "$2,500 – $3,500", note: "~80–120 ft of track" },
+        { label: "Average two-story home", range: "$3,500 – $5,000", note: "most common" },
+        { label: "Large or complex home", range: "$5,000 – $8,000+", note: "long rooflines, peaks, multiple stories" },
+      ],
+      disclaimer:
+        "Ranges are typical Ohio Valley estimates for illustration only — not a quote. Every Rally estimate is free and includes a firm, written per-foot price.",
+    },
+    sections: [
+      {
+        heading: "What drives the price",
+        body: ["Permanent lighting is a one-time install that lasts for years, so pricing reflects the materials and labor that go into doing it right:"],
+        bullets: [
+          "Linear footage — the #1 factor; more roofline = more track and LEDs.",
+          "Home height & complexity — two- and three-story homes and steep peaks take more time and equipment.",
+          "Product tier — commercial-grade, color-matched track and quality LEDs cost more but last far longer.",
+          "Controller & app features — millions of colors and scene programming vs. simpler warm-white setups.",
+          "Trim color matching — channel color-matched to your fascia so it disappears by day.",
+        ],
+      },
+      {
+        heading: "Why it's worth it vs. hanging lights every year",
+        body: [
+          "Professional Christmas light installation runs roughly $500–$1,500 every season. Over 4–6 years that's the cost of a permanent system — except permanent lighting also gives you year-round accent lighting, holiday colors for every holiday, and game-day pride, all from your phone, with no ladders ever again.",
+          "It's also a curb-appeal and resale feature, not just a seasonal expense.",
+        ],
+      },
+      {
+        heading: "How to compare quotes",
+        body: ["Permanent lighting quality varies a lot. Before you buy, ask:"],
+        bullets: [
+          "Is the track color-matched and mounted to disappear in daylight?",
+          "Are the LEDs commercial-grade and individually addressable (for scenes)?",
+          "What's the warranty on the lights, the install, and the controller?",
+          "Is the company insured and installing it themselves (not subbing it out)?",
+        ],
+      },
+      {
+        heading: "Get your exact per-foot price — free",
+        body: [
+          "Rally measures your home and gives a free, written quote with a clear per-linear-foot price — no pressure. Most quotes come back same-day. Reserve early; install dates fill fast heading into fall.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: "How much does permanent lighting cost for an average home?",
+        a: "Most homes in the Ohio Valley run $2,500–$6,000 installed, with a typical two-story home around $3,500–$5,000. It's usually quoted per linear foot ($25–$45). Rally gives a free, written per-foot quote.",
+      },
+      {
+        q: "Is permanent lighting cheaper than yearly Christmas lights?",
+        a: "Over time, yes. Professional holiday installs cost ~$500–$1,500 a year, so a permanent system typically pays for itself in 4–6 years — and you also get year-round and every-holiday lighting with no ladders.",
+      },
+      {
+        q: "Does the price include the app controller?",
+        a: "Yes — Rally installs include the controller and app so you can set any color or scene from your phone. We'll walk you through it.",
+      },
+      {
+        q: "Do you offer free estimates?",
+        a: "Always. Every estimate is free, no-pressure, and provided in writing, usually same-day.",
+      },
+    ],
+    relatedService: "permanent-lighting",
+  },
+  {
+    slug: "christmas-light-installation-cost",
+    title: "How Much Does Christmas Light Installation Cost? (2026 Guide)",
+    category: "Pricing Guide",
+    intro:
+      "Professional Christmas light installation in the Ohio Valley typically runs $500–$1,500 for a residential home, with most single-family homes landing around $600–$1,000. Pricing depends on how much roofline and landscaping you light, your home's height, and whether bulbs are included. Here's what goes into it — and why booking early matters.",
+    updated: "2026-06-18",
+    readMinutes: 4,
+    metaTitle: "Christmas Light Installation Cost | Wheeling WV & Ohio Valley",
+    metaDescription:
+      "Professional Christmas light installation runs $500–$1,500 for most homes. See what affects the price, what's included, and get a free quote from Rally.",
+    keywords: [
+      "christmas light installation cost",
+      "how much does christmas light installation cost",
+      "holiday light installation price",
+      "cost to hang christmas lights",
+      "christmas light installers wheeling wv",
+    ],
+    priceTable: {
+      caption: "Typical Christmas light installation prices",
+      rows: [
+        { label: "Roofline only (single story)", range: "$400 – $700", note: "basic perimeter" },
+        { label: "Average home (roof + some trees/bushes)", range: "$600 – $1,100", note: "most common" },
+        { label: "Large / two-story display", range: "$1,000 – $2,000+", note: "tall rooflines, heavy design" },
+        { label: "Add: takedown & storage", range: "often included", note: "ask what's bundled" },
+      ],
+      disclaimer:
+        "Ranges are typical Ohio Valley estimates for illustration only — not a quote. Rally's seasonal packages include design, install, in-season maintenance, takedown & storage.",
+    },
+    sections: [
+      {
+        heading: "What's usually included",
+        body: ["A professional install is more than hanging lights. A good package covers the whole season:"],
+        bullets: [
+          "Custom design for your home and roofline",
+          "Premium commercial-grade bulbs (often provided/rented)",
+          "Professional, insured installation — no ladders for you",
+          "In-season maintenance if a bulb or section goes out",
+          "Takedown and storage after the holidays",
+        ],
+      },
+      {
+        heading: "What drives the price",
+        bullets: [
+          "Linear footage of roofline + any trees, columns, and walkways",
+          "Home height and roof pitch (two-story and steep roofs cost more)",
+          "Whether you own the bulbs or they're provided",
+          "Design complexity — simple warm-white vs. multicolor + wraps",
+        ],
+      },
+      {
+        heading: "Book early — it's the cheapest way to save",
+        body: [
+          "Prime install dates (late October–November) fill fast, and rushing a last-minute job costs more. Reserving early locks in your date and price. Want it solved permanently? See our permanent lighting guide — it pays for itself in a few seasons.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: "How much does it cost to have Christmas lights professionally installed?",
+        a: "Most Ohio Valley homes run $500–$1,500, with a typical home around $600–$1,000. Price depends on roofline length, home height, and whether bulbs are included. Rally gives a free, written quote.",
+      },
+      {
+        q: "Does the price include takedown?",
+        a: "With Rally, yes — our seasonal packages include install, in-season maintenance, takedown, and storage, so you never touch a ladder.",
+      },
+      {
+        q: "Should I get permanent lighting instead?",
+        a: "If you decorate every year, permanent lighting often pays for itself in 4–6 seasons and works year-round. Many customers start with a quote for both.",
+      },
+    ],
+    relatedService: "holiday-lighting",
+  },
+  {
+    slug: "roof-cleaning-cost",
+    title: "How Much Does Roof Cleaning Cost? (2026 Guide)",
+    category: "Pricing Guide",
+    intro:
+      "Roof cleaning (soft washing) in the Ohio Valley typically costs $0.20–$0.55 per square foot, which puts most homes between about $350 and $700, with larger or steep roofs running $800–$1,200+. The price depends on roof size, pitch, height, and how heavy the black streaks and moss are. Here's how it works — and why it's far cheaper than a new roof.",
+    updated: "2026-06-18",
+    readMinutes: 4,
+    metaTitle: "Roof Cleaning Cost | Black Streak Removal — Wheeling WV & Ohio Valley",
+    metaDescription:
+      "Roof cleaning runs about $0.20–$0.55/sq ft — most homes $350–$700. See what affects the price of soft-wash black-streak removal and get a free Rally quote.",
+    keywords: [
+      "roof cleaning cost",
+      "how much does roof cleaning cost",
+      "roof washing price",
+      "black streak removal cost",
+      "soft wash roof cost wheeling wv",
+    ],
+    priceTable: {
+      caption: "Typical roof cleaning prices (soft wash)",
+      rows: [
+        { label: "Per square foot", range: "$0.20 – $0.55", note: "of roof area" },
+        { label: "Average single-story home", range: "$350 – $600", note: "moderate streaking" },
+        { label: "Two-story / steep roof", range: "$600 – $900", note: "more access + safety" },
+        { label: "Large or heavy moss/lichen", range: "$900 – $1,200+", note: "extra treatment" },
+      ],
+      disclaimer:
+        "Ranges are typical Ohio Valley estimates for illustration only — not a quote. Every Rally roof estimate is free and quoted after a quick assessment.",
+    },
+    sections: [
+      {
+        heading: "What drives the price",
+        bullets: [
+          "Roof size (square footage) — the main factor",
+          "Pitch & height — steep, tall, two-story roofs need more access and safety gear",
+          "Severity — heavy black algae, moss, and lichen take more product and dwell time",
+          "Roof type — asphalt, metal, or flat each get the right approach",
+        ],
+      },
+      {
+        heading: "Soft wash only — never pressure-washed",
+        body: [
+          "Roofs should never be pressure-washed — high pressure strips shingle granules and can void your warranty. Rally uses a manufacturer-approved soft wash that kills the algae (Gloeocapsa magma) at the root with no pressure, so the streaks don't just disappear — they stay gone longer.",
+        ],
+      },
+      {
+        heading: "Why it's worth it",
+        body: [
+          "Those black streaks are living algae feeding on your shingles. Left alone, they shorten your roof's life. A $350–$700 cleaning can add years to a roof that costs $10,000+ to replace — one of the best-value things you can do for your home.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: "How much does it cost to clean a roof?",
+        a: "Most Ohio Valley homes run $350–$700, or about $0.20–$0.55 per square foot. Steep, tall, or heavily-stained roofs cost more. Rally gives a free quote after a quick assessment.",
+      },
+      {
+        q: "Will roof cleaning damage my shingles?",
+        a: "Not the way we do it. Rally uses a no-pressure soft wash that's manufacturer-approved — it removes algae and moss safely without stripping granules or voiding warranties.",
+      },
+      {
+        q: "How long do the results last?",
+        a: "Because soft washing kills algae at the root (not just rinses it), results typically last years longer than pressure washing — often 3–5+ years depending on shade and exposure.",
+      },
+    ],
+    relatedService: "roof-washing",
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {
@@ -162,4 +389,9 @@ export function getGuide(slug: string): Guide | undefined {
 
 export function getGuideSlugs(): string[] {
   return guides.map((g) => g.slug);
+}
+
+/** The pricing guide tied to a given service slug, if one exists. */
+export function getGuideForService(serviceSlug: string): Guide | undefined {
+  return guides.find((g) => g.relatedService === serviceSlug);
 }
