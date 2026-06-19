@@ -69,7 +69,6 @@ const EXTRAS = [
   "holiday lighting wheeling wv",
   "permanent christmas lights wheeling wv",
   "outdoor lighting wheeling wv",
-  "landscape lighting wheeling wv",
 ];
 
 export const targetKeywords: string[] = [...matrix, ...EXTRAS];

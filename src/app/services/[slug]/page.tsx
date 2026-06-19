@@ -9,6 +9,8 @@ import {
 } from "@/data/services";
 import { beforeAfters, showcase } from "@/data/gallery";
 import { getGuideForService } from "@/data/guides";
+import { getComboCities } from "@/data/serviceAreas";
+import { getLocation } from "@/data/locations";
 import { testimonialsForService } from "@/data/testimonials";
 import { regionLabel, site } from "@/lib/site";
 
@@ -64,6 +66,7 @@ export default async function ServicePage({ params }: Params) {
   const related = services.filter((s) => s.slug !== service.slug).slice(0, 3);
   const reviews = testimonialsForService(service.slug, 3);
   const guide = getGuideForService(service.slug);
+  const comboCities = getComboCities(service.slug);
   const isLighting = service.category === "lighting";
   const categoryLabel = isLighting ? "Exterior Lighting" : "Exterior Cleaning";
 
@@ -302,6 +305,33 @@ export default async function ServicePage({ params }: Params) {
           </Link>
         </p>
       </Section>
+
+      {/* City-specific pages for this service (local SEO) */}
+      {comboCities.length > 0 && (
+        <Section tone="muted">
+          <SectionHeading
+            eyebrow="Where We Work"
+            title={`${service.shortName} by town`}
+            description={`Local ${service.shortName.toLowerCase()} across the ${regionLabel} region.`}
+            className="mb-8"
+          />
+          <div className="flex flex-wrap justify-center gap-2.5">
+            {comboCities.map((c) => {
+              const o = getLocation(c);
+              if (!o) return null;
+              return (
+                <Link
+                  key={c}
+                  href={`/services/${service.slug}/${c}`}
+                  className="rounded-full border border-ink-200 bg-white px-4 py-2 text-sm font-medium text-ink-700 hover:border-gold-300 hover:text-ink-900"
+                >
+                  {service.shortName} in {o.city}, {o.state}
+                </Link>
+              );
+            })}
+          </div>
+        </Section>
+      )}
 
       <FAQ heading />
       <CTASection

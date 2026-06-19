@@ -3,6 +3,7 @@ import { site } from "@/lib/site";
 import { getServiceSlugs } from "@/data/services";
 import { getLocationSlugs } from "@/data/locations";
 import { getGuideSlugs } from "@/data/guides";
+import { getAllCombos } from "@/data/serviceAreas";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
@@ -36,7 +37,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
     freq: "monthly" as const,
   }));
 
-  return [...staticRoutes, ...serviceRoutes, ...locationRoutes, ...guideRoutes].map((r) => ({
+  // Service × city combo pages — high-intent "[service] [city]" terms.
+  const comboRoutes = getAllCombos().map(({ service, city }) => ({
+    path: `/services/${service}/${city}`,
+    priority: 0.8,
+    freq: "monthly" as const,
+  }));
+
+  return [
+    ...staticRoutes,
+    ...serviceRoutes,
+    ...locationRoutes,
+    ...guideRoutes,
+    ...comboRoutes,
+  ].map((r) => ({
     url: `${site.url}${r.path}`,
     lastModified: now,
     changeFrequency: r.freq,

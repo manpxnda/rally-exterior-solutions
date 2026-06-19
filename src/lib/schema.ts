@@ -87,6 +87,21 @@ export function serviceSchema(service: Service) {
   };
 }
 
+/** Service localized to a single city (for /services/[slug]/[city] combo pages). */
+export function serviceInCitySchema(service: Service, loc: Location) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: `${service.name} in ${loc.city}, ${loc.state}`,
+    serviceType: service.name,
+    description: `${service.name} in ${loc.city}, ${loc.stateName}. ${service.metaDescription}`,
+    url: `${site.url}/services/${service.slug}/${loc.slug}`,
+    provider: { "@id": BUSINESS_ID, "@type": "LocalBusiness", name: site.name },
+    areaServed: { "@type": "City", name: `${loc.city}, ${loc.state}` },
+    category: service.category === "lighting" ? "Lighting Installation" : "Exterior Cleaning",
+  };
+}
+
 /** Per-location LocalBusiness with areaServed = that city (local SEO). */
 export function locationSchema(loc: Location) {
   return {
