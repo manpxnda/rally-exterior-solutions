@@ -180,45 +180,25 @@ export default async function ServicePage({ params }: Params) {
               ))}
             </div>
 
-            {/* Internal links: pricing guide + (lighting) mockup */}
-            {(guide || isLighting) && (
-              <div className="mt-10 grid gap-4 sm:grid-cols-2">
-                {guide && (
-                  <Link
-                    href={`/guides/${guide.slug}`}
-                    className="flex items-center gap-3 rounded-2xl border border-ink-100 bg-ink-50 p-5 transition-colors hover:border-gold-200 hover:bg-white"
-                  >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-gold-600 shadow-card">
-                      <Icon name="tag" className="h-5 w-5" />
+            {/* Internal link: pricing guide */}
+            {guide && (
+              <div className="mt-10 sm:max-w-md">
+                <Link
+                  href={`/guides/${guide.slug}`}
+                  className="flex items-center gap-3 rounded-2xl border border-ink-100 bg-ink-50 p-5 transition-colors hover:border-gold-200 hover:bg-white"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-gold-600 shadow-card">
+                    <Icon name="tag" className="h-5 w-5" />
+                  </span>
+                  <span>
+                    <span className="block text-sm font-bold text-ink-900">
+                      How much does it cost?
                     </span>
-                    <span>
-                      <span className="block text-sm font-bold text-ink-900">
-                        How much does it cost?
-                      </span>
-                      <span className="block text-xs text-ink-500">
-                        See the {service.shortName.toLowerCase()} pricing guide →
-                      </span>
+                    <span className="block text-xs text-ink-500">
+                      See the {service.shortName.toLowerCase()} pricing guide →
                     </span>
-                  </Link>
-                )}
-                {isLighting && (
-                  <Link
-                    href="/mockup"
-                    className="flex items-center gap-3 rounded-2xl border border-ink-100 bg-ink-50 p-5 transition-colors hover:border-gold-200 hover:bg-white"
-                  >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-gold-600 shadow-card">
-                      <Icon name="sparkle" className="h-5 w-5" />
-                    </span>
-                    <span>
-                      <span className="block text-sm font-bold text-ink-900">
-                        See it on your home
-                      </span>
-                      <span className="block text-xs text-ink-500">
-                        Try the free lighting mockup →
-                      </span>
-                    </span>
-                  </Link>
-                )}
+                  </span>
+                </Link>
               </div>
             )}
           </div>

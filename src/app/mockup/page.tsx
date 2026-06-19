@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   description:
     "Upload a photo of your home and preview permanent lighting or Christmas C9 roofline lights — pick facing, spacing & colors, then get a free designer mockup + quote from Rally.",
   alternates: { canonical: "/mockup" },
+  // Unsurfaced for now (tool still being refined) — keep out of the index.
+  robots: { index: false, follow: false },
   openGraph: {
     title: `Free Lighting Mockup | ${site.name}`,
     description:
