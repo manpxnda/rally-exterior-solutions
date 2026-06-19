@@ -53,6 +53,10 @@ export type Service = {
   bestFor: string[];
   priceNote: string;
   image?: string;
+  /** Optional square/portrait photo for the homepage service tile. Falls back
+   *  to `image`. Use when `image` is a wide before|after composite that would
+   *  crop badly in a tile (set this to a clean single "after" shot). */
+  tileImage?: string;
   /** SEO */
   metaTitle: string;
   metaDescription: string;
@@ -152,7 +156,7 @@ export const services: Service[] = [
   },
   {
     slug: "pressure-washing",
-    image: "/images/services/hero-concrete-cleaning.jpg",
+    image: "/images/team/rally-driveway.png",
     name: "Pressure & Power Washing",
     shortName: "Pressure Washing",
     category: "cleaning",
@@ -201,6 +205,7 @@ export const services: Service[] = [
   {
     slug: "house-washing",
     image: "/images/services/hero-house-washing.jpg",
+    tileImage: "/images/services/tile-house-washing.jpg",
     name: "House Washing",
     shortName: "House Washing",
     category: "cleaning",
@@ -245,6 +250,7 @@ export const services: Service[] = [
   {
     slug: "roof-washing",
     image: "/images/services/hero-roof-washing.jpg",
+    tileImage: "/images/services/tile-roof-washing.jpg",
     name: "Roof Washing",
     shortName: "Roof Washing",
     category: "cleaning",
@@ -288,6 +294,7 @@ export const services: Service[] = [
   {
     slug: "concrete-cleaning",
     image: "/images/services/hero-concrete-cleaning.jpg",
+    tileImage: "/images/services/tile-concrete-cleaning.jpg",
     name: "Concrete Cleaning",
     shortName: "Concrete Cleaning",
     category: "cleaning",
