@@ -467,6 +467,83 @@ export const guides: Guide[] = [
     ],
     relatedService: "pressure-washing",
   },
+  {
+    slug: "pressure-washing-vs-soft-washing",
+    title: "Pressure Washing vs. Soft Washing: Which Does Your Home Need?",
+    category: "Buyer's Guide",
+    intro:
+      "Pressure washing uses high-pressure water to blast dirt off hard surfaces like concrete. Soft washing uses low pressure plus cleaning solutions to safely clean delicate surfaces like siding and roofs. Using the wrong one is how homes get damaged — here's the difference, and exactly which surfaces need which.",
+    updated: "2026-06-19",
+    readMinutes: 5,
+    metaTitle: "Pressure Washing vs. Soft Washing: What's the Difference? | Rally",
+    metaDescription:
+      "Pressure washing vs. soft washing explained: which method is safe for siding, roofs, and concrete — and why the wrong one causes damage. Plain-English guide from Rally.",
+    keywords: [
+      "pressure washing vs soft washing",
+      "difference between pressure washing and soft washing",
+      "soft wash vs pressure wash",
+      "what is soft washing",
+      "no pressure roof cleaning",
+      "is soft washing better than pressure washing",
+    ],
+    sections: [
+      {
+        heading: "What is pressure washing?",
+        body: [
+          "Pressure washing (also called power washing) uses a high-pressure stream of water to blast away dirt, grime, mud, and stains. That force is perfect for hard, durable surfaces — but on anything delicate, the same force that cleans concrete will crack siding, strip paint, and tear up shingles.",
+        ],
+      },
+      {
+        heading: "What is soft washing?",
+        body: [
+          "Soft washing uses low pressure (about the force of a garden hose) combined with specialized, eco-conscious cleaning solutions. Instead of blasting dirt off, the solution kills mold, mildew, and algae at the root, then a gentle rinse washes it away. Because it cleans biologically rather than by force, the results also last much longer.",
+        ],
+      },
+      {
+        heading: "Which surfaces need which method",
+        body: ["The right method depends entirely on the surface. Here's the rule of thumb the pros use:"],
+        bullets: [
+          "Concrete, driveways, sidewalks, patios → pressure washing (it's durable enough)",
+          "Vinyl & wood siding, stucco, brick → SOFT washing (high pressure cracks and forces water behind it)",
+          "Roofs (asphalt, metal, flat) → SOFT washing only (high pressure strips shingle granules and voids warranties)",
+          "Decks & fences → usually soft washing or low pressure",
+          "Gutters (exterior) → soft washing",
+        ],
+      },
+      {
+        heading: "Why the wrong method is so costly",
+        body: [
+          "This is the #1 thing that separates a good company from a cheap one. A bargain crew that blasts everything with high pressure can etch concrete, gouge wood, crack vinyl, force water into your walls, and strip the protective granules off your shingles — turning a cheap wash into thousands in repairs.",
+          "Roofs are the biggest danger: they should never be pressure-washed. \"No-pressure\" roof cleaning (soft washing) is the only safe way.",
+        ],
+      },
+      {
+        heading: "How Rally decides",
+        body: [
+          "We use the right method for every surface — strong pressure where it's safe (concrete and flatwork), and gentle soft washing where it protects (siding, roofs, wood). That's the whole point: a deep clean with zero damage, done by one insured local team. If you're not sure what your home needs, we'll tell you straight during a free estimate.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: "What's the difference between pressure washing and soft washing?",
+        a: "Pressure washing uses high-pressure water to clean hard surfaces like concrete. Soft washing uses low pressure plus cleaning solutions to safely clean delicate surfaces like siding and roofs. Hard surfaces can take pressure; delicate ones need soft washing or they'll be damaged.",
+      },
+      {
+        q: "Is soft washing better than pressure washing?",
+        a: "Neither is 'better' — they're for different surfaces. Soft washing is better (and safer) for siding, roofs, and wood; pressure washing is better for concrete and flatwork. The right pro uses both, matched to the surface.",
+      },
+      {
+        q: "Can you pressure wash a roof?",
+        a: "No — roofs should never be pressure-washed. High pressure strips the protective granules off shingles and can void your warranty. The safe method is soft washing ('no-pressure' roof cleaning), which kills the algae at the root without damage.",
+      },
+      {
+        q: "Is power washing the same as pressure washing?",
+        a: "People use the terms interchangeably. Technically power washing uses heated water and pressure washing doesn't, but both rely on high pressure — so both need the same caution on delicate surfaces.",
+      },
+    ],
+    relatedService: "pressure-washing",
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {

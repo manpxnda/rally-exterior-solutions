@@ -69,6 +69,13 @@ const EXTRAS = [
   "holiday lighting wheeling wv",
   "permanent christmas lights wheeling wv",
   "outdoor lighting wheeling wv",
+  // Commercial-intent + growth terms (Keyword Planner 2026-06): "company" and
+  // "services" = ready-to-hire; "driveway power wash" was +900% YoY.
+  "pressure washing company wheeling wv",
+  "power washing services wheeling wv",
+  "driveway power washing wheeling wv",
+  "power washing near me",
+  "pressure washing in my area",
 ];
 
 export const targetKeywords: string[] = [...matrix, ...EXTRAS];
