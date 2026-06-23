@@ -1,9 +1,9 @@
-import { getIndexStatus } from "@/lib/searchConsole";
 import { getServiceSlugs } from "@/data/services";
+import type { IndexResult } from "@/lib/searchConsole";
 import { Icon } from "@/components/ui/Icon";
 
 // Pages we care most about getting indexed: core + every service page.
-const KEY_PATHS = [
+export const KEY_PATHS = [
   "/",
   "/services",
   ...getServiceSlugs().map((s) => `/services/${s}`),
@@ -20,8 +20,8 @@ function fmtDate(iso: string | null): string {
   }
 }
 
-export async function IndexStatusPanel() {
-  const { configured, rows, error } = await getIndexStatus(KEY_PATHS);
+export function IndexStatusPanel({ result }: { result: IndexResult }) {
+  const { configured, rows, error } = result;
 
   // RankingsPanel already renders the "connect Search Console" card.
   if (!configured) return null;

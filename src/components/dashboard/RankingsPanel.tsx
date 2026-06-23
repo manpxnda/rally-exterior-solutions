@@ -43,20 +43,11 @@ export function RankingsPanel({ result }: { result: RankingsResult }) {
     );
   }
 
-  const top3 = rows.filter((r) => r.position <= 3.5).length;
-  const top10 = rows.filter((r) => r.position <= 10.5).length;
-  const totalClicks = rows.reduce((s, r) => s + r.clicks, 0);
   const totalImpr = rows.reduce((s, r) => s + r.impressions, 0);
 
   return (
     <Card>
       <Heading range={range} />
-      <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Keywords" value={rows.length.toLocaleString()} />
-        <Stat label="In top 3" value={top3.toLocaleString()} tone="green" />
-        <Stat label="In top 10" value={top10.toLocaleString()} tone="amber" />
-        <Stat label="Clicks (28d)" value={totalClicks.toLocaleString()} />
-      </div>
       <div className="overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-card">
         <div className="max-h-[28rem] overflow-y-auto">
           <table className="w-full text-left text-sm">
@@ -117,25 +108,6 @@ function Heading({ range }: { range?: { start: string; end: string } | null }) {
           {range.start} → {range.end}
         </span>
       )}
-    </div>
-  );
-}
-
-function Stat({
-  label,
-  value,
-  tone = "navy",
-}: {
-  label: string;
-  value: string;
-  tone?: "navy" | "green" | "amber";
-}) {
-  const toneClass =
-    tone === "green" ? "text-green-700" : tone === "amber" ? "text-amber-700" : "text-ink-900";
-  return (
-    <div className="rounded-2xl border border-ink-100 bg-white p-4 shadow-card">
-      <p className="text-xs font-semibold uppercase tracking-wide text-ink-400">{label}</p>
-      <p className={`mt-1 font-display text-2xl font-extrabold ${toneClass}`}>{value}</p>
     </div>
   );
 }

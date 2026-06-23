@@ -3,10 +3,19 @@ import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import { BrandMark } from "@/components/layout/Logo";
-import { getSearchRankings } from "@/lib/searchConsole";
+import {
+  getSearchRankings,
+  getPagePerformance,
+  getIndexStatus,
+} from "@/lib/searchConsole";
+import { summarizeKpis, buildActionItems } from "@/lib/dashboardInsights";
+import { targetKeywords } from "@/data/targetKeywords";
+import { OverviewPanel } from "@/components/dashboard/OverviewPanel";
+import { ActionItemsPanel } from "@/components/dashboard/ActionItemsPanel";
 import { RankingsPanel } from "@/components/dashboard/RankingsPanel";
 import { TargetKeywordsPanel } from "@/components/dashboard/TargetKeywordsPanel";
-import { IndexStatusPanel } from "@/components/dashboard/IndexStatusPanel";
+import { PagePerformancePanel } from "@/components/dashboard/PagePerformancePanel";
+import { IndexStatusPanel, KEY_PATHS } from "@/components/dashboard/IndexStatusPanel";
 
 export const metadata: Metadata = {
   title: "Owner Dashboard",
@@ -35,58 +44,51 @@ const tools: Tool[] = [
   },
   {
     title: "Search Console",
-    desc: "Search rankings, clicks & indexing",
+    desc: "Request indexing, full reports",
     href: "https://search.google.com/search-console",
     icon: "star",
     tone: "teal",
+  },
+  {
+    title: "Google Ads",
+    desc: "Campaigns, spend & conversions",
+    href: "https://ads.google.com/",
+    icon: "tag",
+    tone: "navy",
+  },
+  {
+    title: "Business Profile",
+    desc: "Reviews, posts & Google Maps",
+    href: "https://business.google.com/",
+    icon: "pin",
+    tone: "coral",
   },
   {
     title: "Microsoft Clarity",
     desc: "Heatmaps & session recordings",
     href: "https://clarity.microsoft.com/",
     icon: "image",
-    tone: "navy",
-  },
-  {
-    title: "Vercel Analytics",
-    desc: "Live traffic & page speed",
-    href: "https://vercel.com/manpxndas-projects/rally-exterior-solutions/analytics",
-    icon: "layers",
-    tone: "coral",
+    tone: "teal",
   },
   {
     title: "Review QR Card",
-    desc: "Printable card → your Google review link",
+    desc: "Printable → your Google review link",
     href: "/review-card",
     icon: "star",
-    tone: "coral",
+    tone: "navy",
   },
   {
     title: "Lead Email Logs",
     desc: "Resend — every lead sent & delivered",
     href: "https://resend.com/emails",
     icon: "mail",
-    tone: "teal",
-  },
-  {
-    title: "Lead Inbox (info@)",
-    desc: "Your incoming estimate requests",
-    href: "https://outlook.office.com/mail/",
-    icon: "calendar",
-    tone: "navy",
-  },
-  {
-    title: "Vercel Project",
-    desc: "Hosting, deploys & settings",
-    href: "https://vercel.com/manpxndas-projects/rally-exterior-solutions",
-    icon: "sparkle",
     tone: "coral",
   },
   {
-    title: "Website Code",
-    desc: "GitHub repository & history",
-    href: "https://github.com/manpxnda/rally-exterior-solutions",
-    icon: "shield",
+    title: "Vercel Project",
+    desc: "Hosting, deploys & analytics",
+    href: "https://vercel.com/manpxndas-projects/rally-exterior-solutions",
+    icon: "layers",
     tone: "teal",
   },
 ];
@@ -100,11 +102,23 @@ const toneClass: Record<Tool["tone"], string> = {
 export default async function DashboardPage() {
   const lookerUrl = process.env.NEXT_PUBLIC_LOOKER_EMBED_URL;
 
-  // One set of GSC calls feeds both panels: current 28 days + prior 28 (trend).
-  const current = await getSearchRankings(28, 1000, 0);
-  const previous = current.configured
-    ? await getSearchRankings(28, 1000, 28)
-    : current;
+  // One parallel batch of Search Console calls feeds every panel below:
+  // current 28 days + prior 28 (for trends) + page performance + index status.
+  const [current, previous, pages, index] = await Promise.all([
+    getSearchRankings(28, 1000, 0),
+    getSearchRankings(28, 1000, 28),
+    getPagePerformance(28, 500, 0),
+    getIndexStatus(KEY_PATHS),
+  ]);
+
+  const kpis = summarizeKpis(current, previous, index);
+  const actions = buildActionItems({
+    current,
+    previous,
+    pages,
+    index,
+    targets: targetKeywords,
+  });
 
   return (
     <div className="min-h-screen bg-ink-50">
@@ -130,52 +144,49 @@ export default async function DashboardPage() {
       </header>
 
       <Container className="py-10">
-        {/* SEO: index status + target keywords + all-queries (Search Console) */}
-        <IndexStatusPanel />
+        <div className="mb-8 flex items-center gap-2 text-xs text-ink-400">
+          <span className="inline-block h-2 w-2 rounded-full bg-green-500" />
+          Live from Google Search Console
+          {current.range && (
+            <>
+              {" · "}
+              {current.range.start} → {current.range.end}
+            </>
+          )}
+          {" · "}Google data lags ~2 days. Refresh the page for the latest.
+        </div>
+
+        {/* 1. Top-line KPIs (vs prior period) */}
+        <OverviewPanel kpis={kpis} />
+
+        {/* 2. The to-do list — what to update, ranked by impact */}
+        <ActionItemsPanel items={actions} configured={current.configured} />
+
+        {/* 3. Supporting detail */}
+        <IndexStatusPanel result={index} />
+        <PagePerformancePanel result={pages} />
         <TargetKeywordsPanel current={current} previous={previous} />
         <RankingsPanel result={current} />
 
-        {/* Combined analytics report */}
-        <section className="mb-10">
-          <h2 className="mb-4 font-display text-xl font-bold text-ink-900">
-            Live analytics
-          </h2>
-          {lookerUrl ? (
+        {/* Optional deep-dive report (only if a Looker URL is configured) */}
+        {lookerUrl && (
+          <section className="mb-10">
+            <h2 className="mb-4 font-display text-xl font-bold text-ink-900">
+              Deep-dive analytics
+            </h2>
             <iframe
               title="Rally analytics report"
               src={lookerUrl}
               className="h-[72vh] w-full rounded-2xl border border-ink-100 bg-white shadow-card"
               allowFullScreen
             />
-          ) : (
-            <div className="rounded-2xl border border-dashed border-ink-200 bg-white p-8 text-center shadow-card">
-              <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gold-100 text-gold-700">
-                <Icon name="bolt" className="h-6 w-6" />
-              </span>
-              <h3 className="mt-4 font-bold text-ink-900">
-                Connect your combined report
-              </h3>
-              <p className="mx-auto mt-2 max-w-md text-sm text-ink-500">
-                A Looker Studio report (Google Analytics + Search Console in one
-                view) will appear here. Create it free at{" "}
-                <a
-                  href="https://lookerstudio.google.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-ink-900 underline"
-                >
-                  lookerstudio.google.com
-                </a>{" "}
-                — then it gets embedded here.
-              </p>
-            </div>
-          )}
-        </section>
+          </section>
+        )}
 
         {/* Quick-launch tools */}
         <section>
           <h2 className="mb-4 font-display text-xl font-bold text-ink-900">
-            All your tools
+            Your tools
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {tools.map((t) => (

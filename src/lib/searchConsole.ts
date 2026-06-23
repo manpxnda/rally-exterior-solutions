@@ -1,7 +1,7 @@
 /**
- * Google Search Console — Search Analytics client.
+ * Google Search Console — Search Analytics + URL Inspection client.
  * ----------------------------------------------------------------------------
- * Pulls the exact queries the site ranks for (query, avg position, clicks,
+ * Pulls the exact queries/pages the site ranks for (query, avg position, clicks,
  * impressions, CTR) using a Google **service account** — no external deps, just
  * a manually-signed RS256 JWT + fetch. Used ONLY server-side by the private
  * /dashboard, so the key is never exposed.
@@ -29,12 +29,46 @@ export type RankingsResult = {
   error?: string;
 };
 
+export type PageRow = {
+  page: string; // full URL
+  path: string; // path only, for display
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+};
+
+export type PagePerformanceResult = {
+  configured: boolean;
+  rows: PageRow[];
+  range: { start: string; end: string } | null;
+  error?: string;
+};
+
+const SITE_BASE =
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://rallyexteriorsolutions.com";
+
 function base64url(input: string | Buffer): string {
   return Buffer.from(input)
     .toString("base64")
     .replace(/=/g, "")
     .replace(/\+/g, "-")
     .replace(/\//g, "_");
+}
+
+/** Strip wrapping quotes + whitespace that often sneak in on paste. */
+const clean = (v?: string) => v?.trim().replace(/^["']|["']$/g, "").trim();
+
+type Creds = { email: string; privateKey: string; siteUrl: string };
+
+/** Load + sanitize the service-account credentials, or null if not configured. */
+function loadCreds(): Creds | null {
+  const email = clean(process.env.GSC_CLIENT_EMAIL);
+  const rawKey = process.env.GSC_PRIVATE_KEY;
+  const siteUrl = clean(process.env.GSC_SITE_URL);
+  if (!email || !rawKey || !siteUrl) return null;
+  const privateKey = (clean(rawKey) ?? "").replace(/\\n/g, "\n");
+  return { email, privateKey, siteUrl };
 }
 
 async function getAccessToken(email: string, privateKey: string): Promise<string> {
@@ -72,28 +106,36 @@ async function getAccessToken(email: string, privateKey: string): Promise<string
 
 const fmt = (d: Date) => d.toISOString().slice(0, 10);
 
+type GscRow = {
+  keys: string[];
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+};
+
+type RawResult = {
+  configured: boolean;
+  rows: GscRow[];
+  range: { start: string; end: string } | null;
+  error?: string;
+};
+
 /**
- * Top queries the site ranks for over a `days` window.
- * `offsetDays` shifts the window into the past (e.g. 28 = the prior 28-day
- * period) so we can compute trends.
+ * Core Search Analytics query. `offsetDays` shifts the window into the past
+ * (e.g. 28 = the prior 28-day period) so callers can compute trends.
  */
-export async function getSearchRankings(
-  days = 28,
-  rowLimit = 100,
-  offsetDays = 0
-): Promise<RankingsResult> {
-  // Defensive: strip wrapping quotes + whitespace that often sneak in on paste.
-  const clean = (v?: string) => v?.trim().replace(/^["']|["']$/g, "").trim();
-  const email = clean(process.env.GSC_CLIENT_EMAIL);
-  const rawKey = process.env.GSC_PRIVATE_KEY;
-  const siteUrl = clean(process.env.GSC_SITE_URL);
-  if (!email || !rawKey || !siteUrl) {
-    return { configured: false, rows: [], range: null };
-  }
-  const privateKey = (clean(rawKey) ?? "").replace(/\\n/g, "\n");
+async function querySearchAnalytics(
+  dimensions: string[],
+  days: number,
+  rowLimit: number,
+  offsetDays: number
+): Promise<RawResult> {
+  const creds = loadCreds();
+  if (!creds) return { configured: false, rows: [], range: null };
 
   try {
-    const token = await getAccessToken(email, privateKey);
+    const token = await getAccessToken(creds.email, creds.privateKey);
     const end = new Date();
     end.setDate(end.getDate() - offsetDays);
     const start = new Date(end);
@@ -101,7 +143,7 @@ export async function getSearchRankings(
 
     const res = await fetch(
       `https://searchconsole.googleapis.com/webmasters/v3/sites/${encodeURIComponent(
-        siteUrl
+        creds.siteUrl
       )}/searchAnalytics/query`,
       {
         method: "POST",
@@ -112,7 +154,7 @@ export async function getSearchRankings(
         body: JSON.stringify({
           startDate: fmt(start),
           endDate: fmt(end),
-          dimensions: ["query"],
+          dimensions,
           rowLimit,
         }),
         cache: "no-store",
@@ -121,25 +163,60 @@ export async function getSearchRankings(
     if (!res.ok) {
       return { configured: true, rows: [], range: null, error: `GSC ${res.status}` };
     }
-    const json = (await res.json()) as {
-      rows?: { keys: string[]; clicks: number; impressions: number; ctr: number; position: number }[];
+    const json = (await res.json()) as { rows?: GscRow[] };
+    return {
+      configured: true,
+      rows: json.rows ?? [],
+      range: { start: fmt(start), end: fmt(end) },
     };
-    const rows: Ranking[] = (json.rows ?? [])
-      .map((r) => ({
-        query: r.keys[0],
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : "error";
+    // Surface the email actually loaded so credential mismatches are obvious.
+    return { configured: true, rows: [], range: null, error: `${msg} [using email=${creds.email}]` };
+  }
+}
+
+/** Top queries the site ranks for over a `days` window (sorted by impressions). */
+export async function getSearchRankings(
+  days = 28,
+  rowLimit = 100,
+  offsetDays = 0
+): Promise<RankingsResult> {
+  const raw = await querySearchAnalytics(["query"], days, rowLimit, offsetDays);
+  const rows: Ranking[] = raw.rows
+    .map((r) => ({
+      query: r.keys[0],
+      clicks: r.clicks,
+      impressions: r.impressions,
+      ctr: r.ctr,
+      position: r.position,
+    }))
+    .sort((a, b) => b.impressions - a.impressions);
+  return { configured: raw.configured, rows, range: raw.range, error: raw.error };
+}
+
+/** Top landing pages by clicks over a `days` window. */
+export async function getPagePerformance(
+  days = 28,
+  rowLimit = 500,
+  offsetDays = 0
+): Promise<PagePerformanceResult> {
+  const raw = await querySearchAnalytics(["page"], days, rowLimit, offsetDays);
+  const rows: PageRow[] = raw.rows
+    .map((r) => {
+      const page = r.keys[0];
+      const path = page.replace(SITE_BASE, "").replace(/^https?:\/\/[^/]+/, "") || "/";
+      return {
+        page,
+        path,
         clicks: r.clicks,
         impressions: r.impressions,
         ctr: r.ctr,
         position: r.position,
-      }))
-      .sort((a, b) => b.impressions - a.impressions);
-
-    return { configured: true, rows, range: { start: fmt(start), end: fmt(end) } };
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : "error";
-    // Surface the email actually loaded from env so credential mismatches are obvious.
-    return { configured: true, rows: [], range: null, error: `${msg} [using email=${email}]` };
-  }
+      };
+    })
+    .sort((a, b) => b.clicks - a.clicks || b.impressions - a.impressions);
+  return { configured: raw.configured, rows, range: raw.range, error: raw.error };
 }
 
 export type IndexStatus = {
@@ -157,24 +234,17 @@ export type IndexResult = {
   error?: string;
 };
 
-const SITE_BASE =
-  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || "https://rallyexteriorsolutions.com";
-
 /**
  * Per-URL Google index status via the URL Inspection API.
  * NOTE: this endpoint requires the service account to be a FULL/owner user on
  * the property (not "Restricted"); a 403 means it needs upgraded permission.
  */
 export async function getIndexStatus(paths: string[]): Promise<IndexResult> {
-  const clean = (v?: string) => v?.trim().replace(/^["']|["']$/g, "").trim();
-  const email = clean(process.env.GSC_CLIENT_EMAIL);
-  const rawKey = process.env.GSC_PRIVATE_KEY;
-  const siteUrl = clean(process.env.GSC_SITE_URL);
-  if (!email || !rawKey || !siteUrl) return { configured: false, rows: [] };
-  const privateKey = (clean(rawKey) ?? "").replace(/\\n/g, "\n");
+  const creds = loadCreds();
+  if (!creds) return { configured: false, rows: [] };
 
   try {
-    const token = await getAccessToken(email, privateKey);
+    const token = await getAccessToken(creds.email, creds.privateKey);
     const rows = await Promise.all(
       paths.map(async (path) => {
         const url = `${SITE_BASE}${path}`;
@@ -183,7 +253,7 @@ export async function getIndexStatus(paths: string[]): Promise<IndexResult> {
           {
             method: "POST",
             headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-            body: JSON.stringify({ inspectionUrl: url, siteUrl, languageCode: "en-US" }),
+            body: JSON.stringify({ inspectionUrl: url, siteUrl: creds.siteUrl, languageCode: "en-US" }),
             cache: "no-store",
           }
         );

@@ -1,25 +1,6 @@
 import { targetKeywords } from "@/data/targetKeywords";
-import type { RankingsResult, Ranking } from "@/lib/searchConsole";
-
-const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
-
-type Match = { row: Ranking | null; type: "exact" | "partial" | "none" };
-
-function matchTarget(target: string, rows: Ranking[]): Match {
-  const t = norm(target);
-  const exact = rows.find((r) => norm(r.query) === t);
-  if (exact) return { row: exact, type: "exact" };
-  const words = t.split(" ").filter((w) => w.length > 2);
-  const partials = rows.filter((r) => {
-    const q = norm(r.query);
-    return words.length > 0 && words.every((w) => q.includes(w));
-  });
-  if (partials.length) {
-    partials.sort((a, b) => a.position - b.position);
-    return { row: partials[0], type: "partial" };
-  }
-  return { row: null, type: "none" };
-}
+import type { RankingsResult } from "@/lib/searchConsole";
+import { matchTarget } from "@/lib/dashboardInsights";
 
 /**
  * Tracks the owner's hand-picked target keywords: current avg position + 28-day
