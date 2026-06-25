@@ -58,7 +58,15 @@ export default async function LandingPage({ params }: Params) {
           layout's <main>, so nested landmarks would be invalid.) */}
       <div className="sticky top-0 z-50 border-b border-ink-100 bg-white/95 backdrop-blur">
         <div className="container flex h-16 items-center justify-between gap-4">
-          <span className="inline-flex items-center gap-2.5" aria-label={site.name}>
+          {/* Logo links to the full site in a NEW TAB — lets visitors vet the
+              company without losing this page (and their half-filled form). */}
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${site.name} — view full site`}
+            className="inline-flex items-center gap-2.5 transition-opacity hover:opacity-80"
+          >
             <BrandMark className="h-9 w-9 shrink-0" />
             <span className="flex flex-col leading-none">
               <span className="font-display text-xl font-extrabold uppercase leading-none tracking-tight text-ink-900">
@@ -68,7 +76,7 @@ export default async function LandingPage({ params }: Params) {
                 Exterior Solutions
               </span>
             </span>
-          </span>
+          </a>
           <div className="flex items-center gap-3">
             <CallLink
               source="lp_header"
@@ -283,7 +291,9 @@ export default async function LandingPage({ params }: Params) {
           </section>
         )}
 
-        <Testimonials limit={3} />
+        <div id="reviews" className="scroll-mt-20">
+          <Testimonials limit={3} />
+        </div>
 
         {/* Final CTA */}
         <section className="relative overflow-hidden bg-ink-900 py-16 text-center text-white">
@@ -312,17 +322,42 @@ export default async function LandingPage({ params }: Params) {
         </section>
       </div>
 
-      {/* Minimal footer (no nav to leak clicks) */}
+      {/* Minimal footer — a few trust links for vetting (no full nav).
+          "Reviews" scrolls to the proof on this page; the others open the full
+          site in a new tab so this landing page (and the form) stays put. */}
       <div className="border-t border-ink-100 bg-white py-8">
-        <div className="container flex flex-col items-center gap-3 text-center sm:flex-row sm:justify-between sm:text-left">
-          <span className="inline-flex items-center gap-2.5">
-            <BrandMark className="h-8 w-8" />
-            <span className="text-sm font-bold text-ink-900">{site.name}</span>
-          </span>
-          <p className="text-sm text-ink-500">
-            Serving the Ohio Valley &amp; Wheeling, WV · Fully insured ·{" "}
-            <CallLink source="lp_footer" className="font-bold text-ink-900 hover:text-gold-600" />
-          </p>
+        <div className="container flex flex-col items-center gap-5">
+          <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm font-semibold text-ink-600">
+            <a href="#reviews" className="transition-colors hover:text-gold-600">
+              Reviews
+            </a>
+            <a
+              href="/gallery"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-gold-600"
+            >
+              Our Work
+            </a>
+            <a
+              href="/about"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-gold-600"
+            >
+              About Rally
+            </a>
+          </nav>
+          <div className="flex w-full flex-col items-center gap-3 border-t border-ink-100 pt-5 text-center sm:flex-row sm:justify-between sm:text-left">
+            <span className="inline-flex items-center gap-2.5">
+              <BrandMark className="h-8 w-8" />
+              <span className="text-sm font-bold text-ink-900">{site.name}</span>
+            </span>
+            <p className="text-sm text-ink-500">
+              Serving the Ohio Valley &amp; Wheeling, WV · Fully insured ·{" "}
+              <CallLink source="lp_footer" className="font-bold text-ink-900 hover:text-gold-600" />
+            </p>
+          </div>
         </div>
       </div>
 
