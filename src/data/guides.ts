@@ -227,7 +227,7 @@ export const guides: Guide[] = [
       },
       {
         q: "Is permanent lighting cheaper than yearly Christmas lights?",
-        a: "Over time, yes. Professional holiday installs cost ~$500–$1,500 a year, so a permanent system typically pays for itself in 4–6 years — and you also get year-round and every-holiday lighting with no ladders.",
+        a: "Over time, yes. Professional holiday installs run ~$750–$2,000 a season, so a permanent system typically pays for itself in 3–5 years — and you also get year-round and every-holiday lighting with no ladders.",
       },
       {
         q: "Does the price include the app controller?",
@@ -245,12 +245,12 @@ export const guides: Guide[] = [
     title: "How Much Does Christmas Light Installation Cost? (2026 Guide)",
     category: "Pricing Guide",
     intro:
-      "Professional Christmas light installation in the Ohio Valley typically runs $500–$1,500 for a residential home, with most single-family homes landing around $600–$1,000. Pricing depends on how much roofline and landscaping you light, your home's height, and whether bulbs are included. Here's what goes into it — and why booking early matters.",
-    updated: "2026-06-18",
+      "Professional Christmas light installation with Rally starts at $750 for a complete seasonal package, with most Ohio Valley homes landing between $750 and $2,000 depending on how much roofline and landscaping you light. That's not a hang-only fee — one price covers custom design, commercial-grade lights, installation, in-season maintenance, takedown, and storage. Here's how it works and why booking early matters.",
+    updated: "2026-08-10",
     readMinutes: 4,
     metaTitle: "Christmas Light Installation Cost | Wheeling WV & Ohio Valley",
     metaDescription:
-      "Professional Christmas light installation runs $500–$1,500 for most homes. See what affects the price, what's included, and get a free quote from Rally.",
+      "Professional Christmas light installation starts at $750 — design, lights, install, maintenance, takedown & storage all included. See typical Ohio Valley prices and get a free Rally quote.",
     keywords: [
       "christmas light installation cost",
       "how much does christmas light installation cost",
@@ -259,35 +259,44 @@ export const guides: Guide[] = [
       "christmas light installers wheeling wv",
     ],
     priceTable: {
-      caption: "Typical Christmas light installation prices",
+      caption: "Typical Rally seasonal package prices",
       rows: [
-        { label: "Roofline only (single story)", range: "$400 – $700", note: "basic perimeter" },
-        { label: "Average home (roof + some trees/bushes)", range: "$600 – $1,100", note: "most common" },
-        { label: "Large / two-story display", range: "$1,000 – $2,000+", note: "tall rooflines, heavy design" },
-        { label: "Add: takedown & storage", range: "often included", note: "ask what's bundled" },
+        { label: "Seasonal packages start at", range: "$750", note: "simple single-story roofline" },
+        { label: "Average home (roofline + accents)", range: "$1,000 – $2,000", note: "most common" },
+        { label: "Large / two-story display", range: "$1,800 – $2,800+", note: "long rooflines, trees & wreaths" },
+        { label: "Design, install, maintenance, takedown & storage", range: "included", note: "one package price covers the season" },
       ],
       disclaimer:
-        "Ranges are typical Ohio Valley estimates for illustration only — not a quote. Rally's seasonal packages include design, install, in-season maintenance, takedown & storage.",
+        "Ranges are typical estimates for illustration — your exact price depends on your roofline and design, and every Rally quote is free and in writing. Rally retains ownership of all lights and displays; your package covers the complete season.",
     },
     sections: [
       {
-        heading: "What's usually included",
-        body: ["A professional install is more than hanging lights. A good package covers the whole season:"],
+        heading: "One price, whole season — and you never buy a box of lights",
+        body: [
+          "A Rally package isn't a hang-only fee. One price covers everything from the first sketch to the January takedown:",
+        ],
         bullets: [
           "Custom design for your home and roofline",
-          "Premium commercial-grade bulbs (often provided/rented)",
+          "Premium commercial-grade lights — provided by Rally",
           "Professional, insured installation — no ladders for you",
           "In-season maintenance if a bulb or section goes out",
-          "Takedown and storage after the holidays",
+          "Takedown after the holidays, plus storage until next year",
+        ],
+      },
+      {
+        heading: "Why Rally owns the lights (and why that's good for you)",
+        body: [
+          "Rally retains ownership of all Christmas lights and displays. That's the professional model, and it works in your favor: you never buy boxes of retail lights that fail in year two, never store a tangled tote in the garage, and never pay to replace a dead strand — we stock, maintain, and refresh everything as part of your package.",
+          "It also means your display can evolve. Want to add the big tree next year, or switch the color scheme? It's a design conversation, not a shopping trip.",
         ],
       },
       {
         heading: "What drives the price",
         bullets: [
-          "Linear footage of roofline + any trees, columns, and walkways",
-          "Home height and roof pitch (two-story and steep roofs cost more)",
-          "Whether you own the bulbs or they're provided",
-          "Design complexity — simple warm-white vs. multicolor + wraps",
+          "Roofline length — the biggest factor; longer rooflines take more light and labor",
+          "Home height and roof pitch (two-story and steep roofs take more care)",
+          "Accents — trees, bushes, columns, wreaths, and walkways add to the design",
+          "Design complexity — simple warm-white perimeter vs. full multicolor display",
         ],
       },
       {
@@ -300,15 +309,19 @@ export const guides: Guide[] = [
     faqs: [
       {
         q: "How much does it cost to have Christmas lights professionally installed?",
-        a: "Most Ohio Valley homes run $500–$1,500, with a typical home around $600–$1,000. Price depends on roofline length, home height, and whether bulbs are included. Rally gives a free, written quote.",
+        a: "Rally's full-season packages start at $750, and most Ohio Valley homes land between $750 and $2,000 depending on roofline length and accents. One price covers design, commercial-grade lights, installation, in-season maintenance, takedown, and storage. Every quote is free and in writing.",
       },
       {
         q: "Does the price include takedown?",
-        a: "With Rally, yes — our seasonal packages include install, in-season maintenance, takedown, and storage, so you never touch a ladder.",
+        a: "Yes — takedown and storage are part of every Rally package, along with in-season maintenance. You never touch a ladder, and you never store a light.",
+      },
+      {
+        q: "Do I own the lights?",
+        a: "No — Rally retains ownership of all lights and displays, and that's a feature. There's nothing to buy, store, or replace: we provide commercial-grade lights, fix anything that fails during the season, and keep everything ready for next year.",
       },
       {
         q: "Should I get permanent lighting instead?",
-        a: "If you decorate every year, permanent lighting often pays for itself in 4–6 seasons and works year-round. Many customers start with a quote for both.",
+        a: "If you decorate every year, permanent lighting often pays for itself in 3–5 seasons and works year-round. Many customers start with a quote for both.",
       },
     ],
     relatedService: "holiday-lighting",

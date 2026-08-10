@@ -149,7 +149,7 @@ export const services: Service[] = [
       "Anyone tired of storing tangled lights",
     ],
     priceNote:
-      "Seasonal packages include install, maintenance, takedown & storage. Book early for best dates.",
+      "Full-season packages start at $750 — design, install, maintenance, takedown & storage included. Book early for best dates.",
     metaTitle: "Christmas Light Installation — Wheeling, WV | 4.9★ · Book Early",
     metaDescription:
       "Professional Christmas light installation in Wheeling, WV and the Ohio Valley. Design, install, maintenance, takedown & storage. 4.9★-rated — book early, free estimate.",

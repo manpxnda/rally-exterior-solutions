@@ -40,11 +40,11 @@ export const serviceFaqs: Record<string, Faq[]> = {
     },
     {
       q: "How much does professional Christmas light installation cost?",
-      a: "Most Ohio Valley homes run $600–$1,100 for a roofline-plus display, with single-story rooflines starting around $400–$700. That includes design, commercial-grade lights, installation, in-season maintenance, and takedown.",
+      a: "Rally's full-season packages start at $750, with most Ohio Valley homes landing between $750 and $2,000 depending on roofline length and accents. One price covers design, commercial-grade lights, installation, in-season maintenance, takedown, and storage.",
     },
     {
       q: "Do you provide the lights, or do I use my own?",
-      a: "We provide premium commercial-grade bulbs — brighter, more durable, and more uniform than retail strings. You're not buying boxes of lights that fail in year two; the package covers everything.",
+      a: "We provide premium commercial-grade lights, and Rally retains ownership of every display — brighter and more durable than retail strings, with nothing for you to buy, store, or replace. If anything fails, we fix it as part of the package.",
     },
     {
       q: "What happens if a section goes out in December?",
