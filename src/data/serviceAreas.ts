@@ -39,6 +39,8 @@ export const serviceCityCombos: Record<string, string[]> = {
   ],
   "house-washing": ["wheeling-wv", "steubenville-oh", "st-clairsville-oh", "moundsville-wv"],
   "roof-washing": ["wheeling-wv", "steubenville-oh", "st-clairsville-oh"],
+  // "gutter cleaning wheeling wv" shows real impressions at ~#11 (GSC 2026-08)
+  "gutter-cleaning": ["wheeling-wv", "steubenville-oh"],
 };
 
 /** City slugs that have a dedicated page for this service. */

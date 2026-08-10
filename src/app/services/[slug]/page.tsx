@@ -63,7 +63,16 @@ export default async function ServicePage({ params }: Params) {
     .filter((b) => b.service === service.slug)
     .slice(0, 4);
   const serviceShowcase = showcase.filter((s) => s.service === service.slug);
-  const related = services.filter((s) => s.slug !== service.slug).slice(0, 3);
+  // Same-category services, starting just after this one (wrap-around) so link
+  // equity spreads across the whole catalog instead of always hitting the same
+  // three — tail pages like paver sealing & commercial get real in-body links.
+  const sameCat = services.filter((s) => s.category === service.category);
+  const catIdx = sameCat.findIndex((s) => s.slug === service.slug);
+  const related = [
+    ...sameCat.slice(catIdx + 1),
+    ...sameCat.slice(0, catIdx),
+    ...services.filter((s) => s.category !== service.category),
+  ].slice(0, 3);
   const reviews = testimonialsForService(service.slug, 3);
   const guide = getGuideForService(service.slug);
   const comboCities = getComboCities(service.slug);
@@ -152,6 +161,28 @@ export default async function ServicePage({ params }: Params) {
                 {service.description}
               </p>
             </div>
+
+            {/* Wheeling is the #1 demand center — exact-phrase H2 + contextual
+                link to the dedicated city page for "[service] wheeling" terms */}
+            {comboCities.includes("wheeling-wv") && (
+              <div className="prose-rally mt-8">
+                <h2 className="font-display text-2xl font-bold text-ink-900">
+                  {service.shortName} in Wheeling, WV
+                </h2>
+                <p className="mt-3 leading-relaxed text-ink-600">
+                  Wheeling is the heart of Rally&apos;s service area — just minutes
+                  from our Tiltonsville headquarters, from Woodsdale and Warwood to
+                  Elm Grove. Local details, photos, and a fast free quote are on our
+                  dedicated page:{" "}
+                  <Link
+                    href={`/services/${service.slug}/wheeling-wv`}
+                    className="font-semibold text-ink-900 underline underline-offset-2 hover:text-gold-600"
+                  >
+                    {service.shortName} in Wheeling, WV →
+                  </Link>
+                </p>
+              </div>
+            )}
 
             {/* Benefits */}
             <h3 className="mt-10 text-lg font-bold text-ink-900">

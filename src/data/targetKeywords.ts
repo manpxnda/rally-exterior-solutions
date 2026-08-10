@@ -76,6 +76,10 @@ const EXTRAS = [
   "driveway power washing wheeling wv",
   "power washing near me",
   "pressure washing in my area",
+  // Dashboard-flagged queries (GSC 2026-08): brand+service term that slipped,
+  // and the exact no-"wv" phrasing people actually type.
+  "rally roofing",
+  "house washing wheeling",
 ];
 
 export const targetKeywords: string[] = [...matrix, ...EXTRAS];

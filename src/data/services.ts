@@ -267,7 +267,7 @@ export const services: Service[] = [
     outcome:
       "A clean, uniform roof that adds years of life and instantly lifts the look of your entire home.",
     description:
-      "Roof algae (Gloeocapsa magma) feeds on shingle limestone and spreads year after year. We apply a manufacturer-approved soft wash treatment that eliminates algae, moss, and lichen at the root — no high pressure, no broken shingles, no walking damage. The result is a clean roof and a longer service life.",
+      "Roof algae (Gloeocapsa magma) feeds on shingle limestone and spreads year after year. We apply a manufacturer-approved soft wash treatment that eliminates algae, moss, and lichen at the root — no high pressure, no broken shingles, no walking damage. Searching for Rally roofing? That's us — we're the roofing care side of the trade: instead of selling you a replacement, we clean and protect the roof you have so it looks new and lasts years longer.",
     benefits: [
       "Eliminates black streaks, moss & lichen",
       "No-pressure — protects shingle granules",
@@ -290,6 +290,8 @@ export const services: Service[] = [
       "black streak removal Ohio Valley",
       "soft wash roof washing",
       "roof moss removal near me",
+      "rally roofing",
+      "roofing cleaning Wheeling WV",
     ],
   },
   {
