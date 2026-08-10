@@ -11,7 +11,7 @@ export function PromoBar() {
         <Icon name="sparkle" className="hidden h-4 w-4 text-gold-300 sm:block" />
         <span className="text-ink-100">{site.offer.promo.text}</span>
         <Link
-          href="/contact"
+          href={site.offer.promo.href ?? "/contact"}
           className="font-semibold text-gold-300 underline-offset-2 hover:underline"
         >
           {site.offer.promo.cta} →

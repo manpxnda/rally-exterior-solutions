@@ -16,6 +16,7 @@ export const mainNav: NavLink[] = [
     })),
   },
   { label: "Gallery", href: "/gallery" },
+  { label: "Reviews", href: "/reviews" },
   { label: "Service Area", href: "/locations" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
@@ -26,6 +27,7 @@ export const footerNav = {
   company: [
     { label: "About Rally", href: "/about" },
     { label: "Project Gallery", href: "/gallery" },
+    { label: "Customer Reviews", href: "/reviews" },
     { label: "Guides & Pricing", href: "/guides" },
     { label: "Free Estimate", href: "/contact" },
     { label: "Service Area", href: "/locations" },

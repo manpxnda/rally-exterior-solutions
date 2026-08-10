@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { locations } from "@/data/locations";
+import { locations, getLocation } from "@/data/locations";
+import { serviceCityCombos } from "@/data/serviceAreas";
+import { getService } from "@/data/services";
 import { serviceAreaCities, regionLabel, site } from "@/lib/site";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Section, SectionHeading } from "@/components/ui/Section";
@@ -12,10 +14,21 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/schema";
 
 export const metadata: Metadata = {
-  title: "Service Area — Ohio Valley & Wheeling, WV",
-  description: `Rally Exterior Solutions serves ${regionLabel} — Wheeling, St. Clairsville, Moundsville, Martins Ferry, Bridgeport and surrounding towns. Find your city for local exterior cleaning & lighting.`,
+  title: `Service Area — ${locations.length} Towns Across the Ohio Valley & Wheeling, WV`,
+  description: `Rally serves ${locations.length} towns across ${regionLabel} — pressure washing, house washing, gutter cleaning, permanent & Christmas lighting. Find your city for local details & free quotes.`,
   alternates: { canonical: "/locations" },
 };
+
+// Invert the service×city combos: city → services with a dedicated local page.
+const comboServicesByCity = new Map<string, string[]>();
+Object.entries(serviceCityCombos).forEach(([svc, cities]) =>
+  cities.forEach((c) =>
+    comboServicesByCity.set(c, [...(comboServicesByCity.get(c) ?? []), svc])
+  )
+);
+const topComboCities = [...comboServicesByCity.entries()]
+  .sort((a, b) => b[1].length - a[1].length)
+  .slice(0, 6);
 
 export default function LocationsPage() {
   return (
@@ -48,6 +61,51 @@ export default function LocationsPage() {
           />
         </div>
       </PageHeader>
+
+      {/* Most-requested service pages in the biggest towns (internal links to
+          the "[service] [city]" pages that win local head terms) */}
+      <Section tone="muted">
+        <SectionHeading
+          eyebrow="Most Requested"
+          title="Popular services by town"
+          description="Dedicated local pages for the services people ask about most — photos, pricing context, and same-day quotes for your town."
+          className="mb-10"
+        />
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {topComboCities.map(([citySlug, svcSlugs]) => {
+            const loc = getLocation(citySlug);
+            if (!loc) return null;
+            return (
+              <div
+                key={citySlug}
+                className="rounded-2xl border border-ink-100 bg-white p-6 shadow-card"
+              >
+                <Link
+                  href={`/locations/${citySlug}`}
+                  className="font-display text-lg font-bold text-ink-900 hover:text-gold-600"
+                >
+                  {loc.city}, {loc.state}
+                </Link>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {svcSlugs.map((svcSlug) => {
+                    const svc = getService(svcSlug);
+                    if (!svc) return null;
+                    return (
+                      <Link
+                        key={svcSlug}
+                        href={`/services/${svcSlug}/${citySlug}`}
+                        className="rounded-full border border-ink-200 bg-ink-50 px-3 py-1.5 text-xs font-semibold text-ink-700 hover:border-gold-300 hover:text-ink-900"
+                      >
+                        {svc.shortName}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </Section>
 
       <Section tone="white">
         <SectionHeading

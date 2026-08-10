@@ -84,8 +84,10 @@ export const site = {
     // Seasonal promo — set `active: false` to hide the promo bar sitewide.
     promo: {
       active: true,
-      text: "Booking now for permanent lighting & holiday installs — reserve your spot early",
-      cta: "Lock in your date",
+      text: "Christmas light installs are booking now — the best dates go first",
+      cta: "Reserve your date",
+      // Where the promo CTA points (defaults to /contact if omitted).
+      href: "/services/holiday-lighting",
     },
   },
 } as const;

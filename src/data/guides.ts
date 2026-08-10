@@ -544,6 +544,173 @@ export const guides: Guide[] = [
     ],
     relatedService: "pressure-washing",
   },
+  {
+    slug: "gutter-cleaning-cost",
+    title: "How Much Does Gutter Cleaning Cost? (2026 Ohio Valley Guide)",
+    category: "Pricing Guide",
+    intro:
+      "Most gutter cleaning in the Ohio Valley runs $100–$250 — around $100–$175 for a single-story home and $150–$250 for two stories. Gutter brightening (removing the black streaks on the outside) adds $75–$200. Here's what sets the price, what should be included, and why the cheapest quote often isn't the deal it looks like.",
+    updated: "2026-08-10",
+    readMinutes: 4,
+    metaTitle: "How Much Does Gutter Cleaning Cost? | Wheeling WV & Ohio Valley",
+    metaDescription:
+      "Gutter cleaning costs $100–$250 for most Ohio Valley homes; brightening adds $75–$200. See what drives the price and get a free exact quote from Rally.",
+    keywords: [
+      "gutter cleaning cost",
+      "how much does gutter cleaning cost",
+      "gutter cleaning prices Wheeling WV",
+      "gutter brightening cost",
+      "gutter cleaning near me prices",
+    ],
+    priceTable: {
+      caption: "Typical gutter cleaning prices in the Ohio Valley",
+      rows: [
+        { label: "Single-story home", range: "$100 – $175", note: "by linear footage & clog level" },
+        { label: "Two-story home", range: "$150 – $250", note: "more height = more labor & care" },
+        { label: "Add: gutter brightening", range: "+$75 – $200", note: "removes black 'tiger stripe' stains" },
+        { label: "Add: downspout flush", range: "often included", note: "ask — clogged downspouts defeat the point" },
+        { label: "Bundle: with house wash", range: "best value", note: "one visit, one setup, real savings" },
+      ],
+      disclaimer:
+        "Ranges are typical Ohio Valley estimates for illustration only — not a quote. Every Rally estimate is free, exact, and in writing with no obligation.",
+    },
+    sections: [
+      {
+        heading: "What actually determines the price",
+        body: [
+          "Gutter cleaning is priced on the real work involved — mostly linear footage, height, and how bad it's gotten:",
+        ],
+        bullets: [
+          "Linear footage — more gutter simply takes longer to clear and flush.",
+          "Stories & roof height — second-story gutters need more equipment and more care.",
+          "Clog severity — packed, composted gutters (or small trees growing in them) take real time.",
+          "Downspouts — clearing and flushing them matters as much as the gutters themselves.",
+          "Guards & screens — removing and re-seating them adds labor.",
+        ],
+      },
+      {
+        heading: "Cleaning vs. brightening — two different jobs",
+        body: [
+          "Cleaning is about function: clearing leaves, shingle grit, and debris from inside so water flows where it should — away from your fascia, soffit, and foundation.",
+          "Brightening is about appearance: those black vertical 'tiger stripes' on the gutter face are oxidation and grime baked into the finish. No rinse removes them — it takes a specialized brightening solution and hand scrubbing. Rally does both in a single visit, and the difference on the curb is dramatic.",
+        ],
+      },
+      {
+        heading: "Why skipping it costs more than doing it",
+        body: [
+          "Overflowing gutters dump water exactly where your house doesn't want it. Rotted fascia and soffit boards, pest nests, winter ice dams, stained siding, even wet basements — all trace back to a $150 maintenance job that didn't happen.",
+          "Twice a year is the Ohio Valley rhythm: late fall after the leaves drop, and spring after the seed pods. Heavy tree cover may justify a third visit.",
+        ],
+      },
+      {
+        heading: "Get your exact price — free",
+        body: [
+          "Tell us your home's stories and rough size — or just send a photo of the worst stretch — and we'll give you a firm, itemized price in writing, usually the same day. Bundling with a house wash almost always beats booking separately.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: "How much does gutter cleaning cost in Wheeling, WV?",
+        a: "Most single-story homes run $100–$175 and two-story homes $150–$250 in the Ohio Valley. Gutter brightening — removing the black exterior streaks — adds $75–$200. Rally quotes are free, itemized, and usually same-day.",
+      },
+      {
+        q: "How often should gutters be cleaned?",
+        a: "Twice a year for most Ohio Valley homes: late fall after the leaves drop and spring after seed pods. Homes under heavy tree cover may need a third visit.",
+      },
+      {
+        q: "What are the black streaks on my gutters?",
+        a: "Oxidation and road grime baked into the gutter's finish — 'tiger stripes.' Regular washing won't remove them; they need a specialized gutter brightening solution and hand scrubbing, which we do as an add-on in the same visit.",
+      },
+      {
+        q: "Is gutter cleaning included with a house wash?",
+        a: "It's a separate service, but bundling them in one visit is cheaper than booking each on its own — one trip, one setup. Ask for the bundle price when you get your quote.",
+      },
+    ],
+    relatedService: "gutter-cleaning",
+  },
+  {
+    slug: "concrete-cleaning-sealing-cost",
+    title: "Concrete Cleaning & Sealing Cost: What to Expect (2026 Guide)",
+    category: "Pricing Guide",
+    intro:
+      "In the Ohio Valley, professional concrete cleaning runs $150–$300 for a typical driveway and $150–$400 for patios and pool decks. Sealing adds $1–$2.50 per square foot, and most driveway clean-and-seal packages land around $400–$900. Here's how the pricing works and when sealing is actually worth it.",
+    updated: "2026-08-10",
+    readMinutes: 4,
+    metaTitle: "Concrete Cleaning & Sealing Cost | Wheeling WV & Ohio Valley",
+    metaDescription:
+      "Concrete cleaning costs $150–$300 for most driveways; sealing adds $1–$2.50/sq ft. See typical Ohio Valley prices and get a free exact quote from Rally.",
+    keywords: [
+      "concrete cleaning cost",
+      "driveway cleaning cost",
+      "paver sealing cost",
+      "concrete sealing cost per square foot",
+      "driveway sealing prices Wheeling WV",
+    ],
+    priceTable: {
+      caption: "Typical concrete cleaning & sealing prices in the Ohio Valley",
+      rows: [
+        { label: "Driveway / sidewalk cleaning", range: "$150 – $300", note: "by square footage" },
+        { label: "Patio / pool deck cleaning", range: "$150 – $400", note: "concrete or pavers" },
+        { label: "Sealing (per sq ft)", range: "$1 – $2.50", note: "surface & finish dependent" },
+        { label: "Driveway clean + seal package", range: "$400 – $900", note: "most common combo" },
+        { label: "Add: oil / rust treatment", range: "varies", note: "pre-treated before cleaning" },
+      ],
+      disclaimer:
+        "Ranges are typical Ohio Valley estimates for illustration only — not a quote. Every Rally estimate is free, exact, and in writing with no obligation.",
+    },
+    sections: [
+      {
+        heading: "What drives the price",
+        bullets: [
+          "Square footage — the biggest factor by far; bigger slabs take more time and product.",
+          "Condition — oil, rust, and heavy algae need pre-treatment before the surface clean.",
+          "Surface type — broom-finish concrete, stamped concrete, and pavers each clean and seal differently.",
+          "Access — slopes, tight spots, and landscaping around the slab slow the work.",
+          "Finish choice — natural matte and wet-look sealers cover differently, which affects cost.",
+        ],
+      },
+      {
+        heading: "Why professional cleaning looks different from DIY",
+        body: [
+          "The zebra-stripe driveway is the giveaway of a rental-machine weekend: cleaning freehand with a wand leaves overlapping swirl marks that show for years. Professionals use surface cleaners — spinning, shrouded heads that deliver even pressure across the slab — plus the right pre-treatments for oil, rust, and organic stains.",
+          "The result is a uniform, swirl-free finish, done in hours, with no gouging and no stripes.",
+        ],
+      },
+      {
+        heading: "When sealing is worth it (and when it isn't)",
+        body: [
+          "Sealing is at its best right after a professional clean, while the surface is bare and bright. It repels oil and water, blocks stains from soaking in, locks paver joint sand in place (fewer weeds and ants), and shields against the freeze-thaw cycles that spall Ohio Valley concrete.",
+          "If your concrete is new, badly cracked, or due for replacement soon, we'll tell you honestly whether sealing makes sense. For sound, freshly cleaned hardscape, it's the difference between staying clean for years and re-staining by next summer.",
+        ],
+      },
+      {
+        heading: "Get your exact price — free",
+        body: [
+          "Square footage sets most of the price, so a quick measurement — or even a photo with rough dimensions — gets you a firm, itemized quote, usually same-day. Clean-and-seal bundles are always cheaper than doing the two jobs separately.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: "How much does it cost to clean and seal a driveway?",
+        a: "In the Ohio Valley, most driveway clean-and-seal packages run $400–$900 depending on square footage and the sealer finish. Cleaning alone is typically $150–$300. Rally quotes are free, exact, and in writing.",
+      },
+      {
+        q: "How long does concrete sealing last?",
+        a: "Most driveways and patios need resealing every 3–5 years, depending on sun, traffic, and road-salt exposure. We'll tell you honestly when yours actually needs it.",
+      },
+      {
+        q: "Can you remove oil stains before sealing?",
+        a: "Yes — oil, rust, and organic stains get pre-treated with the right chemistry before the surface clean. Very old, deep-set oil may lighten rather than disappear completely, and we'll set expectations honestly before you commit.",
+      },
+      {
+        q: "Should pavers be sealed?",
+        a: "Pavers benefit from sealing even more than poured concrete: it locks the joint sand in place, blocks weeds and ants, resists stains, and deepens the color. Matte and wet-look finishes protect equally — it's your call on appearance.",
+      },
+    ],
+    relatedService: "concrete-paver-sealing",
+  },
 ];
 
 export function getGuide(slug: string): Guide | undefined {
@@ -554,7 +721,15 @@ export function getGuideSlugs(): string[] {
   return guides.map((g) => g.slug);
 }
 
+/** Services that share another service's pricing guide. */
+const guideAliases: Record<string, string> = {
+  "concrete-cleaning": "concrete-paver-sealing",
+};
+
 /** The pricing guide tied to a given service slug, if one exists. */
 export function getGuideForService(serviceSlug: string): Guide | undefined {
-  return guides.find((g) => g.relatedService === serviceSlug);
+  return (
+    guides.find((g) => g.relatedService === serviceSlug) ??
+    guides.find((g) => g.relatedService === guideAliases[serviceSlug])
+  );
 }

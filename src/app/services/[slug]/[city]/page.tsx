@@ -6,6 +6,7 @@ import { getLocation } from "@/data/locations";
 import { getComboCities, getAllCombos, isValidCombo } from "@/data/serviceAreas";
 import { beforeAfters, showcase } from "@/data/gallery";
 import { testimonialsForService } from "@/data/testimonials";
+import { getServiceFaqs } from "@/data/serviceFaqs";
 import { site } from "@/lib/site";
 
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -16,6 +17,7 @@ import { CallButton } from "@/components/CallButton";
 import { LeadForm } from "@/components/LeadForm";
 import { BeforeAfter } from "@/components/BeforeAfter";
 import { ProcessSteps } from "@/components/sections/ProcessSteps";
+import { HolidayBookingTimeline } from "@/components/sections/HolidayBookingTimeline";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { FAQ } from "@/components/sections/FAQ";
 import { CTASection } from "@/components/sections/CTASection";
@@ -71,6 +73,7 @@ export default async function ServiceCityPage({ params }: Params) {
   const photos = showcase.filter((s) => s.service === service.slug).slice(0, 3);
   const reviews = testimonialsForService(service.slug, 3);
   const otherCities = getComboCities(service.slug).filter((c) => c !== city);
+  const serviceFaqItems = getServiceFaqs(service.slug);
 
   const leadIn = isLighting
     ? `Make your ${loc.city} property the brightest on the block.`
@@ -87,7 +90,7 @@ export default async function ServiceCityPage({ params }: Params) {
             { name: service.shortName, url: `/services/${service.slug}` },
             { name: `${loc.city}, ${loc.state}`, url: `/services/${service.slug}/${loc.slug}` },
           ]),
-          faqSchema(),
+          faqSchema(serviceFaqItems),
         ]}
       />
 
@@ -201,6 +204,9 @@ export default async function ServiceCityPage({ params }: Params) {
         </Section>
       )}
 
+      {/* Seasonal booking urgency — christmas lighting only */}
+      {service.slug === "holiday-lighting" && <HolidayBookingTimeline />}
+
       <ProcessSteps />
 
       {reviews.length > 0 && <Testimonials items={reviews} limit={3} />}
@@ -232,7 +238,7 @@ export default async function ServiceCityPage({ params }: Params) {
         </Section>
       )}
 
-      <FAQ heading />
+      <FAQ items={serviceFaqItems} heading />
       <CTASection title={`Ready for ${service.shortName.toLowerCase()} in ${loc.city}?`} service={service.slug} />
     </>
   );

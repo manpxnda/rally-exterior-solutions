@@ -7,6 +7,7 @@ import { services, type Service } from "@/data/services";
 import { faqs, type Faq } from "@/data/faqs";
 import { type Location } from "@/data/locations";
 import { type Guide } from "@/data/guides";
+import { type Testimonial } from "@/data/testimonials";
 
 const BUSINESS_ID = `${site.url}/#business`;
 
@@ -172,6 +173,33 @@ export function articleSchema(guide: Guide) {
     dateModified: guide.updated,
     author: { "@id": BUSINESS_ID, "@type": "Organization", name: site.name },
     publisher: { "@id": BUSINESS_ID, "@type": "Organization", name: site.name },
+  };
+}
+
+/** Business entity + individual Review items for the /reviews page.
+ *  Only emits reviews that are actually displayed on the page. */
+export function reviewsSchema(items: Testimonial[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": ["HomeAndConstructionBusiness", "LocalBusiness"],
+    "@id": BUSINESS_ID,
+    name: site.name,
+    url: `${site.url}/reviews`,
+    aggregateRating: {
+      "@type": "AggregateRating",
+      ratingValue: site.stats.reviewRating,
+      reviewCount: site.stats.reviewCount,
+    },
+    review: items.map((t) => ({
+      "@type": "Review",
+      author: { "@type": "Person", name: t.name },
+      reviewBody: t.quote,
+      reviewRating: {
+        "@type": "Rating",
+        ratingValue: t.rating ?? 5,
+        bestRating: 5,
+      },
+    })),
   };
 }
 

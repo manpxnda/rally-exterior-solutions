@@ -12,6 +12,7 @@ import { getGuideForService } from "@/data/guides";
 import { getComboCities } from "@/data/serviceAreas";
 import { getLocation } from "@/data/locations";
 import { testimonialsForService } from "@/data/testimonials";
+import { getServiceFaqs } from "@/data/serviceFaqs";
 import { regionLabel, site } from "@/lib/site";
 
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -25,6 +26,7 @@ import { LeadForm } from "@/components/LeadForm";
 import { BeforeAfter } from "@/components/BeforeAfter";
 import { ServiceCard } from "@/components/ServiceCard";
 import { Testimonials } from "@/components/sections/Testimonials";
+import { HolidayBookingTimeline } from "@/components/sections/HolidayBookingTimeline";
 import { ProcessSteps } from "@/components/sections/ProcessSteps";
 import { FAQ } from "@/components/sections/FAQ";
 import { CTASection } from "@/components/sections/CTASection";
@@ -76,6 +78,7 @@ export default async function ServicePage({ params }: Params) {
   const reviews = testimonialsForService(service.slug, 3);
   const guide = getGuideForService(service.slug);
   const comboCities = getComboCities(service.slug);
+  const serviceFaqItems = getServiceFaqs(service.slug);
   const isLighting = service.category === "lighting";
   const categoryLabel = isLighting ? "Exterior Lighting" : "Exterior Cleaning";
 
@@ -89,7 +92,7 @@ export default async function ServicePage({ params }: Params) {
             { name: "Services", url: "/services" },
             { name: service.name, url: `/services/${service.slug}` },
           ]),
-          faqSchema(),
+          faqSchema(serviceFaqItems),
         ]}
       />
 
@@ -314,6 +317,9 @@ export default async function ServicePage({ params }: Params) {
         </Section>
       )}
 
+      {/* Seasonal booking urgency — christmas lighting only */}
+      {service.slug === "holiday-lighting" && <HolidayBookingTimeline />}
+
       <ProcessSteps />
 
       {reviews.length > 0 && <Testimonials items={reviews} limit={3} />}
@@ -364,7 +370,7 @@ export default async function ServicePage({ params }: Params) {
         </Section>
       )}
 
-      <FAQ heading />
+      <FAQ items={serviceFaqItems} heading />
       <CTASection
         title={`Ready for ${service.shortName.toLowerCase()} done right?`}
         service={service.slug}
