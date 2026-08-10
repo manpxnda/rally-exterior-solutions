@@ -84,7 +84,7 @@ export const services: Service[] = [
     outcome:
       "A home that looks intentional and impressive 365 nights a year — set any color or scene from your phone in seconds.",
     description:
-      "Our permanent lighting tracks are color-matched to your trim and mounted discreetly under the eaves, so they vanish during the day. At night, choose warm white accent lighting, holiday themes, or millions of colors and patterns. Professionally installed, weatherproof, and built to last.",
+      "Our permanent lighting tracks are color-matched to your trim and mounted discreetly under the eaves, so they vanish during the day. At night, choose warm white accent lighting, holiday themes, or millions of colors and patterns. From design to finished outdoor lighting installation, our crew handles everything — most homes are done in a day, weatherproof and built to last.",
     benefits: [
       "Invisible by day, stunning by night",
       "Millions of colors + preset holiday scenes",
@@ -99,14 +99,17 @@ export const services: Service[] = [
       "Anyone who wants effortless, year-round curb appeal",
     ],
     priceNote: "Most residential installs are quoted per linear foot. Free on-site measurement.",
-    metaTitle: "Permanent Outdoor Lighting Installation | Ohio Valley & Wheeling WV",
+    metaTitle: "Permanent Outdoor Lighting Installation — Wheeling, WV | 4.9★",
     metaDescription:
-      "Premium app-controlled permanent exterior lighting installed in the Ohio Valley & Wheeling, WV. Year-round curb appeal, holiday colors, no ladders. Free estimate.",
+      "Premium app-controlled permanent exterior lighting installed in the Ohio Valley & Wheeling, WV. Year-round curb appeal, holiday colors, no ladders. 4.9★-rated — free estimates.",
     keywords: [
       "permanent outdoor lighting Wheeling WV",
       "permanent Christmas lights Ohio Valley",
       "permanent exterior lighting installation",
       "architectural LED lighting",
+      "lighting installation Wheeling WV",
+      "outdoor lighting installation",
+      "wheeling outdoor lighting",
     ],
     featured: true,
   },
@@ -114,7 +117,10 @@ export const services: Service[] = [
     slug: "holiday-lighting",
     image: "/images/lighting/christmas-warm-white.jpg",
     name: "Christmas & Holiday Lighting",
-    shortName: "Holiday Lighting",
+    // shortName is deliberately "Christmas Lights" — it drives the combo-page
+    // H1s ("Christmas Lights in Wheeling, WV") and that's the exact phrase with
+    // measured volume (~500/mo), vs. "holiday lighting" which nobody types.
+    shortName: "Christmas Lights",
     category: "lighting",
     icon: "snowflake",
     tagline: "Professional Christmas lights, zero hassle",
@@ -144,9 +150,9 @@ export const services: Service[] = [
     ],
     priceNote:
       "Seasonal packages include install, maintenance, takedown & storage. Book early for best dates.",
-    metaTitle: "Christmas Light Installation | Wheeling WV & Ohio Valley Holiday Lighting",
+    metaTitle: "Christmas Light Installation — Wheeling, WV | 4.9★ · Book Early",
     metaDescription:
-      "Professional Christmas & holiday light installation in Wheeling, WV and the Ohio Valley. Design, install, maintenance, takedown & storage. Book early — free estimate.",
+      "Professional Christmas light installation in Wheeling, WV and the Ohio Valley. Design, install, maintenance, takedown & storage. 4.9★-rated — book early, free estimate.",
     keywords: [
       "Christmas light installation Wheeling WV",
       "holiday lighting Ohio Valley",
@@ -188,9 +194,9 @@ export const services: Service[] = [
       "Pre-sale or pre-event clean-ups",
     ],
     priceNote: "Priced by surface & square footage. Free, same-day quotes.",
-    metaTitle: "Pressure Washing & Power Washing | Wheeling WV & Ohio Valley",
+    metaTitle: "Pressure Washing Wheeling WV & Ohio Valley | 4.9★ Free Quotes",
     metaDescription:
-      "Professional pressure washing & power washing in the Ohio Valley & Wheeling, WV — driveways, concrete, siding, roofs & more. The right pressure for every surface. Free estimate.",
+      "Professional pressure washing & power washing in the Ohio Valley & Wheeling, WV — driveways, concrete, siding, roofs & more. 4.9★-rated local crew. Free same-day quotes.",
     keywords: [
       "pressure washing Wheeling WV",
       "power washing Ohio Valley",
@@ -237,9 +243,9 @@ export const services: Service[] = [
       "Annual exterior maintenance",
     ],
     priceNote: "Priced by home size & condition. Most single-family homes quoted on the spot.",
-    metaTitle: "House Washing & Soft Wash Siding Cleaning | Wheeling WV & Ohio Valley",
+    metaTitle: "House Washing Wheeling WV | Soft Wash Siding Cleaning · 4.9★",
     metaDescription:
-      "Professional soft-wash house washing in the Ohio Valley & Wheeling, WV. Safely remove mildew, algae & dirt from siding. Long-lasting results. Free estimate.",
+      "Professional soft-wash house washing in the Ohio Valley & Wheeling, WV. Safely remove mildew, algae & dirt from siding. 4.9★-rated — free same-day quotes.",
     keywords: [
       "house washing Wheeling WV",
       "soft wash house cleaning Ohio Valley",
@@ -282,7 +288,7 @@ export const services: Service[] = [
       "Shaded or north-facing roofs",
     ],
     priceNote: "Quoted by roof size, pitch & condition after a free assessment.",
-    metaTitle: "Roof Washing & Black Streak Removal | Wheeling WV & Ohio Valley",
+    metaTitle: "Roof Washing Wheeling WV | Black Streak Removal · 4.9★",
     metaDescription:
       "Soft-wash roof cleaning in the Ohio Valley & Wheeling, WV. Safely remove black algae streaks, moss & lichen and extend roof life. No pressure. Free estimate.",
     keywords: [
@@ -329,7 +335,7 @@ export const services: Service[] = [
     ],
     priceNote:
       "Priced by home size & linear footage. Bundles with house washing for the best value.",
-    metaTitle: "Gutter Cleaning & Gutter Brightening | Wheeling WV & Ohio Valley",
+    metaTitle: "Gutter Cleaning & Brightening Wheeling WV | 4.9★ Free Quotes",
     metaDescription:
       "Gutter cleaning & gutter brightening in the Ohio Valley & Wheeling, WV. Clear clogged gutters and erase black tiger-stripe stains. Fully insured. Free estimate.",
     keywords: [
@@ -373,7 +379,7 @@ export const services: Service[] = [
       "Pre-sealing surface prep",
     ],
     priceNote: "Priced by square footage. Bundle with sealing to save.",
-    metaTitle: "Concrete & Driveway Cleaning | Wheeling WV & Ohio Valley",
+    metaTitle: "Concrete & Driveway Cleaning Wheeling WV | 4.9★ Free Quotes",
     metaDescription:
       "Professional concrete, driveway & patio cleaning in the Ohio Valley & Wheeling, WV. Remove oil, rust & algae with even, streak-free results. Free estimate.",
     keywords: [
@@ -417,7 +423,7 @@ export const services: Service[] = [
       "Homeowners wanting low-maintenance hardscape",
     ],
     priceNote: "Includes surface cleaning + premium sealer. Quoted by square footage.",
-    metaTitle: "Concrete & Paver Sealing Services | Wheeling WV & Ohio Valley",
+    metaTitle: "Concrete & Paver Sealing Wheeling WV | Free Quotes · 4.9★",
     metaDescription:
       "Professional concrete & paver sealing in the Ohio Valley & Wheeling, WV. Protect against stains, weeds & weather with a rich, lasting finish. Free estimate.",
     keywords: [
@@ -462,7 +468,7 @@ export const services: Service[] = [
     ],
     priceNote:
       "Custom quotes for one-time or recurring service. Volume & contract pricing available.",
-    metaTitle: "Commercial Exterior & Building Cleaning | Wheeling WV & Ohio Valley",
+    metaTitle: "Commercial Pressure Washing Wheeling WV | Insured · Free Quotes",
     metaDescription:
       "Commercial exterior cleaning in the Ohio Valley & Wheeling, WV — storefronts, sidewalks, building washing & more. Insured, scheduled, reliable. Free quote.",
     keywords: [

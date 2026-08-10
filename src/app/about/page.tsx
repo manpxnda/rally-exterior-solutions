@@ -13,8 +13,8 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/schema";
 
 export const metadata: Metadata = {
-  title: "About Rally Exterior Solutions — Local, Premium, Trusted",
-  description: `Rally Exterior Solutions is a locally owned exterior lighting and cleaning company serving the ${regionLabel} region. Learn what makes us different.`,
+  title: "About Us — 4.9★ Local Exterior Cleaning & Lighting Crew",
+  description: `Locally owned, fully insured, 4.9★-rated. Meet the crew behind Rally Exterior Solutions and see why ${regionLabel} homeowners keep calling us back.`,
   alternates: { canonical: "/about" },
 };
 

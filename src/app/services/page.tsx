@@ -13,8 +13,8 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/schema";
 
 export const metadata: Metadata = {
-  title: "Our Services — Exterior Lighting & Cleaning",
-  description: `Explore Rally Exterior Solutions' services across the ${regionLabel} region: permanent lighting, holiday lighting, house & roof washing, soft washing, concrete cleaning, paver sealing, and commercial exterior cleaning.`,
+  title: "Services & Pricing — Exterior Cleaning & Lighting in Wheeling, WV",
+  description: `Every Rally service across the ${regionLabel} region: pressure washing, house & roof washing, gutter cleaning, concrete cleaning & sealing, permanent lighting, Christmas lights & commercial. Free same-day quotes.`,
   alternates: { canonical: "/services" },
 };
 

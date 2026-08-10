@@ -14,7 +14,7 @@ export const site = {
   tagline: "Brighter Homes. Cleaner Properties. Zero Hassle.",
   // One-sentence positioning used in meta descriptions & hero subhead.
   description:
-    "Premium permanent lighting, holiday lighting, and exterior cleaning for homes and businesses across the Ohio Valley & Wheeling, WV region. Free, no-pressure estimates.",
+    "Premium permanent lighting, Christmas lights, pressure washing & exterior cleaning across the Ohio Valley & Wheeling, WV. 4.9★ from local homeowners. Free, no-pressure estimates.",
 
   url:
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||

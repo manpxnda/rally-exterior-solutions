@@ -31,7 +31,7 @@ const robotoSlab = Roboto_Slab({
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: `${site.name} | Exterior Lighting & Cleaning — Ohio Valley & Wheeling WV`,
+    default: `${site.name} | 4.9★ Exterior Cleaning & Lighting — Wheeling, WV`,
     template: `%s | ${site.name}`,
   },
   description: site.description,
