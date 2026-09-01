@@ -38,7 +38,8 @@ export function localBusinessSchema() {
     foundingDate: String(site.stats.yearFounded),
     address: {
       "@type": "PostalAddress",
-      ...(site.address.street ? { streetAddress: site.address.street } : {}),
+      // Street intentionally omitted — full address appears only on /privacy
+      // and /terms (A2P registration); public listings stay city-level.
       addressLocality: site.address.city,
       addressRegion: site.address.region,
       postalCode: site.address.postalCode,

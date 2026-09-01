@@ -57,8 +57,7 @@ export function Footer() {
             </p>
             <p className="flex items-center gap-2 text-ink-300">
               <Icon name="pin" className="h-4 w-4" />
-              {site.address.street}, {site.address.city}, {site.address.region}{" "}
-              {site.address.postalCode}
+              {site.address.city}, {site.address.region}
             </p>
           </div>
           <div className="mt-5 flex gap-3">
