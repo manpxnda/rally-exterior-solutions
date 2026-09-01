@@ -20,6 +20,11 @@ type MockupPayload = {
   preview?: string; // data URL (rendered with lights)
   photo?: string; // data URL (clean home photo)
   company?: string; // honeypot
+  // A2P 10DLC SMS consent
+  sms_marketing_consent?: string;
+  sms_informational_consent?: string;
+  consent_timestamp?: string;
+  consent_page?: string;
 };
 
 /**
@@ -59,6 +64,11 @@ export async function POST(req: Request) {
     colorScheme: (body.colorScheme || "").trim() || "—",
     source: (body.source || "lighting_mockup").trim(),
     attribution: body.attribution || {},
+    sms_marketing_consent: body.sms_marketing_consent === "yes" ? "yes" : "no",
+    sms_informational_consent:
+      body.sms_informational_consent === "yes" ? "yes" : "no",
+    consent_timestamp: (body.consent_timestamp || "").trim(),
+    consent_page: (body.consent_page || "").trim(),
     preview: body.preview || "",
     photo: body.photo || "",
   });
@@ -92,6 +102,10 @@ async function sendEmail(d: {
   colorScheme: string;
   source: string;
   attribution: Record<string, string>;
+  sms_marketing_consent: string;
+  sms_informational_consent: string;
+  consent_timestamp: string;
+  consent_page: string;
   preview: string;
   photo: string;
 }): Promise<"sent" | "skipped"> {
@@ -117,6 +131,10 @@ async function sendEmail(d: {
       <tr><td><strong>Color scheme</strong></td><td>${esc(d.colorScheme)}</td></tr>
       <tr><td><strong>Notes</strong></td><td>${esc(d.notes) || "—"}</td></tr>
       <tr><td><strong>Source</strong></td><td>${esc(d.source)}</td></tr>
+      <tr><td><strong>SMS marketing consent</strong></td><td>${esc(d.sms_marketing_consent)}</td></tr>
+      <tr><td><strong>SMS informational consent</strong></td><td>${esc(d.sms_informational_consent)}</td></tr>
+      <tr><td><strong>Consent timestamp</strong></td><td>${esc(d.consent_timestamp) || "—"}</td></tr>
+      <tr><td><strong>Consent page</strong></td><td>${esc(d.consent_page) || "—"}</td></tr>
     </table>
     <p style="font-family:sans-serif;font-size:13px;color:#555">
       Attached: the customer's live preview (with their lighting choices) and their original home photo. Use the photo to create a hand-finished mockup.

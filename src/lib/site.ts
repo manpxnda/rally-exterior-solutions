@@ -10,7 +10,9 @@
 export const site = {
   name: "Rally Exterior Solutions",
   shortName: "Rally",
-  legalName: "Rally Exterior Solutions LLC",
+  // Legal entity — "Rally Exterior Solutions" is a trade name (DBA) of this LLC.
+  // Must match the A2P 10DLC carrier registration exactly.
+  legalName: "Rally Lawn Care Services LLC",
   tagline: "Brighter Homes. Cleaner Properties. Zero Hassle.",
   // One-sentence positioning used in meta descriptions & hero subhead.
   description:
@@ -32,11 +34,12 @@ export const site = {
   // Used for the Local Business schema + footer. A service-area business can
   // hide the street address; keep city/region/postal for local SEO.
   address: {
-    street: "", // optional — leave blank for a service-area business
-    city: "Wheeling",
-    region: "WV",
-    regionName: "West Virginia",
-    postalCode: "26003",
+    // Physical business address — must match the A2P 10DLC carrier registration.
+    street: "215 Walker Street",
+    city: "Tiltonsville",
+    region: "OH",
+    regionName: "Ohio",
+    postalCode: "43963",
     country: "US",
   },
 
@@ -73,8 +76,10 @@ export const site = {
   // --- Social / profile links (leave blank to hide) -----------------------
   social: {
     google: "https://www.google.com/search?q=Rally+Exterior+Solutions",
-    facebook: "https://www.facebook.com/",
-    instagram: "https://www.instagram.com/",
+    // Placeholder FB/IG URLs removed (A2P review: no broken/placeholder links).
+    // Add the real profile URLs here to bring the footer icons back.
+    facebook: "",
+    instagram: "",
   },
 
   // The headline offer used in CTAs and the conversion banner.

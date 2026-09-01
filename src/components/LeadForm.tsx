@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { services } from "@/data/services";
 import { getAttribution, trackLeadSubmit } from "@/lib/analytics";
 import { Button } from "@/components/ui/Button";
+import { ConsentCheckboxes } from "@/components/ConsentCheckboxes";
 import { Icon } from "@/components/ui/Icon";
 import { cn } from "@/lib/cn";
 
@@ -56,6 +57,14 @@ export function LeadForm({
       source,
       submittedAt: new Date().toISOString(),
       attribution: getAttribution(),
+      // A2P 10DLC SMS consent (both optional — never gate submission)
+      sms_marketing_consent: data.get("sms_marketing_consent") ? "yes" : "no",
+      sms_informational_consent: data.get("sms_informational_consent")
+        ? "yes"
+        : "no",
+      consent_timestamp: new Date().toISOString(),
+      consent_page:
+        typeof window !== "undefined" ? window.location.pathname : "",
     };
 
     if (!payload.name || !payload.phone) {
@@ -192,6 +201,8 @@ export function LeadForm({
           />
         </div>
       )}
+
+      <ConsentCheckboxes />
 
       {status === "error" && (
         <p className="rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">

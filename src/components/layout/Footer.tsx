@@ -55,6 +55,11 @@ export function Footer() {
               <Icon name="clock" className="h-4 w-4" />
               {site.hoursShort}
             </p>
+            <p className="flex items-center gap-2 text-ink-300">
+              <Icon name="pin" className="h-4 w-4" />
+              {site.address.street}, {site.address.city}, {site.address.region}{" "}
+              {site.address.postalCode}
+            </p>
           </div>
           <div className="mt-5 flex gap-3">
             {site.social.facebook && (
@@ -126,12 +131,22 @@ export function Footer() {
 
       <div className="border-t border-white/10">
         <div className="container flex flex-col items-center justify-between gap-3 py-6 text-xs text-ink-400 sm:flex-row">
-          <p>
-            © {year} {site.legalName}. All rights reserved.
-          </p>
+          <div className="text-center sm:text-left">
+            <p>
+              © {year} {site.legalName}, doing business as Rally Exterior
+              Solutions. All rights reserved.
+            </p>
+            <p className="mt-1">
+              Rally Exterior Solutions is a trade name (DBA) of{" "}
+              {site.legalName}.
+            </p>
+          </div>
           <div className="flex gap-5">
             <Link href="/privacy" className="hover:text-white">
               Privacy Policy
+            </Link>
+            <Link href="/terms" className="hover:text-white">
+              Terms &amp; Conditions
             </Link>
             <Link href="/contact" className="hover:text-white">
               Contact

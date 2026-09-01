@@ -32,5 +32,6 @@ export const footerNav = {
     { label: "Free Estimate", href: "/contact" },
     { label: "Service Area", href: "/locations" },
     { label: "Privacy Policy", href: "/privacy" },
+    { label: "Terms & Conditions", href: "/terms" },
   ],
 };

@@ -16,6 +16,11 @@ type LeadPayload = {
   submittedAt?: string;
   attribution?: Record<string, string>;
   company?: string; // honeypot
+  // A2P 10DLC SMS consent
+  sms_marketing_consent?: string;
+  sms_informational_consent?: string;
+  consent_timestamp?: string;
+  consent_page?: string;
 };
 
 /**
@@ -59,6 +64,11 @@ export async function POST(req: Request) {
     source: (body.source || "website").trim(),
     submittedAt: body.submittedAt || new Date().toISOString(),
     attribution: body.attribution || {},
+    sms_marketing_consent: body.sms_marketing_consent === "yes" ? "yes" : "no",
+    sms_informational_consent:
+      body.sms_informational_consent === "yes" ? "yes" : "no",
+    consent_timestamp: (body.consent_timestamp || "").trim(),
+    consent_page: (body.consent_page || "").trim(),
   };
 
   const results = await Promise.allSettled([
@@ -105,6 +115,10 @@ async function sendEmail(lead: {
   details: string;
   source: string;
   attribution: Record<string, string>;
+  sms_marketing_consent: string;
+  sms_informational_consent: string;
+  consent_timestamp: string;
+  consent_page: string;
 }): Promise<"sent" | "skipped"> {
   const apiKey = process.env.RESEND_API_KEY;
   const to = process.env.LEAD_EMAIL_TO;
@@ -125,6 +139,10 @@ async function sendEmail(lead: {
       <tr><td><strong>ZIP</strong></td><td>${escapeHtml(lead.zip) || "—"}</td></tr>
       <tr><td><strong>Details</strong></td><td>${escapeHtml(lead.details) || "—"}</td></tr>
       <tr><td><strong>Source</strong></td><td>${escapeHtml(lead.source)}</td></tr>
+      <tr><td><strong>SMS marketing consent</strong></td><td>${escapeHtml(lead.sms_marketing_consent)}</td></tr>
+      <tr><td><strong>SMS informational consent</strong></td><td>${escapeHtml(lead.sms_informational_consent)}</td></tr>
+      <tr><td><strong>Consent timestamp</strong></td><td>${escapeHtml(lead.consent_timestamp) || "—"}</td></tr>
+      <tr><td><strong>Consent page</strong></td><td>${escapeHtml(lead.consent_page) || "—"}</td></tr>
     </table>
     ${attribution ? `<p style="font-family:sans-serif;font-size:12px;color:#555">${attribution}</p>` : ""}
   `;

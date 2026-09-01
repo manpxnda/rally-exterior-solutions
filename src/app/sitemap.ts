@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/about", priority: 0.6, freq: "monthly" as const },
     { path: "/contact", priority: 0.9, freq: "monthly" as const },
     { path: "/privacy", priority: 0.2, freq: "yearly" as const },
+    { path: "/terms", priority: 0.2, freq: "yearly" as const },
   ];
 
   const serviceRoutes = getServiceSlugs().map((slug) => ({

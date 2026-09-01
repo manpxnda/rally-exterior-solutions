@@ -14,6 +14,7 @@ import {
 import { getAttribution, trackLeadSubmit } from "@/lib/analytics";
 import { Icon } from "@/components/ui/Icon";
 import { Button } from "@/components/ui/Button";
+import { ConsentCheckboxes } from "@/components/ConsentCheckboxes";
 import { cn } from "@/lib/cn";
 
 type Pt = { x: number; y: number };
@@ -377,6 +378,11 @@ export function LightingMockup() {
       source: "lighting_mockup",
       submittedAt: new Date().toISOString(),
       attribution: getAttribution(),
+      // A2P 10DLC SMS consent (both optional — never gate submission)
+      sms_marketing_consent: fd.get("sms_marketing_consent") ? "yes" : "no",
+      sms_informational_consent: fd.get("sms_informational_consent") ? "yes" : "no",
+      consent_timestamp: new Date().toISOString(),
+      consent_page: typeof window !== "undefined" ? window.location.pathname : "",
       preview, photo,
     };
     try {
@@ -550,6 +556,7 @@ export function LightingMockup() {
               <input name="email" type="email" placeholder="Email (optional)" className={inputCls} />
               <input name="address" placeholder="Street or city (optional)" className={inputCls} />
               <textarea name="notes" rows={2} placeholder="Anything else? (optional)" className={inputCls} />
+              <ConsentCheckboxes />
               {status === "error" && (
                 <p className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{error}</p>
               )}
