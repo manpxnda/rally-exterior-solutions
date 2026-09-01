@@ -68,6 +68,12 @@ export default function TermsPage() {
               and service updates.
             </p>
             <p>
+              The Rally Lawn Care Services LLC (DBA Rally Exterior Solutions)
+              SMS program is intended for individuals 18 years of age or older.
+              By opting in to receive text messages, you confirm that you are
+              at least 18 years old.
+            </p>
+            <p>
               You can cancel the SMS service at any time. Just text
               &ldquo;STOP&rdquo; to (740) 208-8632. After you send the SMS
               message &ldquo;STOP&rdquo; to us, we will send you an SMS message
