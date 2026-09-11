@@ -162,6 +162,54 @@ export const services: Service[] = [
     featured: true,
   },
   {
+    // Secondary lighting service added with the 2026 lighting repositioning.
+    // Copy is intentionally general — no pricing, fixture specs, or warranty
+    // claims. Photo: real Rally home with landscape uplighting (also shows the
+    // roofline install). Replace with a dedicated landscape shot when available.
+    slug: "landscape-lighting",
+    image: "/images/lighting/christmas-gingerbread.jpg",
+    name: "Landscape Lighting",
+    shortName: "Landscape Lighting",
+    category: "lighting",
+    icon: "lighting",
+    tagline: "Beyond the roofline",
+    summary:
+      "Trees, walkways, patios, and architecture — the same design eye, brought down to ground level.",
+    heroHeadline: "Landscape Lighting Designed Around the Way You Use Your Property",
+    heroSub:
+      "Uplit trees, lit walkways, and patios you can actually use after dark — designed and installed by the same Rally team that handles your roofline.",
+    problem:
+      "Roofline lighting looks great, but the rest of the property disappears at night — dark walkways, unlit trees, and a patio nobody uses after sunset.",
+    outcome:
+      "A property that feels finished after dark: safe walkways, trees with presence, and outdoor spaces that invite you outside.",
+    description:
+      "Rally extends professional lighting design beyond the roofline. We look at how you arrive, walk, and gather on the property, then place fixtures to light the trees, architecture, paths, and entertaining spaces that matter — without the runway look. Landscape lighting pairs naturally with permanent roofline lighting and is often added as a second phase.",
+    benefits: [
+      "Designed for how you use the property, not a fixture count",
+      "Trees, architecture, walkways, patios, and entertaining spaces",
+      "Pairs with Rally permanent lighting for a complete look",
+      "Professional installation with respect for your landscaping",
+      "Rally support after the install",
+    ],
+    bestFor: [
+      "Homes with mature trees or stonework worth showing off",
+      "Walkways and steps that are dark after sunset",
+      "Patios and outdoor spaces you want to use at night",
+    ],
+    priceNote:
+      "Every landscape design is quoted per project after a design visit. Free, no-pressure estimate.",
+    metaTitle: "Landscape Lighting Design & Installation — Wheeling, WV & the Ohio Valley",
+    metaDescription:
+      "Professional landscape lighting for trees, walkways, patios, and architecture across Wheeling, WV and the Ohio Valley. Designed and installed by Rally Exterior Solutions. Free estimates.",
+    keywords: [
+      "landscape lighting Wheeling WV",
+      "outdoor landscape lighting Ohio Valley",
+      "tree uplighting installation",
+      "pathway lighting installation",
+      "patio lighting Wheeling WV",
+    ],
+  },
+  {
     slug: "pressure-washing",
     image: "/images/team/rally-driveway.png",
     name: "Pressure & Power Washing",

@@ -11,9 +11,17 @@ import { cn } from "@/lib/cn";
 export function FAQ({
   items = defaultFaqs,
   heading = true,
+  eyebrow = "Questions? Answered.",
+  title = "Everything you want to know before you book",
+  ctaHref = "/contact",
+  ctaLabel = "Get a Free Estimate",
 }: {
   items?: Faq[];
   heading?: boolean;
+  eyebrow?: string;
+  title?: string;
+  ctaHref?: string;
+  ctaLabel?: string;
 }) {
   const [open, setOpen] = useState<number | null>(0);
 
@@ -22,18 +30,14 @@ export function FAQ({
       <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
         <div>
           {heading && (
-            <SectionHeading
-              eyebrow="Questions? Answered."
-              title="Everything you want to know before you book"
-              align="left"
-            />
+            <SectionHeading eyebrow={eyebrow} title={title} align="left" />
           )}
           <p className="mt-4 text-ink-500">
             Still have a question? We&apos;re happy to help — no pressure, no
             obligation.
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
-            <Button href="/contact">Get a Free Estimate</Button>
+            <Button href={ctaHref}>{ctaLabel}</Button>
             <CallButton source="faq" variant="outline" />
           </div>
         </div>

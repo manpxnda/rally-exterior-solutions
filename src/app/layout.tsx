@@ -31,14 +31,17 @@ const robotoSlab = Roboto_Slab({
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: {
-    default: `${site.name} | 4.9★ Exterior Cleaning & Lighting — Wheeling, WV`,
+    default: `${site.name} | Exterior Lighting — Wheeling, WV & the Ohio Valley`,
     template: `%s | ${site.name}`,
   },
   description: site.description,
   applicationName: site.name,
   keywords: [
+    "permanent exterior lighting",
     "permanent lighting",
     "Christmas lighting",
+    "Christmas light installation",
+    "landscape lighting",
     "house washing",
     "roof washing",
     "soft washing",
@@ -52,10 +55,8 @@ export const metadata: Metadata = {
   creator: site.name,
   alternates: { canonical: "/" },
   icons: {
-    icon: [
-      { url: "/icon.svg", type: "image/svg+xml" },
-      { url: "/icon.png", type: "image/png", sizes: "512x512" },
-    ],
+    // Official Rally icon (public/brand/icon.png), sized for each slot.
+    icon: [{ url: "/icon.png", type: "image/png", sizes: "512x512" }],
     shortcut: "/favicon.ico",
     apple: "/apple-icon.png",
   },
@@ -64,7 +65,7 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: site.url,
     siteName: site.name,
-    title: `${site.name} | Brighter Homes. Cleaner Properties.`,
+    title: `${site.name} | Exterior Lighting — Permanent · Christmas · Landscape`,
     description: site.description,
   },
   twitter: {

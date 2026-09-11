@@ -67,15 +67,14 @@ export default async function LandingPage({ params }: Params) {
             aria-label={`${site.name} — view full site`}
             className="inline-flex items-center gap-2.5 transition-opacity hover:opacity-80"
           >
-            <BrandMark className="h-9 w-9 shrink-0" />
-            <span className="flex flex-col leading-none">
-              <span className="font-display text-xl font-extrabold uppercase leading-none tracking-tight text-ink-900">
-                Rally
-              </span>
-              <span className="mt-1 font-display text-[9px] font-semibold uppercase tracking-[0.2em] text-ink-400">
-                Exterior Solutions
-              </span>
-            </span>
+            <Image
+              src="/brand/logo-color.png"
+              alt="Rally Exterior Solutions"
+              width={1200}
+              height={417}
+              priority
+              className="h-9 w-auto"
+            />
           </a>
           <div className="flex items-center gap-3">
             <CallLink

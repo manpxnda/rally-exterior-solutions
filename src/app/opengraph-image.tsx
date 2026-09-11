@@ -1,13 +1,28 @@
 import { ImageResponse } from "next/og";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { site } from "@/lib/site";
 
 export const runtime = "nodejs";
-export const alt = `${site.name} — Exterior Lighting & Cleaning in the Ohio Valley`;
+export const alt = `${site.name} — Permanent, Christmas & Landscape Lighting in the Ohio Valley`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-// Branded social share card, generated at build/request time (no asset needed).
-export default function OgImage() {
+// Branded social share card. Uses the OFFICIAL white wordmark from
+// /public/brand (not a code recreation).
+export default async function OgImage() {
+  // Read the official lockup from /public at generation time. Falls back to
+  // the text wordmark if the file can't be read, so the route never 500s.
+  let logoSrc = "";
+  try {
+    const buf = await readFile(
+      path.join(process.cwd(), "public", "brand", "logo-white.png")
+    );
+    logoSrc = `data:image/png;base64,${buf.toString("base64")}`;
+  } catch {
+    logoSrc = "";
+  }
+
   return new ImageResponse(
     (
       <div
@@ -17,60 +32,34 @@ export default function OgImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "linear-gradient(135deg, #112F45 0%, #173D59 60%, #1C415C 100%)",
-          padding: "80px",
+          background: "linear-gradient(135deg, #0F2A3F 0%, #173D59 60%, #1C415C 100%)",
+          padding: "72px 80px",
           fontFamily: "sans-serif",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
-          {/* sun-over-water mark */}
-          <div
-            style={{
-              width: 74,
-              height: 74,
-              borderRadius: 999,
-              background: "#FAF0D7",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <div
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: 999,
-                background: "#EA6F61",
-              }}
-            />
-          </div>
-          <div
-            style={{
-              color: "white",
-              fontSize: 36,
-              fontWeight: 800,
-              letterSpacing: 1,
-              textTransform: "uppercase",
-            }}
-          >
+        {logoSrc ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={logoSrc} alt="" width={400} height={140} style={{ objectFit: "contain" }} />
+        ) : (
+          <div style={{ color: "white", fontSize: 36, fontWeight: 800, letterSpacing: 1, textTransform: "uppercase" }}>
             Rally Exterior Solutions
           </div>
-        </div>
+        )}
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
           <div
             style={{
               color: "white",
-              fontSize: 68,
+              fontSize: 66,
               fontWeight: 800,
               lineHeight: 1.05,
-              maxWidth: 920,
+              maxWidth: 940,
             }}
           >
-            Brighter Homes. Cleaner Properties. Zero Hassle.
+            Your home changes after dark.
           </div>
           <div style={{ color: "#6CC2BE", fontSize: 30 }}>
-            Permanent lighting · Holiday lighting · Exterior cleaning
+            Permanent · Christmas · Landscape lighting
           </div>
         </div>
 
@@ -80,11 +69,11 @@ export default function OgImage() {
             alignItems: "center",
             gap: 16,
             color: "#EA6F61",
-            fontSize: 28,
+            fontSize: 26,
             fontWeight: 700,
           }}
         >
-          Serving the Ohio Valley & Wheeling, WV · Free Estimates
+          Designed, installed & supported by Rally · Wheeling, WV & the Ohio Valley
         </div>
       </div>
     ),

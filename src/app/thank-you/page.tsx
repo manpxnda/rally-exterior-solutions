@@ -15,6 +15,42 @@ export const metadata: Metadata = {
   alternates: { canonical: "/thank-you" },
 };
 
+const permanentSteps = [
+  {
+    icon: "phone" as const,
+    title: "We'll reach out to schedule",
+    body: "A quick call or text to find a design-consultation time that works for you.",
+  },
+  {
+    icon: "calendar" as const,
+    title: "We walk the home with you",
+    body: "Rooflines, trim color, and what you want the home to feel like after dark.",
+  },
+  {
+    icon: "tag" as const,
+    title: "You see the design and the price",
+    body: "A clear proposal for your home — no pressure, no obligation.",
+  },
+];
+
+const christmasSteps = [
+  {
+    icon: "phone" as const,
+    title: "We'll reach out",
+    body: "Expect a call or text from the Rally team, usually the same business day.",
+  },
+  {
+    icon: "calendar" as const,
+    title: "We design your look",
+    body: "Often from your address and photo alone — no appointment needed for most homes.",
+  },
+  {
+    icon: "tag" as const,
+    title: "You get your quote",
+    body: "Design, install, maintenance, removal, and storage — one clear price in writing.",
+  },
+];
+
 const nextSteps = [
   {
     icon: "phone" as const,
@@ -40,6 +76,18 @@ export default async function ThankYouPage({
 }) {
   const { service } = await searchParams;
   const matched = service ? getService(service) : undefined;
+  const steps =
+    service === "permanent-lighting"
+      ? permanentSteps
+      : service === "holiday-lighting"
+        ? christmasSteps
+        : nextSteps;
+  const intro =
+    service === "permanent-lighting"
+      ? "We've received your design-consultation request. A member of the Rally team will reach out to schedule a time to walk the home with you."
+      : service === "holiday-lighting"
+        ? "We've received your Christmas lighting request. We'll review your home and reach out with your quote — often without needing a visit."
+        : "We've received your free estimate request and a member of the Rally team will be in touch shortly.";
 
   return (
     <section className="bg-ink-900 py-20 text-white sm:py-28">
@@ -52,15 +100,14 @@ export default async function ThankYouPage({
           Thank you! Your request is in.
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-lg text-ink-200">
-          {matched
+          {matched && !["permanent-lighting", "holiday-lighting"].includes(matched.slug)
             ? `Thanks for your interest in ${matched.name.toLowerCase()}. `
             : ""}
-          We&apos;ve received your free estimate request and a member of the
-          Rally team will be in touch shortly.
+          {intro}
         </p>
 
         <div className="mx-auto mt-12 grid max-w-3xl gap-5 sm:grid-cols-3">
-          {nextSteps.map((step, i) => (
+          {steps.map((step, i) => (
             <div
               key={step.title}
               className="rounded-2xl border border-white/10 bg-white/5 p-6 text-left"

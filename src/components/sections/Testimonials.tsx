@@ -31,20 +31,28 @@ export function Testimonials({
   items = allTestimonials,
   limit = 6,
   heading = true,
+  eyebrow = "Customer Reviews",
+  title = `Rated ${site.stats.reviewRating}★ by ${site.stats.reviewCount}+ neighbors`,
+  description = "We earn trust the old-fashioned way: showing up, doing great work, and standing behind it.",
+  tone = "muted",
 }: {
   items?: Testimonial[];
   limit?: number;
   heading?: boolean;
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+  tone?: "muted" | "white";
 }) {
   const list = items.slice(0, limit);
 
   return (
-    <Section tone="muted">
+    <Section tone={tone}>
       {heading && (
         <SectionHeading
-          eyebrow="Customer Reviews"
-          title={`Rated ${site.stats.reviewRating}★ by ${site.stats.reviewCount}+ neighbors`}
-          description="We earn trust the old-fashioned way: showing up, doing great work, and standing behind it."
+          eyebrow={eyebrow}
+          title={title}
+          description={description}
           className="mb-12"
         />
       )}

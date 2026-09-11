@@ -11,6 +11,24 @@
 import { faqs as globalFaqs, type Faq } from "@/data/faqs";
 
 export const serviceFaqs: Record<string, Faq[]> = {
+  "landscape-lighting": [
+    {
+      q: "What can landscape lighting include?",
+      a: "Trees, architectural features, walkways and steps, patios, pools, and entertaining spaces. We design around how you actually use the property, not a fixture count.",
+    },
+    {
+      q: "Can I add landscape lighting to my permanent roofline lighting?",
+      a: "Yes. Landscape lighting is a natural second phase for permanent lighting customers, and many homeowners add it later once they've lived with the roofline for a season.",
+    },
+    {
+      q: "Will the fixtures look out of place during the day?",
+      a: "We choose fixture placement and finishes with the daytime look in mind, and we respect your landscaping during installation — no torn-up beds or exposed wiring.",
+    },
+    {
+      q: "How does the process start?",
+      a: "With a design visit. Tell us how you use the property after dark and what you want it to feel like, and Rally designs the lighting around that. Every project is quoted individually.",
+    },
+  ],
   "permanent-lighting": [
     {
       q: "How much does permanent outdoor lighting cost?",

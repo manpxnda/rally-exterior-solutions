@@ -38,3 +38,52 @@ export const faqs: Faq[] = [
     a: "We don't consider a job done until you're thrilled with it. If something isn't right, we make it right — that's the Rally standard.",
   },
 ];
+
+/**
+ * HOMEPAGE (lighting) FAQs — the questions homeowners ask before they call
+ * about permanent or Christmas lighting. Emitted as FAQPage schema on "/".
+ * Business-policy specifics (warranty terms, booking windows, ownership of
+ * Christmas lights) are intentionally general — confirm before adding detail.
+ */
+export const lightingFaqs: Faq[] = [
+  {
+    q: "Can you see permanent lights during the day?",
+    a: "Barely. The track sits under the roof edge and is color-matched to your trim, so from the street most people don't notice it until it's on.",
+  },
+  {
+    q: "Can I use normal warm white every night, or is it just colors?",
+    a: "Both. Warm architectural white is the everyday look most homeowners run. Full color — Christmas, game day, parties — is there when you want it, not all the time.",
+  },
+  {
+    q: "Can I schedule the lights?",
+    a: "Yes. Set your everyday schedule once and it runs itself. Change scenes any time from your phone.",
+  },
+  {
+    q: "What happens if something stops working?",
+    a: "You contact Rally, and Rally owns the next step. We'll diagnose it, schedule the fix, and keep you updated until it's resolved.",
+  },
+  {
+    q: "Can the permanent system be expanded later?",
+    a: "Yes. Many homeowners start with the front of the home and add rooflines, landscape lighting, or entertaining areas later.",
+  },
+  {
+    q: "Do I provide the Christmas lights?",
+    a: "No. Rally provides commercial-grade lights designed for your home, installs them, keeps them working through the season, and takes them down in January.",
+  },
+  {
+    q: "Do you take the Christmas lights down?",
+    a: "Yes. We return after the season, remove everything, label it, and store it for next year. You never touch a ladder.",
+  },
+  {
+    q: "What if a Christmas light goes out during the season?",
+    a: "Let us know and we'll come fix it. In-season maintenance is part of the service.",
+  },
+  {
+    q: "Do I have to be home?",
+    a: "Usually not. Most installations and removals happen outside the home. We'll confirm the details with you before the visit.",
+  },
+  {
+    q: "Can you quote my Christmas lights remotely?",
+    a: "Often, yes. Send your address and a photo of the front of the home and we can usually design and quote from there. Permanent lighting starts with a design consultation at the home.",
+  },
+];

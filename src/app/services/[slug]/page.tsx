@@ -81,6 +81,14 @@ export default async function ServicePage({ params }: Params) {
   const serviceFaqItems = getServiceFaqs(service.slug);
   const isLighting = service.category === "lighting";
   const categoryLabel = isLighting ? "Exterior Lighting" : "Exterior Cleaning";
+  // 2026 repositioning: the two primary lighting services route into their own
+  // journeys; every other service keeps the generic estimate form (preselected).
+  const journey =
+    service.slug === "permanent-lighting"
+      ? { href: "/design-consultation", label: "Design My Home" }
+      : service.slug === "holiday-lighting"
+        ? { href: "/christmas-quote", label: "Get My Christmas Quote" }
+        : { href: `/contact?service=${service.slug}`, label: "Get a Free Estimate" };
 
   return (
     <>
@@ -107,8 +115,8 @@ export default async function ServicePage({ params }: Params) {
         ]}
       >
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Button href={`/contact?service=${service.slug}`} size="lg">
-            Get a Free Estimate
+          <Button href={journey.href} size="lg">
+            {journey.label}
             <Icon name="arrowRight" className="h-5 w-5" />
           </Button>
           <CallButton
@@ -374,6 +382,8 @@ export default async function ServicePage({ params }: Params) {
       <CTASection
         title={`Ready for ${service.shortName.toLowerCase()} done right?`}
         service={service.slug}
+        href={journey.href}
+        cta={journey.label}
       />
     </>
   );

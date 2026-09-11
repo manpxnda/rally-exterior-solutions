@@ -77,7 +77,7 @@ export function HolidayBookingTimeline() {
         ))}
       </div>
       <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-        <Button href="/contact?service=holiday-lighting" size="lg">
+        <Button href="/christmas-quote" size="lg">
           Reserve Your Install Date
           <Icon name="arrowRight" className="h-5 w-5" />
         </Button>

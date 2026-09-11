@@ -11,7 +11,12 @@ type LeadPayload = {
   email?: string;
   service?: string;
   zip?: string;
+  /** Added 2026-09 (lighting journeys): street address of the home. */
+  address?: string;
   details?: string;
+  /** Added 2026-09 (Christmas remote quote): optional front-of-home photo as a
+   *  JPEG data URL. Emailed as an attachment; NOT forwarded to the webhook. */
+  photo?: string;
   source?: string;
   submittedAt?: string;
   attribution?: Record<string, string>;
@@ -60,6 +65,7 @@ export async function POST(req: Request) {
     email: (body.email || "").trim(),
     service: (body.service || "").trim() || "unspecified",
     zip: (body.zip || "").trim(),
+    address: (body.address || "").trim(),
     details: (body.details || "").trim(),
     source: (body.source || "website").trim(),
     submittedAt: body.submittedAt || new Date().toISOString(),
@@ -71,9 +77,12 @@ export async function POST(req: Request) {
     consent_page: (body.consent_page || "").trim(),
   };
 
+  // Photo stays out of the webhook payload (size); it rides along on the email.
+  const photo = typeof body.photo === "string" && body.photo.startsWith("data:image/") ? body.photo : "";
+
   const results = await Promise.allSettled([
-    forwardToWebhook(lead),
-    sendEmail(lead),
+    forwardToWebhook({ ...lead, has_photo: photo ? "yes" : "no" }),
+    sendEmail(lead, photo),
   ]);
 
   const delivered = results.some(
@@ -112,6 +121,7 @@ async function sendEmail(lead: {
   email: string;
   service: string;
   zip: string;
+  address: string;
   details: string;
   source: string;
   attribution: Record<string, string>;
@@ -119,7 +129,7 @@ async function sendEmail(lead: {
   sms_informational_consent: string;
   consent_timestamp: string;
   consent_page: string;
-}): Promise<"sent" | "skipped"> {
+}, photo = ""): Promise<"sent" | "skipped"> {
   const apiKey = process.env.RESEND_API_KEY;
   const to = process.env.LEAD_EMAIL_TO;
   const from = process.env.LEAD_EMAIL_FROM || "leads@rallyexteriorsolutions.com";
@@ -137,6 +147,8 @@ async function sendEmail(lead: {
       <tr><td><strong>Email</strong></td><td>${escapeHtml(lead.email) || "—"}</td></tr>
       <tr><td><strong>Service</strong></td><td>${escapeHtml(lead.service)}</td></tr>
       <tr><td><strong>ZIP</strong></td><td>${escapeHtml(lead.zip) || "—"}</td></tr>
+      <tr><td><strong>Address</strong></td><td>${escapeHtml(lead.address) || "—"}</td></tr>
+      <tr><td><strong>Photo</strong></td><td>${photo ? "Attached (front of home)" : "—"}</td></tr>
       <tr><td><strong>Details</strong></td><td>${escapeHtml(lead.details) || "—"}</td></tr>
       <tr><td><strong>Source</strong></td><td>${escapeHtml(lead.source)}</td></tr>
       <tr><td><strong>SMS marketing consent</strong></td><td>${escapeHtml(lead.sms_marketing_consent)}</td></tr>
@@ -159,6 +171,16 @@ async function sendEmail(lead: {
       reply_to: lead.email || undefined,
       subject: `New Estimate Request: ${lead.name} — ${lead.service}`,
       html,
+      ...(photo
+        ? {
+            attachments: [
+              {
+                filename: "front-of-home.jpg",
+                content: photo.replace(/^data:image\/\w+;base64,/, ""),
+              },
+            ],
+          }
+        : {}),
     }),
   });
   if (!res.ok) throw new Error(`Resend responded ${res.status}`);

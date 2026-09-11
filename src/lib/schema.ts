@@ -33,7 +33,7 @@ export function localBusinessSchema() {
     telephone: site.phoneHref.replace("tel:", ""),
     email: site.email,
     image: `${site.url}/opengraph-image`,
-    logo: `${site.url}/icon.svg`,
+    logo: `${site.url}/brand/icon.png`,
     priceRange: "$$",
     foundingDate: String(site.stats.yearFounded),
     address: {

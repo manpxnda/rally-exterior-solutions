@@ -6,6 +6,10 @@ import { Icon } from "@/components/ui/Icon";
 import { CallLink } from "@/components/CallButton";
 import { Button } from "@/components/ui/Button";
 
+/**
+ * Site footer — lighting first, legacy services preserved under
+ * "Other Exterior Services" so every existing page keeps an internal link.
+ */
 export function Footer() {
   const year = new Date().getFullYear();
 
@@ -16,17 +20,22 @@ export function Footer() {
         <div className="container flex flex-col items-center justify-between gap-6 py-10 text-center md:flex-row md:text-left">
           <div>
             <h2 className="font-display text-2xl font-bold text-white">
-              Ready to transform your property?
+              Ready to see your home differently?
             </h2>
             <p className="mt-1 text-ink-300">
-              Free, no-pressure estimate. Most quotes back same-day.
+              Show us your home. We&apos;ll take it from there.
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
             <Button href="/contact" size="lg">
-              Get My Free Estimate
+              Start My Project
             </Button>
-            <Button href={site.phoneHref} variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10 hover:border-white">
+            <Button
+              href={site.phoneHref}
+              variant="outline"
+              size="lg"
+              className="border-white/30 text-white hover:border-white hover:bg-white/10"
+            >
               <Icon name="phone" className="h-5 w-5" />
               {site.phoneDisplay}
             </Button>
@@ -35,12 +44,15 @@ export function Footer() {
       </div>
 
       <div className="container grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-12">
-        {/* Brand */}
+        {/* Brand — official white wordmark. (The supplied "Exterior Lighting"
+            lockup files contain export remnants; switch to variant="lighting"
+            once a clean file is provided.) */}
         <div className="lg:col-span-4">
           <Logo tone="light" />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-300">
-            Premium permanent lighting, holiday lighting, and exterior cleaning
-            for homes and businesses across the {regionLabel} region.
+            Professional exterior lighting — permanent, Christmas, and landscape
+            — designed, installed, and supported by Rally across the{" "}
+            {regionLabel} region.
           </p>
           <div className="mt-5 space-y-2 text-sm">
             <CallLink source="footer" className="font-semibold text-white hover:text-gold-300" />
@@ -84,15 +96,31 @@ export function Footer() {
           </div>
         </div>
 
-        {/* Services */}
+        {/* Exterior Lighting */}
         <div className="lg:col-span-3">
           <h3 className="text-sm font-bold uppercase tracking-wider text-white">
-            Services
+            Exterior Lighting
           </h3>
           <ul className="mt-4 space-y-2.5 text-sm">
-            {footerNav.services.map((l) => (
+            {footerNav.lighting.map((l) => (
               <li key={l.href}>
                 <Link href={l.href} className="text-ink-300 hover:text-white">
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Other exterior services (legacy, preserved) */}
+        <div className="lg:col-span-3">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-ink-300">
+            Other Exterior Services
+          </h3>
+          <ul className="mt-4 space-y-2.5 text-sm">
+            {footerNav.otherServices.map((l) => (
+              <li key={l.href}>
+                <Link href={l.href} className="text-ink-400 hover:text-white">
                   {l.label}
                 </Link>
               </li>
@@ -117,11 +145,11 @@ export function Footer() {
         </div>
 
         {/* Service area */}
-        <div className="lg:col-span-3">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-white">
-            Proudly Serving
-          </h3>
-          <p className="mt-4 text-sm leading-relaxed text-ink-300">
+        <div className="md:col-span-2 lg:col-span-12">
+          <p className="text-sm leading-relaxed text-ink-400">
+            <span className="font-bold uppercase tracking-wider text-ink-300">
+              Proudly serving
+            </span>{" "}
             {serviceAreaCities.slice(0, 8).join(" · ")} and the surrounding{" "}
             {regionLabel} region.
           </p>

@@ -10,8 +10,8 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/schema";
 
 export const metadata: Metadata = {
-  title: "Project Gallery — Before & After Transformations",
-  description: `See real before-and-after results from Rally Exterior Solutions across the ${regionLabel} region: lighting installs, house & roof washing, concrete cleaning and more.`,
+  title: "Lighting Gallery — Permanent & Christmas Lighting Projects",
+  description: `Real Rally Exterior Solutions lighting projects across the ${regionLabel} region: permanent roofline lighting, Christmas displays, and landscape lighting — plus before-and-after results from our exterior cleaning work.`,
   alternates: { canonical: "/gallery" },
 };
 
@@ -26,17 +26,20 @@ export default function GalleryPage() {
       />
 
       <PageHeader
-        eyebrow="Project Gallery"
-        title="Transformations worth showing off"
-        description="Real homes and businesses in the Ohio Valley. Drag any slider to see the before-and-after for yourself."
+        eyebrow="Lighting Gallery"
+        title="Real Rally homes, after dark"
+        description="Permanent lighting, Christmas displays, and landscape lighting on real Ohio Valley homes. Exterior cleaning before-and-afters live under their own tab."
         crumbs={[
           { name: "Home", href: "/" },
           { name: "Gallery", href: "/gallery" },
         ]}
       >
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Button href="/contact" size="lg">
-            Get Results Like These
+          <Button href="/design-consultation" size="lg">
+            Design My Home
+          </Button>
+          <Button href="/christmas-quote" variant="white" size="lg">
+            Get My Christmas Quote
           </Button>
           <CallButton
             source="gallery_header"

@@ -15,8 +15,10 @@ export const site = {
   legalName: "Rally Lawn Care Services LLC",
   tagline: "Brighter Homes. Cleaner Properties. Zero Hassle.",
   // One-sentence positioning used in meta descriptions & hero subhead.
+  // 2026 repositioning: exterior LIGHTING leads; cleaning services remain
+  // available and are described on their own pages.
   description:
-    "Premium permanent lighting, Christmas lights, pressure washing & exterior cleaning across the Ohio Valley & Wheeling, WV. 4.9★ from local homeowners. Free, no-pressure estimates.",
+    "Professional exterior lighting — permanent, Christmas, and landscape — designed, installed, and supported by Rally across Wheeling, WV and the Ohio Valley. 4.9★ from local homeowners. Exterior cleaning services also available.",
 
   url:
     process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
@@ -92,7 +94,7 @@ export const site = {
       text: "Christmas light installs are booking now — the best dates go first",
       cta: "Reserve your date",
       // Where the promo CTA points (defaults to /contact if omitted).
-      href: "/services/holiday-lighting",
+      href: "/christmas-quote",
     },
   },
 } as const;

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { site, regionLabel, serviceAreaCities } from "@/lib/site";
 import { getServiceSlugs } from "@/data/services";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -11,8 +12,8 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/schema";
 
 export const metadata: Metadata = {
-  title: "Get a Free Estimate — Contact Rally Exterior Solutions",
-  description: `Request your free, no-pressure estimate for exterior lighting or cleaning in the ${regionLabel} region. Call ${site.phoneDisplay} or send a message — most quotes back same-day.`,
+  title: "Start My Project — Contact Rally Exterior Solutions",
+  description: `Start your permanent lighting design, get a Christmas lighting quote, or request a free estimate for any Rally exterior service in the ${regionLabel} region. Call ${site.phoneDisplay} or send a message.`,
   alternates: { canonical: "/contact" },
 };
 
@@ -35,14 +36,55 @@ export default async function ContactPage({
       />
 
       <PageHeader
-        eyebrow="Free Estimate"
-        title="Let's make your property shine"
-        description={`Tell us what you need and we'll send a clear, no-obligation quote — usually the same day. Prefer to talk? Call ${site.phoneDisplay}.`}
+        eyebrow="Start My Project"
+        title="Show us your home. We'll take it from there."
+        description={`Pick the path that fits, or use the form below for anything else. Prefer to talk? Call ${site.phoneDisplay}.`}
         crumbs={[
           { name: "Home", href: "/" },
           { name: "Contact", href: "/contact" },
         ]}
       />
+
+      {/* Lighting journeys — the two front doors (2026 repositioning) */}
+      <Section tone="muted" className="!py-10 sm:!py-12">
+        <div className="grid gap-4 md:grid-cols-2">
+          <Link
+            href="/design-consultation"
+            className="group flex items-start gap-4 rounded-2xl border border-ink-100 bg-white p-6 shadow-card transition-all hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-cardHover"
+          >
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-ink-900 text-sky-300">
+              <Icon name="lighting" className="h-6 w-6" />
+            </span>
+            <span>
+              <span className="block text-xs font-bold uppercase tracking-wider text-sky-600">Permanent lighting</span>
+              <span className="mt-1 block font-display text-xl font-bold text-ink-900">Design my home</span>
+              <span className="mt-1 block text-sm text-ink-500">Schedule a design consultation. We walk the home with you and design the system around it.</span>
+              <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-ink-900">
+                Start <Icon name="arrowRight" className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            </span>
+          </Link>
+          <Link
+            href="/christmas-quote"
+            className="group flex items-start gap-4 rounded-2xl border border-ink-100 bg-white p-6 shadow-card transition-all hover:-translate-y-0.5 hover:border-gold-300 hover:shadow-cardHover"
+          >
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gold-400 text-ink-900">
+              <Icon name="snowflake" className="h-6 w-6" />
+            </span>
+            <span>
+              <span className="block text-xs font-bold uppercase tracking-wider text-gold-600">Christmas lighting</span>
+              <span className="mt-1 block font-display text-xl font-bold text-ink-900">Get my Christmas quote</span>
+              <span className="mt-1 block text-sm text-ink-500">Send your address and a photo. We can often design and quote your home remotely.</span>
+              <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-ink-900">
+                Start <Icon name="arrowRight" className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </span>
+            </span>
+          </Link>
+        </div>
+        <p className="mt-5 text-center text-sm text-ink-500">
+          Landscape lighting, pressure washing, house or roof washing, concrete, sealing, or not sure? Use the form below.
+        </p>
+      </Section>
 
       <Section tone="white">
         <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr]">

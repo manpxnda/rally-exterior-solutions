@@ -13,8 +13,8 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/schema";
 
 export const metadata: Metadata = {
-  title: "About Us — 4.9★ Local Exterior Cleaning & Lighting Crew",
-  description: `Locally owned, fully insured, 4.9★-rated. Meet the crew behind Rally Exterior Solutions and see why ${regionLabel} homeowners keep calling us back.`,
+  title: "Why Rally — The Local Exterior Lighting Team",
+  description: `Locally owned, fully insured, 4.9★-rated. Meet the team behind Rally Exterior Solutions' permanent, Christmas, and landscape lighting — and see why ${regionLabel} homeowners keep calling us back.`,
   alternates: { canonical: "/about" },
 };
 
@@ -52,9 +52,9 @@ export default function AboutPage() {
       />
 
       <PageHeader
-        eyebrow="About Rally"
-        title="Your neighbors in premium exterior services"
-        description={`We started Rally to give Ohio Valley homeowners an exterior company they can actually count on — one that shows up, communicates, and delivers results worth bragging about.`}
+        eyebrow="Why Rally"
+        title="The lighting people around here"
+        description={`We started Rally to give Ohio Valley homeowners an exterior company they can actually count on — one that shows up, communicates, and delivers results worth bragging about. Today that means exterior lighting first: permanent, Christmas, and landscape.`}
         crumbs={[
           { name: "Home", href: "/" },
           { name: "About", href: "/about" },
@@ -89,11 +89,12 @@ export default function AboutPage() {
                 Solutions to be the opposite of that.
               </p>
               <p>
-                From dazzling permanent lighting to deep-clean house and roof
-                washing, we bring one professional, fully insured team to your
-                entire exterior. We use commercial-grade products, the safe
-                method for every surface, and we treat your property like it&apos;s
-                our own.
+                Rally designs and installs exterior lighting — permanent lighting
+                built around the architecture of the home, Christmas lighting
+                handled from design to January takedown, and landscape lighting
+                beyond the roofline. The same fully insured team also handles
+                house, roof, and concrete cleaning, and we treat your property
+                like it&apos;s our own either way.
               </p>
               <p>
                 We&apos;re local, we&apos;re responsive, and we stand behind our

@@ -9,12 +9,18 @@ export function CTASection({
   title = "Ready for a brighter, cleaner property?",
   subtitle = site.offer.sub,
   service,
+  href: hrefOverride,
+  cta = "Get My Free Estimate",
 }: {
   title?: string;
   subtitle?: string;
   service?: string;
+  /** Override the destination (e.g. the lighting journeys). */
+  href?: string;
+  /** Override the button label. */
+  cta?: string;
 }) {
-  const href = service ? `/contact?service=${service}` : "/contact";
+  const href = hrefOverride ?? (service ? `/contact?service=${service}` : "/contact");
   return (
     <section className="relative overflow-hidden bg-ink-900 py-16 text-white sm:py-20">
       <div className="glow-gold pointer-events-none absolute left-1/2 top-0 h-[30rem] w-[30rem] -translate-x-1/2" />
@@ -29,7 +35,7 @@ export function CTASection({
         <p className="mx-auto mt-4 max-w-xl text-lg text-ink-200">{subtitle}</p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Button href={href} size="lg">
-            Get My Free Estimate
+            {cta}
             <Icon name="arrowRight" className="h-5 w-5" />
           </Button>
           <CallButton

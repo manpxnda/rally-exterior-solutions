@@ -1,98 +1,95 @@
+import Image from "next/image";
 import Link from "next/link";
 import { site } from "@/lib/site";
 import { cn } from "@/lib/cn";
 
 /**
- * Brand mark — Rally's sun-over-water icon, recreated as scalable SVG so it
- * stays crisp at any size and works on light or dark backgrounds (it carries
- * its own cream circle). To use the exact uploaded asset instead, drop it at
- * /public/brand/icon.svg and swap <BrandMark/> for <Image src="/brand/icon.svg" .../>.
+ * OFFICIAL RALLY BRAND ASSETS (2026-09 repositioning)
+ * ----------------------------------------------------------------------------
+ * The wordmark and icon are the supplied logo files in /public/brand — not a
+ * code recreation. Only transparent padding was trimmed and the files were
+ * downscaled for the web; the artwork itself is untouched.
+ *
+ *   /brand/icon.png                  sun-over-water icon (coral + teal)
+ *   /brand/logo-color.png            "RALLY Exterior Solutions" — coral/teal, for light backgrounds
+ *   /brand/logo-white.png            "RALLY Exterior Solutions" — white, for dark backgrounds
+ *   /brand/logo-lighting-color.png   "RALLY Exterior Lighting" — coral/teal + teal descriptor
+ *   /brand/logo-lighting-white.png   "RALLY Exterior Lighting" — all white (descriptor stays white)
+ *
+ * Brand rule: when the lockup includes the words "Exterior Lighting", those
+ * words stay WHITE (only the supplied white file is used on dark backgrounds).
+ *
+ * NOTE (2026-09-11): both supplied "Exterior Lighting" files contain faint
+ * remnants of the "Exterior Solutions" text above the descriptor (export
+ * artifact). They are kept here but NOT used until a clean export is supplied.
  */
+
+const ASSETS = {
+  solutions: {
+    dark: "/brand/logo-color.png",
+    light: "/brand/logo-white.png",
+    // trimmed pixel size of the supplied files (keeps aspect ratio exact)
+    width: 1200,
+    height: 417,
+    alt: "Rally Exterior Solutions",
+  },
+  lighting: {
+    dark: "/brand/logo-lighting-color.png",
+    light: "/brand/logo-lighting-white.png",
+    width: 1200,
+    height: 455,
+    alt: "Rally Exterior Solutions — Exterior Lighting",
+  },
+} as const;
+
+/** The sun-over-water brand icon (official file). */
 export function BrandMark({ className }: { className?: string }) {
   return (
-    <svg
-      viewBox="0 0 64 64"
-      className={cn("h-10 w-10", className)}
-      role="img"
-      aria-label="Rally Exterior Solutions"
-    >
-      <defs>
-        <clipPath id="rally-circle">
-          <circle cx="32" cy="32" r="32" />
-        </clipPath>
-      </defs>
-      <circle cx="32" cy="32" r="32" fill="#FAF0D7" />
-      <g clipPath="url(#rally-circle)">
-        {/* sun */}
-        <circle cx="32" cy="30" r="9" fill="#EA6F61" />
-        {/* rays */}
-        <g
-          stroke="#EA6F61"
-          strokeWidth="2.6"
-          strokeLinecap="round"
-        >
-          <line x1="32" y1="18" x2="32" y2="14" />
-          <line x1="38" y1="19.6" x2="40" y2="16.1" />
-          <line x1="26" y1="19.6" x2="24" y2="16.1" />
-          <line x1="42.4" y1="24" x2="45.9" y2="22" />
-          <line x1="21.6" y1="24" x2="18.1" y2="22" />
-          <line x1="44" y1="30" x2="48" y2="30" />
-          <line x1="20" y1="30" x2="16" y2="30" />
-        </g>
-        {/* upper wave */}
-        <path
-          d="M7 44 Q19.5 39 32 44 T57 44"
-          fill="none"
-          stroke="#39ABA8"
-          strokeWidth="4"
-          strokeLinecap="round"
-        />
-        {/* lower wave (fills the base) */}
-        <path
-          d="M-2 51 Q16 46 32 51 T66 51 L66 66 L-2 66 Z"
-          fill="#39ABA8"
-        />
-      </g>
-    </svg>
+    <Image
+      src="/brand/icon.png"
+      alt={site.name}
+      width={512}
+      height={492}
+      className={cn("h-10 w-auto", className)}
+    />
   );
 }
 
 /**
- * Wordmark logo. Recreated with the brand slab-serif to match the printed logo.
+ * Wordmark logo (official file), linked to the homepage.
+ *  - tone="dark"  → color wordmark for white/light backgrounds (header)
+ *  - tone="light" → white wordmark for navy backgrounds (footer)
+ *  - variant="lighting" → the "Exterior Lighting" lockup
  */
 export function Logo({
   className,
   tone = "dark",
+  variant = "solutions",
+  priority,
 }: {
   className?: string;
   tone?: "dark" | "light";
+  variant?: "solutions" | "lighting";
+  priority?: boolean;
 }) {
-  const isLight = tone === "light";
+  const asset = ASSETS[variant];
   return (
     <Link
       href="/"
-      className={cn("group inline-flex items-center gap-2.5", className)}
+      className={cn("inline-flex shrink-0 items-center", className)}
       aria-label={`${site.name} — home`}
     >
-      <BrandMark className="h-10 w-10 shrink-0 transition-transform group-hover:scale-105" />
-      <span className="flex flex-col leading-none">
-        <span
-          className={cn(
-            "font-display text-[1.35rem] font-extrabold uppercase leading-none tracking-tight",
-            isLight ? "text-white" : "text-ink-900"
-          )}
-        >
-          Rally
-        </span>
-        <span
-          className={cn(
-            "mt-1 font-display text-[10px] font-semibold uppercase tracking-[0.2em]",
-            isLight ? "text-ink-200" : "text-ink-400"
-          )}
-        >
-          Exterior Solutions
-        </span>
-      </span>
+      <Image
+        src={tone === "light" ? asset.light : asset.dark}
+        alt={asset.alt}
+        width={asset.width}
+        height={asset.height}
+        priority={priority}
+        className={cn(
+          "w-auto",
+          variant === "lighting" ? "h-12 sm:h-14" : "h-9 sm:h-10"
+        )}
+      />
     </Link>
   );
 }

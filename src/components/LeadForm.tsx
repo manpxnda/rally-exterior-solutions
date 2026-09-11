@@ -11,30 +11,65 @@ import { cn } from "@/lib/cn";
 
 type Status = "idle" | "submitting" | "success" | "error";
 
+/**
+ * Two lighting journeys + the original generic form.
+ *  - "default"   → unchanged legacy estimate form (all services, ZIP, details)
+ *  - "permanent" → design-consultation request (address + what the home should feel like)
+ *  - "christmas" → remote-quote request (address + look + optional front-of-home photo)
+ * All variants post the same payload shape to /api/lead; the lighting variants
+ * add `address` and (Christmas) `photo`, and fold their preference answers
+ * into `details` so downstream destinations need no schema change.
+ */
+export type LeadFormVariant = "default" | "permanent" | "christmas";
+
 const FORMSPREE = process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT;
 
-/**
- * The primary conversion instrument.
- * Friction-light (5 fields, only 3 required) but still qualifies the lead with
- * service interest + ZIP so the team can prioritize and route.
- *
- * Posts to /api/lead by default, or directly to Formspree if
- * NEXT_PUBLIC_FORMSPREE_ENDPOINT is set. Fires lead conversion tracking on success.
- */
+const VARIANT_SERVICE: Record<LeadFormVariant, string | undefined> = {
+  default: undefined,
+  permanent: "permanent-lighting",
+  christmas: "holiday-lighting",
+};
+
+const VARIANT_SUBMIT: Record<LeadFormVariant, string> = {
+  default: "Get My Free Estimate",
+  permanent: "Request My Design Consultation",
+  christmas: "Get My Christmas Quote",
+};
+
+const VARIANT_NOTE: Record<LeadFormVariant, string> = {
+  default: "No spam. No obligation. We typically reply same-day.",
+  permanent: "No pressure, no obligation. We'll reach out to schedule a time that works for you.",
+  christmas: "No spam. No obligation. We can often design and quote your home remotely.",
+};
+
+// Photo uploads are downscaled in the browser before they're sent (keeps the
+// request small and the email attachment reasonable).
+const PHOTO_MAX_EDGE = 1600;
+const PHOTO_MAX_INPUT_BYTES = 15 * 1024 * 1024;
+
+const inputClass =
+  "w-full rounded-xl border border-ink-200 bg-white px-4 py-3 text-ink-900 placeholder:text-ink-300 focus:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-400/40";
+
 export function LeadForm({
   defaultService,
   source = "lead_form",
   compact = false,
+  variant = "default",
   className,
 }: {
   defaultService?: string;
   source?: string;
   compact?: boolean;
+  variant?: LeadFormVariant;
   className?: string;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string>("");
+  const [photoName, setPhotoName] = useState<string>("");
+
+  const isLighting = variant !== "default";
+  const serviceSlug = VARIANT_SERVICE[variant] ?? defaultService;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -47,13 +82,27 @@ export function LeadForm({
       return;
     }
 
-    const payload = {
+    const rawDetails = String(data.get("details") || "").trim();
+    const preference = String(data.get("preference") || "").trim();
+    const address = String(data.get("address") || "").trim();
+
+    // Fold the journey-specific answer into `details` (no downstream schema change).
+    const details = [
+      variant === "permanent" && preference ? `Wants the home to feel: ${preference}` : "",
+      variant === "christmas" && preference ? `Preferred look: ${preference}` : "",
+      rawDetails,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    const payload: Record<string, unknown> = {
       name: String(data.get("name") || "").trim(),
       phone: String(data.get("phone") || "").trim(),
       email: String(data.get("email") || "").trim(),
-      service: String(data.get("service") || "").trim(),
+      service: isLighting ? serviceSlug : String(data.get("service") || "").trim(),
       zip: String(data.get("zip") || "").trim(),
-      details: String(data.get("details") || "").trim(),
+      address,
+      details,
       source,
       submittedAt: new Date().toISOString(),
       attribution: getAttribution(),
@@ -72,11 +121,25 @@ export function LeadForm({
       setStatus("error");
       return;
     }
+    if (isLighting && !address) {
+      setError("Please add the address of the home so we can take a look.");
+      setStatus("error");
+      return;
+    }
 
     setStatus("submitting");
     setError("");
 
     try {
+      // Optional front-of-home photo (Christmas remote quotes)
+      const file = data.get("photo");
+      if (file instanceof File && file.size > 0) {
+        if (file.size > PHOTO_MAX_INPUT_BYTES) {
+          throw new Error("photo-too-large");
+        }
+        payload.photo = await downscalePhoto(file);
+      }
+
       const endpoint = FORMSPREE || "/api/lead";
       const res = await fetch(endpoint, {
         method: "POST",
@@ -95,12 +158,14 @@ export function LeadForm({
 
       // Send to the thank-you page for clean destination-based conversions.
       router.push(
-        `/thank-you?service=${encodeURIComponent(payload.service || "")}`
+        `/thank-you?service=${encodeURIComponent(String(payload.service || ""))}`
       );
     } catch (err) {
       console.error(err);
       setError(
-        "Something went wrong. Please call us — we'd love to help right away."
+        err instanceof Error && err.message === "photo-too-large"
+          ? "That photo is very large — please choose one under 15 MB, or skip the photo and we'll follow up."
+          : "Something went wrong. Please call us — we'd love to help right away."
       );
       setStatus("error");
     }
@@ -119,7 +184,7 @@ export function LeadForm({
         </span>
         <h3 className="text-xl font-bold">Request received!</h3>
         <p className="text-ink-500">
-          Thanks — we&apos;ll be in touch shortly with your free estimate.
+          Thanks — a member of the Rally team will be in touch shortly.
         </p>
       </div>
     );
@@ -157,47 +222,131 @@ export function LeadForm({
         />
       </div>
 
-      <div className={cn("grid gap-4", !compact && "sm:grid-cols-2")}>
-        <Field
-          label="Email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          placeholder="you@email.com"
-          optional
-        />
-        <SelectField
-          label="ZIP code"
-          name="zip"
-          autoComplete="postal-code"
-          placeholder="26003"
-          asInput
-          optional
-        />
-      </div>
+      {isLighting ? (
+        <>
+          <div className={cn("grid gap-4", !compact && "sm:grid-cols-2")}>
+            <Field
+              label="Email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@email.com"
+              optional
+            />
+            <Field
+              label="Home address"
+              name="address"
+              autoComplete="street-address"
+              placeholder="123 Main St, Wheeling, WV"
+              required
+            />
+          </div>
 
-      <SelectField label="What can we help with?" name="service" defaultValue={defaultService}>
-        <option value="">Select a service (or “not sure yet”)</option>
-        {services.map((s) => (
-          <option key={s.slug} value={s.slug}>
-            {s.name}
-          </option>
-        ))}
-        <option value="multiple">Multiple services</option>
-        <option value="not-sure">Not sure yet — help me decide</option>
-      </SelectField>
+          {variant === "permanent" && (
+            <SelectField
+              label="What do you want the home to feel like after dark?"
+              name="preference"
+            >
+              <option value="">Choose one (or skip)</option>
+              <option value="Warm white every night">Warm white every night — clean and architectural</option>
+              <option value="Full color for holidays and game day">Full color for holidays, game day, and parties</option>
+              <option value="Both">Both — warm white most nights, color when I want it</option>
+              <option value="Not sure yet">Not sure yet — show me what&apos;s possible</option>
+            </SelectField>
+          )}
 
-      {!compact && (
+          {variant === "christmas" && (
+            <>
+              <SelectField label="Which look are you leaning toward?" name="preference">
+                <option value="">Choose one (or let Rally suggest)</option>
+                <option value="Warm white">Warm white</option>
+                <option value="Cool white">Cool white</option>
+                <option value="Multicolor">Multicolor</option>
+                <option value="Not sure">Not sure — suggest something for my home</option>
+              </SelectField>
+
+              <div>
+                <label
+                  htmlFor="photo"
+                  className="mb-1.5 block text-sm font-semibold text-ink-700"
+                >
+                  Photo of the front of your home{" "}
+                  <span className="font-normal text-ink-400">(optional, helps us quote remotely)</span>
+                </label>
+                <input
+                  id="photo"
+                  name="photo"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setPhotoName(e.target.files?.[0]?.name ?? "")}
+                  className="block w-full rounded-xl border border-dashed border-ink-200 bg-white px-4 py-3 text-sm text-ink-600 file:mr-3 file:rounded-full file:border-0 file:bg-ink-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-ink-700"
+                />
+                {photoName && (
+                  <p className="mt-1.5 text-xs text-ink-500">Attached: {photoName}</p>
+                )}
+              </div>
+            </>
+          )}
+        </>
+      ) : (
+        <>
+          <div className={cn("grid gap-4", !compact && "sm:grid-cols-2")}>
+            <Field
+              label="Email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@email.com"
+              optional
+            />
+            <SelectField
+              label="ZIP code"
+              name="zip"
+              autoComplete="postal-code"
+              placeholder="26003"
+              asInput
+              optional
+            />
+          </div>
+
+          <SelectField label="What can we help with?" name="service" defaultValue={defaultService}>
+            <option value="">Select a service (or “not sure yet”)</option>
+            {services.map((s) => (
+              <option key={s.slug} value={s.slug}>
+                {s.name}
+              </option>
+            ))}
+            <option value="multiple">Multiple services</option>
+            <option value="not-sure">Not sure yet — help me decide</option>
+          </SelectField>
+        </>
+      )}
+
+      {(!compact || isLighting) && (
         <div>
-          <label className="mb-1.5 block text-sm font-semibold text-ink-700">
-            Project details{" "}
+          <label
+            htmlFor="details"
+            className="mb-1.5 block text-sm font-semibold text-ink-700"
+          >
+            {variant === "permanent"
+              ? "Anything we should know?"
+              : variant === "christmas"
+                ? "Anything we should know?"
+                : "Project details"}{" "}
             <span className="font-normal text-ink-400">(optional)</span>
           </label>
           <textarea
+            id="details"
             name="details"
             rows={3}
-            placeholder="Tell us a little about your home or project…"
-            className="w-full rounded-xl border border-ink-200 bg-white px-4 py-3 text-ink-900 placeholder:text-ink-300 focus:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+            placeholder={
+              variant === "permanent"
+                ? "Rooflines you want lit, timeline, HOA notes…"
+                : variant === "christmas"
+                  ? "Rooflines, trees, bushes, wreaths — or just “make it look great”"
+                  : "Tell us a little about your home or project…"
+            }
+            className={inputClass}
           />
         </div>
       )}
@@ -216,15 +365,39 @@ export function LeadForm({
         fullWidth
         className={status === "submitting" ? "pointer-events-none" : ""}
       >
-        {status === "submitting" ? "Sending…" : "Get My Free Estimate"}
+        {status === "submitting" ? "Sending…" : VARIANT_SUBMIT[variant]}
         {status !== "submitting" && <Icon name="arrowRight" className="h-5 w-5" />}
       </Button>
 
-      <p className="text-center text-xs text-ink-400">
-        No spam. No obligation. We typically reply same-day.
-      </p>
+      <p className="text-center text-xs text-ink-400">{VARIANT_NOTE[variant]}</p>
     </form>
   );
+}
+
+/** Downscale an image file in the browser and return a JPEG data URL. */
+async function downscalePhoto(file: File): Promise<string> {
+  const dataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const i = new window.Image();
+    i.onload = () => resolve(i);
+    i.onerror = () => reject(new Error("bad-image"));
+    i.src = dataUrl;
+  });
+  const scale = Math.min(1, PHOTO_MAX_EDGE / Math.max(img.width, img.height));
+  const w = Math.round(img.width * scale);
+  const h = Math.round(img.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return dataUrl;
+  ctx.drawImage(img, 0, 0, w, h);
+  return canvas.toDataURL("image/jpeg", 0.82);
 }
 
 function Field({
@@ -261,7 +434,7 @@ function Field({
         placeholder={placeholder}
         autoComplete={autoComplete}
         required={required}
-        className="w-full rounded-xl border border-ink-200 bg-white px-4 py-3 text-ink-900 placeholder:text-ink-300 focus:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+        className={inputClass}
       />
     </div>
   );
@@ -302,7 +475,7 @@ function SelectField({
           name={name}
           placeholder={placeholder}
           autoComplete={autoComplete}
-          className="w-full rounded-xl border border-ink-200 bg-white px-4 py-3 text-ink-900 placeholder:text-ink-300 focus:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+          className={inputClass}
         />
       </div>
     );
@@ -315,7 +488,7 @@ function SelectField({
         id={name}
         name={name}
         defaultValue={defaultValue}
-        className="w-full appearance-none rounded-xl border border-ink-200 bg-white px-4 py-3 text-ink-900 focus:border-gold-400 focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+        className={cn(inputClass, "appearance-none")}
       >
         {children}
       </select>
