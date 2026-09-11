@@ -5,6 +5,7 @@ import { getService, getServiceSlugs } from "@/data/services";
 import { showcase, beforeAfters } from "@/data/gallery";
 import { processSteps } from "@/data/content";
 import { site } from "@/lib/site";
+import { testimonialsForService } from "@/data/testimonials";
 
 import { BrandMark } from "@/components/layout/Logo";
 import { Stars } from "@/components/ui/Stars";
@@ -291,7 +292,7 @@ export default async function LandingPage({ params }: Params) {
         )}
 
         <div id="reviews" className="scroll-mt-20">
-          <Testimonials limit={3} />
+          <Testimonials items={testimonialsForService(slug, 3)} limit={3} />
         </div>
 
         {/* Final CTA */}

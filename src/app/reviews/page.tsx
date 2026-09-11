@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { testimonials } from "@/data/testimonials";
+import { testimonials, lightingTestimonials, cleaningTestimonials, type Testimonial } from "@/data/testimonials";
 import { getService } from "@/data/services";
 import { site, regionLabel } from "@/lib/site";
 
@@ -16,7 +16,7 @@ import { reviewsSchema, breadcrumbSchema } from "@/lib/schema";
 
 export const metadata: Metadata = {
   title: `Reviews — ${site.stats.reviewRating}★ from ${site.stats.reviewCount}+ Local Customers`,
-  description: `Read real Google reviews of Rally Exterior Solutions — rated ${site.stats.reviewRating}★ by ${site.stats.reviewCount}+ homeowners and businesses across the ${regionLabel} region for cleaning & lighting work.`,
+  description: `Read real Google reviews of Rally Exterior Solutions — rated ${site.stats.reviewRating}★ by ${site.stats.reviewCount}+ homeowners across the ${regionLabel} region for permanent lighting, Christmas lighting, and exterior services.`,
   alternates: { canonical: "/reviews" },
 };
 
@@ -76,37 +76,23 @@ export default function ReviewsPage() {
           </p>
         </div>
 
-        <div className="columns-1 gap-5 sm:columns-2 lg:columns-3 [&>*]:mb-5">
-          {testimonials.map((t, i) => {
-            const svc = t.service ? getService(t.service) : undefined;
-            return (
-              <figure
-                key={i}
-                className="break-inside-avoid rounded-2xl border border-ink-100 bg-white p-6 shadow-card"
-              >
-                <Stars rating={t.rating ?? 5} size="h-4 w-4" />
-                <blockquote className="mt-3 leading-relaxed text-ink-700">
-                  &ldquo;{t.quote}&rdquo;
-                </blockquote>
-                <figcaption className="mt-4 flex items-baseline justify-between gap-3">
-                  <span className="font-bold text-ink-900">{t.name}</span>
-                  {svc ? (
-                    <Link
-                      href={`/services/${svc.slug}`}
-                      className="text-xs font-semibold uppercase tracking-wider text-gold-600 hover:underline"
-                    >
-                      {svc.shortName}
-                    </Link>
-                  ) : (
-                    <span className="text-xs uppercase tracking-wider text-ink-400">
-                      {t.location}
-                    </span>
-                  )}
-                </figcaption>
-              </figure>
-            );
-          })}
-        </div>
+        {/* Lighting reviews — the brand's social proof */}
+        <SectionHeading
+          eyebrow="Exterior Lighting"
+          title="What lighting customers say"
+          className="mb-8"
+        />
+        <ReviewGrid items={lightingTestimonials} />
+
+        {/* Exterior cleaning reviews — preserved, grouped below */}
+        {cleaningTestimonials.length > 0 && (
+          <>
+            <h2 className="mb-6 mt-16 text-center text-sm font-bold uppercase tracking-wider text-ink-400">
+              Exterior cleaning reviews
+            </h2>
+            <ReviewGrid items={cleaningTestimonials} muted />
+          </>
+        )}
 
         {/* Leave-a-review CTA */}
         <div className="mt-14 rounded-2xl border border-ink-100 bg-ink-50 p-8 text-center">
@@ -128,5 +114,45 @@ export default function ReviewsPage() {
 
       <CTASection title="Ready to see what the reviews are about?" />
     </>
+  );
+}
+
+function ReviewGrid({ items, muted }: { items: Testimonial[]; muted?: boolean }) {
+  return (
+    <div className="columns-1 gap-5 sm:columns-2 lg:columns-3 [&>*]:mb-5">
+      {items.map((t, i) => {
+        const svc = t.service ? getService(t.service) : undefined;
+        return (
+          <figure
+            key={`${t.name}-${i}`}
+            className={
+              muted
+                ? "break-inside-avoid rounded-2xl border border-ink-100 bg-ink-50 p-5 text-sm"
+                : "break-inside-avoid rounded-2xl border border-ink-100 bg-white p-6 shadow-card"
+            }
+          >
+            <Stars rating={t.rating ?? 5} size="h-4 w-4" />
+            <blockquote className="mt-3 leading-relaxed text-ink-700">
+              &ldquo;{t.quote}&rdquo;
+            </blockquote>
+            <figcaption className="mt-4 flex items-baseline justify-between gap-3">
+              <span className="font-bold text-ink-900">{t.name}</span>
+              {svc ? (
+                <Link
+                  href={`/services/${svc.slug}`}
+                  className="text-xs font-semibold uppercase tracking-wider text-gold-600 hover:underline"
+                >
+                  {svc.shortName}
+                </Link>
+              ) : (
+                <span className="text-xs uppercase tracking-wider text-ink-400">
+                  {t.location}
+                </span>
+              )}
+            </figcaption>
+          </figure>
+        );
+      })}
+    </div>
   );
 }

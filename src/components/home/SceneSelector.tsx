@@ -6,9 +6,8 @@ import { cn } from "@/lib/cn";
 
 /**
  * "One system. Every season." — click a scene, the home changes.
- * REAL PHOTOS ONLY. The first three scenes are the same home; "Party" is a
- * different real install. There is no real red/green Christmas-scene photo
- * yet — add one here as soon as it exists (see ITEMS REQUIRING APPROVAL).
+ * REAL PHOTOS ONLY. Everyday, Christmas, and Game Day are the same home;
+ * "Party" is a different real install.
  */
 const SCENES = [
   {
@@ -19,11 +18,11 @@ const SCENES = [
     caption: "Warm architectural white, every night, on a schedule.",
   },
   {
-    key: "pure-white",
-    label: "Pure White",
-    src: "/images/lighting/permanent-pure-white.jpg",
-    alt: "The same home with crisp pure white lighting along the rooflines",
-    caption: "Crisp white for a cleaner, cooler look — one tap.",
+    key: "christmas",
+    label: "Christmas",
+    src: "/images/lighting/permanent-christmas.jpg",
+    alt: "The same home with red, green, and blue lights along every roofline for Christmas",
+    caption: "Red, green, and blue — one tap on December 1.",
   },
   {
     key: "gameday",

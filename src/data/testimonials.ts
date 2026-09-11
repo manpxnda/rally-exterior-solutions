@@ -135,11 +135,35 @@ export const testimonials: Testimonial[] = [
   },
 ];
 
+/**
+ * SOCIAL PROOF RULE (Jason, 2026-09-11): only lighting reviews are used as
+ * brand-level social proof on the site (homepage, about, services index,
+ * location pages, default <Testimonials />). Cleaning reviews stay in the data
+ * and appear only on their own cleaning service pages and grouped below the
+ * lighting reviews on /reviews.
+ */
+export const LIGHTING_SERVICE_SLUGS = [
+  "permanent-lighting",
+  "holiday-lighting",
+  "landscape-lighting",
+];
+
+export const lightingTestimonials: Testimonial[] = testimonials.filter((t) =>
+  LIGHTING_SERVICE_SLUGS.includes(t.service ?? "")
+);
+
+export const cleaningTestimonials: Testimonial[] = testimonials.filter(
+  (t) => !LIGHTING_SERVICE_SLUGS.includes(t.service ?? "")
+);
+
+/**
+ * Reviews for a service page. Lighting services pad with other lighting
+ * reviews; cleaning services pad with other cleaning reviews — never across.
+ */
 export function testimonialsForService(slug: string, fallbackCount = 3): Testimonial[] {
-  const matched = testimonials.filter((t) => t.service === slug);
+  const isLighting = LIGHTING_SERVICE_SLUGS.includes(slug);
+  const pool = isLighting ? lightingTestimonials : cleaningTestimonials;
+  const matched = pool.filter((t) => t.service === slug);
   if (matched.length >= 2) return matched;
-  return [...matched, ...testimonials.filter((t) => t.service !== slug)].slice(
-    0,
-    fallbackCount
-  );
+  return [...matched, ...pool.filter((t) => t.service !== slug)].slice(0, fallbackCount);
 }

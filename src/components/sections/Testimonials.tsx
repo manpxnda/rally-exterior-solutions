@@ -1,4 +1,4 @@
-import { testimonials as allTestimonials, type Testimonial } from "@/data/testimonials";
+import { lightingTestimonials, type Testimonial } from "@/data/testimonials";
 import { Section, SectionHeading } from "@/components/ui/Section";
 import { Stars } from "@/components/ui/Stars";
 import { Icon } from "@/components/ui/Icon";
@@ -28,7 +28,7 @@ function GoogleG({ className }: { className?: string }) {
 }
 
 export function Testimonials({
-  items = allTestimonials,
+  items = lightingTestimonials,
   limit = 6,
   heading = true,
   eyebrow = "Customer Reviews",

@@ -164,6 +164,18 @@ export const showcase: ShowcaseItem[] = [
     src: "/images/lighting/permanent-warm-white.jpg",
   },
   {
+    id: "perm-christmas",
+    title: "Christmas Scene — Permanent Lighting",
+    service: "permanent-lighting",
+    src: "/images/lighting/permanent-christmas.jpg",
+  },
+  {
+    id: "perm-day-detail",
+    title: "The Track by Day — Nearly Invisible",
+    service: "permanent-lighting",
+    src: "/images/lighting/permanent-day-detail.jpg",
+  },
+  {
     id: "xmas-warm-white",
     title: "Warm White Christmas Roofline",
     service: "holiday-lighting",

@@ -44,9 +44,7 @@ export function Footer() {
       </div>
 
       <div className="container grid gap-10 py-14 md:grid-cols-2 lg:grid-cols-12">
-        {/* Brand — official white wordmark. (The supplied "Exterior Lighting"
-            lockup files contain export remnants; switch to variant="lighting"
-            once a clean file is provided.) */}
+        {/* Brand — official white "Rally Exterior Solutions" wordmark */}
         <div className="lg:col-span-4">
           <Logo tone="light" />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-ink-300">
