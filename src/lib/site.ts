@@ -67,13 +67,14 @@ export const site = {
   // --- Trust / proof signals -----------------------------------------------
   // ⚠️ CONFIRM these against your Google Business Profile before relying on
   // them in ads. projectsCompleted is a conservative estimate.
-  // reviewCount: 2026-09-11 public check (Birdeye sync of Google) showed
-  // 26 Google reviews at 5.0★ — count lowered from 34 to stay evidence-backed;
-  // rating kept at the conservative 4.9. Raise both once confirmed on Google.
+  // reviewCount CONFIRMED by Jason 2026-09-11: 34 Google reviews (+ 5 on
+  // Facebook, tracked below). Rating kept at the conservative 4.9 until the
+  // exact Google figure is confirmed.
   stats: {
     yearFounded: 2021,
     projectsCompleted: "500+",
-    reviewCount: 26,
+    reviewCount: 34,
+    facebookReviewCount: 5,
     reviewRating: 4.9,
     responseTime: "Same-day",
   },
