@@ -25,8 +25,36 @@ const STEPS = [
   },
 ];
 
-/** HOW PERMANENT LIGHTING WORKS — four steps, no fluff. */
-export function PermanentProcess() {
+const LANDSCAPE_STEPS = [
+  {
+    n: "01",
+    title: "Tell us how you use the property after dark.",
+    body: "Walkways, the patio, the trees you'd like to see from the kitchen window — that's where the design starts.",
+  },
+  {
+    n: "02",
+    title: "Rally designs the lighting around it.",
+    body: "Fixture placement and finish are chosen for the outcome, with the daytime look in mind.",
+  },
+  {
+    n: "03",
+    title: "Our team installs and respects the landscaping.",
+    body: "Clean trenching, hidden wiring, and every fixture aimed and tested before we leave.",
+  },
+  {
+    n: "04",
+    title: "We set the schedule and show you the controls.",
+    body: "Everything runs itself from dusk. You just enjoy the yard.",
+  },
+];
+
+/** HOW PERMANENT (or LANDSCAPE) LIGHTING WORKS — four steps, no fluff. */
+export function PermanentProcess({ variant = "permanent" }: { variant?: "permanent" | "landscape" }) {
+  const steps = variant === "landscape" ? LANDSCAPE_STEPS : STEPS;
+  const cta =
+    variant === "landscape"
+      ? { href: "/contact?service=landscape-lighting", label: "Design My Landscape Lighting" }
+      : { href: "/design-consultation", label: "Schedule My Design Consultation" };
   return (
     <Section tone="white">
       <SectionHeading
@@ -36,7 +64,7 @@ export function PermanentProcess() {
         className="mb-10"
       />
       <ol className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-        {STEPS.map((s) => (
+        {steps.map((s) => (
           <li key={s.n} className="border-t-2 border-ink-100 pt-5 before:-mt-[calc(1.25rem+2px)] before:mb-5 before:block before:h-0.5 before:w-12 before:bg-gold-400">
             <span className="font-display text-sm font-extrabold tracking-wider text-gold-600">{s.n}</span>
             <h3 className="mt-2 text-lg font-bold leading-snug text-ink-900">{s.title}</h3>
@@ -45,8 +73,8 @@ export function PermanentProcess() {
         ))}
       </ol>
       <div className="mt-10">
-        <Button href="/design-consultation" size="lg">
-          Schedule My Design Consultation
+        <Button href={cta.href} size="lg">
+          {cta.label}
           <Icon name="arrowRight" className="h-5 w-5" />
         </Button>
       </div>

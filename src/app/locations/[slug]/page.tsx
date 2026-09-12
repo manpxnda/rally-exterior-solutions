@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Fragment } from "react";
 import { getLocation, getLocationSlugs, getLocationByCity } from "@/data/locations";
-import { services } from "@/data/services";
+import { lightingServices, cleaningServices } from "@/data/services";
 import { site } from "@/lib/site";
 
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -30,10 +30,10 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
   const loc = getLocation(slug);
   if (!loc) return {};
-  const title = `${loc.city}, ${loc.state} Exterior Cleaning & Lighting`;
+  const title = `${loc.city}, ${loc.state} Exterior Lighting & Exterior Services`;
   return {
     title,
-    description: `${loc.intro} Free estimates on house washing, roof washing, pressure washing, and permanent & holiday lighting in ${loc.city}, ${loc.stateName}.`,
+    description: `${loc.intro} Permanent, Christmas, and landscape lighting — plus house washing, roof washing, and pressure washing — in ${loc.city}, ${loc.stateName}. Local team, free quotes.`,
     keywords: [
       `pressure washing ${loc.city} ${loc.state}`,
       `house washing ${loc.city}`,
@@ -72,7 +72,7 @@ export default async function LocationPage({ params }: Params) {
 
       <PageHeader
         eyebrow={`Serving ${loc.city}, ${loc.stateName}`}
-        title={`Exterior Cleaning & Lighting in ${loc.city}, ${loc.state}`}
+        title={`Exterior Lighting in ${loc.city}, ${loc.state}`}
         description={loc.intro}
         crumbs={[
           { name: "Home", href: "/" },
@@ -82,7 +82,7 @@ export default async function LocationPage({ params }: Params) {
       >
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button href="/contact" size="lg">
-            Get a Free {loc.city} Estimate
+            Start My {loc.city} Project
             <Icon name="arrowRight" className="h-5 w-5" />
           </Button>
           <CallButton
@@ -110,23 +110,39 @@ export default async function LocationPage({ params }: Params) {
 
         <div className="mt-12">
           <SectionHeading
-            eyebrow="What We Do"
-            title={`Exterior services in ${loc.city}`}
+            eyebrow="Exterior Lighting"
+            title={`Exterior lighting in ${loc.city}`}
+            description="Permanent lighting designed around the home, Christmas lighting handled start to finish, and landscape lighting beyond the roofline."
             className="mb-10"
           />
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {services.map((s) => (
+            {lightingServices.map((s) => (
               <ServiceCard key={s.slug} service={s} />
             ))}
           </div>
         </div>
       </Section>
 
+      <Testimonials limit={3} />
+
+      {/* Other exterior services — real, available, visually secondary */}
+      <Section tone="muted">
+        <SectionHeading
+          eyebrow="Other Exterior Services"
+          title={`Rally also offers exterior cleaning in ${loc.city}`}
+          description="House, roof, and concrete cleaning, gutters, sealing, and commercial exterior cleaning — the same local, insured team."
+          className="mb-10"
+        />
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {cleaningServices.map((s) => (
+            <ServiceCard key={s.slug} service={s} />
+          ))}
+        </div>
+      </Section>
+
       <ProofSection limit={3} />
 
       <ProcessSteps />
-
-      <Testimonials limit={3} />
 
       {/* Nearby areas */}
       <Section tone="muted">
@@ -172,9 +188,11 @@ export default async function LocationPage({ params }: Params) {
         </div>
       </Section>
 
-      <FAQ heading />
+      <FAQ heading ctaLabel="Start My Project" />
       <CTASection
-        title={`Ready for a brighter, cleaner property in ${loc.city}?`}
+        title={`Ready to see your ${loc.city} home differently?`}
+        subtitle="Show us your home. We'll take it from there — lighting first, and every other Rally exterior service too."
+        cta="Start My Project"
       />
 
       {/* hidden helpful internal link for crawlers/users */}

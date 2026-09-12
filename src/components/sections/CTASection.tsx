@@ -1,4 +1,5 @@
 import { site } from "@/lib/site";
+import { getService } from "@/data/services";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { CallButton } from "@/components/CallButton";
@@ -6,11 +7,11 @@ import { Icon } from "@/components/ui/Icon";
 
 /** High-impact conversion banner used to close pages. */
 export function CTASection({
-  title = "Ready for a brighter, cleaner property?",
-  subtitle = site.offer.sub,
+  title: titleOverride,
+  subtitle: subtitleOverride,
   service,
   href: hrefOverride,
-  cta = "Get My Free Estimate",
+  cta: ctaOverride,
 }: {
   title?: string;
   subtitle?: string;
@@ -20,7 +21,14 @@ export function CTASection({
   /** Override the button label. */
   cta?: string;
 }) {
+  // Defaults follow the page's intent: a service page closes on that service;
+  // brand-level pages close on the lighting-first chooser.
+  const svc = service ? getService(service) : undefined;
   const href = hrefOverride ?? (service ? `/contact?service=${service}` : "/contact");
+  const title =
+    titleOverride ?? (svc ? `Ready for ${svc.shortName.toLowerCase()} done right?` : "Ready to see your home differently?");
+  const subtitle = subtitleOverride ?? (svc ? site.offer.sub : "Show us your home. We'll take it from there.");
+  const cta = ctaOverride ?? (svc ? "Get My Free Estimate" : "Start My Project");
   return (
     <section className="relative overflow-hidden bg-ink-900 py-16 text-white sm:py-20">
       <div className="glow-gold pointer-events-none absolute left-1/2 top-0 h-[30rem] w-[30rem] -translate-x-1/2" />

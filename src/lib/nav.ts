@@ -44,6 +44,7 @@ export const footerNav = {
       .filter((s): s is NonNullable<typeof s> => Boolean(s))
       .map((s) => ({ label: s.shortName, href: `/services/${s.slug}` })),
     { label: "Lighting Gallery", href: "/gallery" },
+    { label: "Free Lighting Mockup", href: "/mockup" },
     { label: "Design My Home", href: "/design-consultation" },
     { label: "Get My Christmas Quote", href: "/christmas-quote" },
   ],

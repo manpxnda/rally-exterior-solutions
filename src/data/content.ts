@@ -20,8 +20,8 @@ export const processSteps: Step[] = [
   },
   {
     number: "3",
-    title: "Relax — we make it shine",
-    body: "Our insured crew shows up on time and leaves your property transformed.",
+    title: "Relax — Rally handles it",
+    body: "Our insured crew shows up on time, does the work right, and leaves your property transformed.",
     icon: "sparkle",
   },
 ];

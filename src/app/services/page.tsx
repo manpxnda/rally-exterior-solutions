@@ -13,8 +13,8 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { breadcrumbSchema } from "@/lib/schema";
 
 export const metadata: Metadata = {
-  title: "Services & Pricing — Exterior Cleaning & Lighting in Wheeling, WV",
-  description: `Every Rally service across the ${regionLabel} region: pressure washing, house & roof washing, gutter cleaning, concrete cleaning & sealing, permanent lighting, Christmas lights & commercial. Free same-day quotes.`,
+  title: "Services — Exterior Lighting & Other Exterior Services in Wheeling, WV",
+  description: `Rally's exterior lighting — permanent, Christmas, and landscape — plus the other exterior services we offer across the ${regionLabel} region: pressure washing, house & roof washing, gutters, concrete cleaning & sealing, and commercial cleaning.`,
   alternates: { canonical: "/services" },
 };
 
@@ -30,8 +30,8 @@ export default function ServicesPage() {
 
       <PageHeader
         eyebrow="Our Services"
-        title="Premium exterior services, one trusted team"
-        description={`Lighting that wows and cleaning that transforms — everything your home or business needs to look its absolute best across the ${regionLabel} region.`}
+        title="Exterior lighting first — and the other exterior services Rally still offers"
+        description={`Permanent, Christmas, and landscape lighting designed around your home, plus professional exterior cleaning for homes and businesses across the ${regionLabel} region.`}
         crumbs={[
           { name: "Home", href: "/" },
           { name: "Services", href: "/services" },
@@ -39,7 +39,7 @@ export default function ServicesPage() {
       >
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button href="/contact" size="lg">
-            Get a Free Estimate
+            Start My Project
           </Button>
           <CallButton
             source="services_header"
@@ -65,11 +65,11 @@ export default function ServicesPage() {
         </div>
       </Section>
 
-      <Section tone="muted">
+      <Section tone="muted" id="other" className="scroll-mt-24">
         <SectionHeading
-          eyebrow="Exterior Cleaning"
-          title="Cleaning that restores and protects"
-          description="Safe, professional methods that erase years of grime and protect your biggest investment."
+          eyebrow="Other Exterior Services"
+          title="Rally also offers professional exterior cleaning"
+          description="Safe, professional methods that erase years of grime and protect your biggest investment — the same local, insured team."
           align="left"
           className="mb-8"
         />

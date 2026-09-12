@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { services } from "@/data/services";
+import { lightingServices, cleaningServices } from "@/data/services";
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 import { CallButton } from "@/components/CallButton";
@@ -13,8 +13,8 @@ export default function NotFound() {
           We couldn&apos;t find that page
         </h1>
         <p className="mx-auto mt-4 max-w-md text-ink-200">
-          The page may have moved — but we&apos;re still here to brighten and
-          clean up your property.
+          The page may have moved — but Rally is still here to light up your
+          home after dark.
         </p>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -30,15 +30,29 @@ export default function NotFound() {
         </div>
 
         <div className="mt-12">
-          <p className="text-sm font-semibold uppercase tracking-wider text-ink-400">
-            Popular services
+          <p className="text-sm font-semibold uppercase tracking-wider text-sky-300">
+            Exterior lighting
           </p>
           <div className="mx-auto mt-4 flex max-w-2xl flex-wrap justify-center gap-2.5">
-            {services.map((s) => (
+            {lightingServices.map((s) => (
               <Link
                 key={s.slug}
                 href={`/services/${s.slug}`}
-                className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium text-ink-100 hover:border-white hover:text-white"
+                className="rounded-full border border-white/30 px-4 py-2 text-sm font-semibold text-white hover:border-white hover:bg-white/10"
+              >
+                {s.shortName}
+              </Link>
+            ))}
+          </div>
+          <p className="mt-8 text-xs font-semibold uppercase tracking-wider text-ink-400">
+            Other exterior services
+          </p>
+          <div className="mx-auto mt-3 flex max-w-2xl flex-wrap justify-center gap-2">
+            {cleaningServices.map((s) => (
+              <Link
+                key={s.slug}
+                href={`/services/${s.slug}`}
+                className="rounded-full border border-white/15 px-3 py-1.5 text-xs font-medium text-ink-200 hover:border-white/50 hover:text-white"
               >
                 {s.shortName}
               </Link>

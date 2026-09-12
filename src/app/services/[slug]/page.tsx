@@ -14,6 +14,7 @@ import { getLocation } from "@/data/locations";
 import { testimonialsForService } from "@/data/testimonials";
 import { getServiceFaqs } from "@/data/serviceFaqs";
 import { regionLabel, site } from "@/lib/site";
+import { getJourney } from "@/lib/journeys";
 
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Section, SectionHeading } from "@/components/ui/Section";
@@ -28,6 +29,8 @@ import { ServiceCard } from "@/components/ServiceCard";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { HolidayBookingTimeline } from "@/components/sections/HolidayBookingTimeline";
 import { ProcessSteps } from "@/components/sections/ProcessSteps";
+import { PermanentProcess } from "@/components/home/PermanentProcess";
+import { ChristmasExperience } from "@/components/home/ChristmasExperience";
 import { FAQ } from "@/components/sections/FAQ";
 import { CTASection } from "@/components/sections/CTASection";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -83,12 +86,11 @@ export default async function ServicePage({ params }: Params) {
   const categoryLabel = isLighting ? "Exterior Lighting" : "Exterior Cleaning";
   // 2026 repositioning: the two primary lighting services route into their own
   // journeys; every other service keeps the generic estimate form (preselected).
-  const journey =
-    service.slug === "permanent-lighting"
-      ? { href: "/design-consultation", label: "Design My Home", form: "permanent" as const, heading: "Design my home" }
-      : service.slug === "holiday-lighting"
-        ? { href: "/christmas-quote", label: "Get My Christmas Quote", form: "christmas" as const, heading: "Get my Christmas quote" }
-        : { href: `/contact?service=${service.slug}`, label: "Get a Free Estimate", form: "default" as const, heading: `Free ${service.shortName} estimate` };
+  const journey = getJourney(service.slug);
+  // Related services stay INSIDE the visitor's category: lighting pages show
+  // other lighting; cleaning pages show other cleaning. Each gets one quiet
+  // cross-link to the other side so nothing is orphaned.
+  const relatedInCategory = related.filter((s) => s.category === service.category);
 
   return (
     <>
@@ -252,7 +254,7 @@ export default async function ServicePage({ params }: Params) {
           <aside className="lg:sticky lg:top-24 lg:self-start">
             <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-cardHover">
               <h2 className="font-display text-xl font-bold text-ink-900">
-                {journey.heading}
+                {journey.heading.charAt(0).toUpperCase() + journey.heading.slice(1)}
               </h2>
               <p className="mt-1 text-sm text-ink-500">{service.priceNote}</p>
               <div className="mt-5">
@@ -329,26 +331,47 @@ export default async function ServicePage({ params }: Params) {
       {/* Seasonal booking urgency — christmas lighting only */}
       {service.slug === "holiday-lighting" && <HolidayBookingTimeline />}
 
-      <ProcessSteps />
+      {/* Process matches the offer on the page */}
+      {service.slug === "permanent-lighting" ? (
+        <PermanentProcess />
+      ) : service.slug === "holiday-lighting" ? (
+        <ChristmasExperience />
+      ) : service.slug === "landscape-lighting" ? (
+        <PermanentProcess variant="landscape" />
+      ) : (
+        <ProcessSteps />
+      )}
 
       {reviews.length > 0 && <Testimonials items={reviews} limit={3} />}
 
-      {/* Related services */}
+      {/* Related services — same category only, plus one quiet cross-link */}
       <Section tone="white">
         <SectionHeading
-          eyebrow="Explore More"
-          title="Other ways Rally can help"
+          eyebrow={isLighting ? "More from Rally lighting" : "Other exterior services"}
+          title={isLighting ? "Complete the property" : "Other ways Rally can help outside"}
           className="mb-10"
         />
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {related.map((s: Service) => (
+          {relatedInCategory.map((s: Service) => (
             <ServiceCard key={s.slug} service={s} />
           ))}
         </div>
         <p className="mt-8 text-center text-ink-500">
-          <Link href="/services" className="font-semibold text-ink-900 underline-offset-2 hover:underline">
-            View all services →
-          </Link>
+          {isLighting ? (
+            <>
+              Rally also offers professional exterior cleaning.{" "}
+              <Link href="/services#other" className="font-semibold text-ink-900 underline-offset-2 hover:underline">
+                See other exterior services →
+              </Link>
+            </>
+          ) : (
+            <>
+              Rally also specializes in exterior lighting.{" "}
+              <Link href="/" className="font-semibold text-ink-900 underline-offset-2 hover:underline">
+                Permanent, Christmas &amp; landscape →
+              </Link>
+            </>
+          )}
         </p>
       </Section>
 
@@ -383,7 +406,7 @@ export default async function ServicePage({ params }: Params) {
         items={serviceFaqItems}
         heading
         ctaHref={journey.href}
-        ctaLabel={isLighting ? journey.label : "Get a Free Estimate"}
+        ctaLabel={journey.label}
       />
       <CTASection
         title={`Ready for ${service.shortName.toLowerCase()} done right?`}

@@ -51,6 +51,24 @@ const christmasSteps = [
   },
 ];
 
+const landscapeSteps = [
+  {
+    icon: "phone" as const,
+    title: "We'll reach out to schedule",
+    body: "A quick call or text to set up a design visit at the property.",
+  },
+  {
+    icon: "calendar" as const,
+    title: "We walk the property with you",
+    body: "Trees, walkways, the patio — how you want to use the yard after dark.",
+  },
+  {
+    icon: "tag" as const,
+    title: "You see the design and the price",
+    body: "A clear proposal for your property — no pressure, no obligation.",
+  },
+];
+
 const nextSteps = [
   {
     icon: "phone" as const,
@@ -81,13 +99,27 @@ export default async function ThankYouPage({
       ? permanentSteps
       : service === "holiday-lighting"
         ? christmasSteps
-        : nextSteps;
+        : service === "landscape-lighting"
+          ? landscapeSteps
+          : nextSteps;
+  const heading =
+    service === "permanent-lighting"
+      ? "Your Rally design request is in."
+      : service === "holiday-lighting"
+        ? "Your Christmas quote request is in."
+        : service === "landscape-lighting"
+          ? "Your landscape lighting request is in."
+          : matched
+            ? `Your ${matched.shortName.toLowerCase()} estimate request is in.`
+            : "Thank you! Your request is in.";
   const intro =
     service === "permanent-lighting"
-      ? "We've received your design-consultation request. A member of the Rally team will reach out to schedule a time to walk the home with you."
+      ? "A member of the Rally team will reach out to schedule a time to walk the home with you and design the system around it."
       : service === "holiday-lighting"
-        ? "We've received your Christmas lighting request. We'll review your home and reach out with your quote — often without needing a visit."
-        : "We've received your free estimate request and a member of the Rally team will be in touch shortly.";
+        ? "You enjoy Christmas. Rally handles the lights. We'll review your home and reach out with your quote — often without needing a visit."
+        : service === "landscape-lighting"
+          ? "We'll reach out to schedule a design visit and talk through the trees, walkways, and spaces you want to use after dark."
+          : "A member of the Rally team will be in touch shortly with your free, written quote.";
 
   return (
     <section className="bg-ink-900 py-20 text-white sm:py-28">
@@ -97,14 +129,9 @@ export default async function ThankYouPage({
         </span>
 
         <h1 className="mx-auto mt-7 max-w-2xl font-display text-3xl font-extrabold sm:text-4xl">
-          Thank you! Your request is in.
+          {heading}
         </h1>
-        <p className="mx-auto mt-4 max-w-xl text-lg text-ink-200">
-          {matched && !["permanent-lighting", "holiday-lighting"].includes(matched.slug)
-            ? `Thanks for your interest in ${matched.name.toLowerCase()}. `
-            : ""}
-          {intro}
-        </p>
+        <p className="mx-auto mt-4 max-w-xl text-lg text-ink-200">{intro}</p>
 
         <div className="mx-auto mt-12 grid max-w-3xl gap-5 sm:grid-cols-3">
           {steps.map((step, i) => (
@@ -136,8 +163,11 @@ export default async function ThankYouPage({
             Browse our gallery →
           </Link>
           <span className="text-ink-600">·</span>
-          <Link href="/services" className="font-semibold text-gold-300 hover:text-gold-200">
-            Explore all services →
+          <Link
+            href={matched?.category === "cleaning" ? "/services#other" : "/"}
+            className="font-semibold text-gold-300 hover:text-gold-200"
+          >
+            {matched?.category === "cleaning" ? "Other exterior services →" : "Back to exterior lighting →"}
           </Link>
         </div>
 

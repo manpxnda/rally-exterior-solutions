@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { services } from "@/data/services";
+import { lightingServices, cleaningServices } from "@/data/services";
 import { getAttribution, trackLeadSubmit } from "@/lib/analytics";
+import type { LeadFormVariant } from "@/lib/journeys";
 import { Button } from "@/components/ui/Button";
 import { ConsentCheckboxes } from "@/components/ConsentCheckboxes";
 import { Icon } from "@/components/ui/Icon";
@@ -12,38 +13,44 @@ import { cn } from "@/lib/cn";
 type Status = "idle" | "submitting" | "success" | "error";
 
 /**
- * Two lighting journeys + the original generic form.
- *  - "default"   → unchanged legacy estimate form (all services, ZIP, details)
+ * One form component, five journeys — the visitor only ever sees fields that
+ * match what they just clicked:
  *  - "permanent" → design-consultation request (address + what the home should feel like)
  *  - "christmas" → remote-quote request (address + look + optional front-of-home photo)
- * All variants post the same payload shape to /api/lead; the lighting variants
- * add `address` and (Christmas) `photo`, and fold their preference answers
- * into `details` so downstream destinations need no schema change.
+ *  - "landscape" → landscape design request (address + areas to light)
+ *  - "cleaning"  → estimate request scoped to the cleaning services only (never lighting)
+ *  - "default"   → generic form; service dropdown is GROUPED (Exterior Lighting /
+ *                  Other Exterior Services) so the hierarchy is never flattened.
+ * All variants post the same payload shape to /api/lead (service slug, source,
+ * attribution, consent) — no CRM/webhook schema change.
  */
-export type LeadFormVariant = "default" | "permanent" | "christmas";
+export type { LeadFormVariant };
 
 const FORMSPREE = process.env.NEXT_PUBLIC_FORMSPREE_ENDPOINT;
 
-const VARIANT_SERVICE: Record<LeadFormVariant, string | undefined> = {
-  default: undefined,
+const FIXED_SERVICE: Partial<Record<LeadFormVariant, string>> = {
   permanent: "permanent-lighting",
   christmas: "holiday-lighting",
+  landscape: "landscape-lighting",
 };
 
-const VARIANT_SUBMIT: Record<LeadFormVariant, string> = {
-  default: "Get My Free Estimate",
+const SUBMIT: Record<LeadFormVariant, string> = {
+  default: "Send to Rally",
   permanent: "Request My Design Consultation",
   christmas: "Get My Christmas Quote",
+  landscape: "Request My Landscape Design",
+  cleaning: "Get My Free Estimate",
 };
 
-const VARIANT_NOTE: Record<LeadFormVariant, string> = {
+const NOTE: Record<LeadFormVariant, string> = {
   default: "No spam. No obligation. We typically reply same-day.",
   permanent: "No pressure, no obligation. We'll reach out to schedule a time that works for you.",
   christmas: "No spam. No obligation. We can often design and quote your home remotely.",
+  landscape: "No pressure, no obligation. We'll reach out to schedule a design visit.",
+  cleaning: "No spam. No obligation. We typically reply same-day with a clear, written quote.",
 };
 
-// Photo uploads are downscaled in the browser before they're sent (keeps the
-// request small and the email attachment reasonable).
+// Photo uploads are downscaled in the browser before they're sent.
 const PHOTO_MAX_EDGE = 1600;
 const PHOTO_MAX_INPUT_BYTES = 15 * 1024 * 1024;
 
@@ -68,8 +75,8 @@ export function LeadForm({
   const [error, setError] = useState<string>("");
   const [photoName, setPhotoName] = useState<string>("");
 
-  const isLighting = variant !== "default";
-  const serviceSlug = VARIANT_SERVICE[variant] ?? defaultService;
+  const isLighting = variant === "permanent" || variant === "christmas" || variant === "landscape";
+  const fixedService = FIXED_SERVICE[variant];
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -78,7 +85,7 @@ export function LeadForm({
 
     // Honeypot — bots fill hidden fields; humans don't.
     if (data.get("company")) {
-      setStatus("success"); // silently accept; don't tip off the bot
+      setStatus("success");
       return;
     }
 
@@ -90,6 +97,7 @@ export function LeadForm({
     const details = [
       variant === "permanent" && preference ? `Wants the home to feel: ${preference}` : "",
       variant === "christmas" && preference ? `Preferred look: ${preference}` : "",
+      variant === "landscape" && preference ? `Areas to light: ${preference}` : "",
       rawDetails,
     ]
       .filter(Boolean)
@@ -99,21 +107,17 @@ export function LeadForm({
       name: String(data.get("name") || "").trim(),
       phone: String(data.get("phone") || "").trim(),
       email: String(data.get("email") || "").trim(),
-      service: isLighting ? serviceSlug : String(data.get("service") || "").trim(),
+      service: fixedService ?? String(data.get("service") || "").trim(),
       zip: String(data.get("zip") || "").trim(),
       address,
       details,
       source,
       submittedAt: new Date().toISOString(),
       attribution: getAttribution(),
-      // A2P 10DLC SMS consent (both optional — never gate submission)
       sms_marketing_consent: data.get("sms_marketing_consent") ? "yes" : "no",
-      sms_informational_consent: data.get("sms_informational_consent")
-        ? "yes"
-        : "no",
+      sms_informational_consent: data.get("sms_informational_consent") ? "yes" : "no",
       consent_timestamp: new Date().toISOString(),
-      consent_page:
-        typeof window !== "undefined" ? window.location.pathname : "",
+      consent_page: typeof window !== "undefined" ? window.location.pathname : "",
     };
 
     if (!payload.name || !payload.phone) {
@@ -131,35 +135,24 @@ export function LeadForm({
     setError("");
 
     try {
-      // Optional front-of-home photo (Christmas remote quotes)
       const file = data.get("photo");
       if (file instanceof File && file.size > 0) {
-        if (file.size > PHOTO_MAX_INPUT_BYTES) {
-          throw new Error("photo-too-large");
-        }
+        if (file.size > PHOTO_MAX_INPUT_BYTES) throw new Error("photo-too-large");
         payload.photo = await downscalePhoto(file);
       }
 
       const endpoint = FORMSPREE || "/api/lead";
       const res = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify(payload),
       });
-
       if (!res.ok) throw new Error(`Request failed (${res.status})`);
 
       trackLeadSubmit({ service: payload.service || "unspecified", source });
       setStatus("success");
       form.reset();
-
-      // Send to the thank-you page for clean destination-based conversions.
-      router.push(
-        `/thank-you?service=${encodeURIComponent(String(payload.service || ""))}`
-      );
+      router.push(`/thank-you?service=${encodeURIComponent(String(payload.service || ""))}`);
     } catch (err) {
       console.error(err);
       setError(
@@ -173,29 +166,18 @@ export function LeadForm({
 
   if (status === "success") {
     return (
-      <div
-        className={cn(
-          "flex flex-col items-center gap-3 rounded-2xl bg-white p-8 text-center text-ink-900 shadow-card",
-          className
-        )}
-      >
+      <div className={cn("flex flex-col items-center gap-3 rounded-2xl bg-white p-8 text-center text-ink-900 shadow-card", className)}>
         <span className="flex h-14 w-14 items-center justify-center rounded-full bg-green-100 text-green-600">
           <Icon name="check" className="h-7 w-7" strokeWidth={2.5} />
         </span>
         <h3 className="text-xl font-bold">Request received!</h3>
-        <p className="text-ink-500">
-          Thanks — a member of the Rally team will be in touch shortly.
-        </p>
+        <p className="text-ink-500">Thanks — a member of the Rally team will be in touch shortly.</p>
       </div>
     );
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className={cn("space-y-4", className)}
-      noValidate
-    >
+    <form onSubmit={handleSubmit} className={cn("space-y-4", className)} noValidate>
       {/* Honeypot (visually hidden, not display:none so bots fill it) */}
       <div className="absolute left-[-9999px]" aria-hidden="true">
         <label>
@@ -205,48 +187,19 @@ export function LeadForm({
       </div>
 
       <div className={cn("grid gap-4", !compact && "sm:grid-cols-2")}>
-        <Field
-          label="Full name"
-          name="name"
-          autoComplete="name"
-          placeholder="Jane Smith"
-          required
-        />
-        <Field
-          label="Phone"
-          name="phone"
-          type="tel"
-          autoComplete="tel"
-          placeholder="(740) 555-0123"
-          required
-        />
+        <Field label="Full name" name="name" autoComplete="name" placeholder="Jane Smith" required />
+        <Field label="Phone" name="phone" type="tel" autoComplete="tel" placeholder="(740) 555-0123" required />
       </div>
 
       {isLighting ? (
         <>
           <div className={cn("grid gap-4", !compact && "sm:grid-cols-2")}>
-            <Field
-              label="Email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              placeholder="you@email.com"
-              optional
-            />
-            <Field
-              label="Home address"
-              name="address"
-              autoComplete="street-address"
-              placeholder="123 Main St, Wheeling, WV"
-              required
-            />
+            <Field label="Email" name="email" type="email" autoComplete="email" placeholder="you@email.com" optional />
+            <Field label="Home address" name="address" autoComplete="street-address" placeholder="123 Main St, Wheeling, WV" required />
           </div>
 
           {variant === "permanent" && (
-            <SelectField
-              label="What do you want the home to feel like after dark?"
-              name="preference"
-            >
+            <SelectField label="What do you want the home to feel like after dark?" name="preference">
               <option value="">Choose one (or skip)</option>
               <option value="Warm white every night">Warm white every night — clean and architectural</option>
               <option value="Full color for holidays and game day">Full color for holidays, game day, and parties</option>
@@ -264,12 +217,8 @@ export function LeadForm({
                 <option value="Multicolor">Multicolor</option>
                 <option value="Not sure">Not sure — suggest something for my home</option>
               </SelectField>
-
               <div>
-                <label
-                  htmlFor="photo"
-                  className="mb-1.5 block text-sm font-semibold text-ink-700"
-                >
+                <label htmlFor="photo" className="mb-1.5 block text-sm font-semibold text-ink-700">
                   Photo of the front of your home{" "}
                   <span className="font-normal text-ink-400">(optional, helps us quote remotely)</span>
                 </label>
@@ -281,58 +230,68 @@ export function LeadForm({
                   onChange={(e) => setPhotoName(e.target.files?.[0]?.name ?? "")}
                   className="block w-full rounded-xl border border-dashed border-ink-200 bg-white px-4 py-3 text-sm text-ink-600 file:mr-3 file:rounded-full file:border-0 file:bg-ink-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-ink-700"
                 />
-                {photoName && (
-                  <p className="mt-1.5 text-xs text-ink-500">Attached: {photoName}</p>
-                )}
+                {photoName && <p className="mt-1.5 text-xs text-ink-500">Attached: {photoName}</p>}
               </div>
             </>
+          )}
+
+          {variant === "landscape" && (
+            <SelectField label="What would you like to light?" name="preference">
+              <option value="">Choose one (or skip)</option>
+              <option value="Trees and landscape beds">Trees and landscape beds</option>
+              <option value="Walkways and steps">Walkways and steps</option>
+              <option value="Patio or entertaining space">Patio or entertaining space</option>
+              <option value="The whole property">The whole property</option>
+              <option value="Not sure yet">Not sure yet — show me what&apos;s possible</option>
+            </SelectField>
           )}
         </>
       ) : (
         <>
           <div className={cn("grid gap-4", !compact && "sm:grid-cols-2")}>
-            <Field
-              label="Email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              placeholder="you@email.com"
-              optional
-            />
-            <SelectField
-              label="ZIP code"
-              name="zip"
-              autoComplete="postal-code"
-              placeholder="26003"
-              asInput
-              optional
-            />
+            <Field label="Email" name="email" type="email" autoComplete="email" placeholder="you@email.com" optional />
+            <Field label="ZIP code" name="zip" autoComplete="postal-code" placeholder="26003" optional />
           </div>
 
-          <SelectField label="What can we help with?" name="service" defaultValue={defaultService}>
-            <option value="">Select a service (or “not sure yet”)</option>
-            {services.map((s) => (
-              <option key={s.slug} value={s.slug}>
-                {s.name}
-              </option>
-            ))}
-            <option value="multiple">Multiple services</option>
-            <option value="not-sure">Not sure yet — help me decide</option>
-          </SelectField>
+          {variant === "cleaning" ? (
+            <SelectField label="Which service?" name="service" defaultValue={defaultService}>
+              <option value="">Select a service</option>
+              {cleaningServices.map((s) => (
+                <option key={s.slug} value={s.slug}>
+                  {s.name}
+                </option>
+              ))}
+              <option value="multiple">Multiple cleaning services</option>
+              <option value="not-sure">Not sure yet — help me decide</option>
+            </SelectField>
+          ) : (
+            <SelectField label="What can we help with?" name="service" defaultValue={defaultService}>
+              <option value="">Select a service (or “not sure yet”)</option>
+              <optgroup label="Exterior Lighting">
+                {lightingServices.map((s) => (
+                  <option key={s.slug} value={s.slug}>
+                    {s.name}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label="Other Exterior Services">
+                {cleaningServices.map((s) => (
+                  <option key={s.slug} value={s.slug}>
+                    {s.name}
+                  </option>
+                ))}
+              </optgroup>
+              <option value="multiple">Multiple services</option>
+              <option value="not-sure">Not sure yet — help me decide</option>
+            </SelectField>
+          )}
         </>
       )}
 
       {(!compact || isLighting) && (
         <div>
-          <label
-            htmlFor="details"
-            className="mb-1.5 block text-sm font-semibold text-ink-700"
-          >
-            {variant === "permanent"
-              ? "Anything we should know?"
-              : variant === "christmas"
-                ? "Anything we should know?"
-                : "Project details"}{" "}
+          <label htmlFor="details" className="mb-1.5 block text-sm font-semibold text-ink-700">
+            {isLighting ? "Anything we should know?" : "Project details"}{" "}
             <span className="font-normal text-ink-400">(optional)</span>
           </label>
           <textarea
@@ -344,7 +303,9 @@ export function LeadForm({
                 ? "Rooflines you want lit, timeline, HOA notes…"
                 : variant === "christmas"
                   ? "Rooflines, trees, bushes, wreaths — or just “make it look great”"
-                  : "Tell us a little about your home or project…"
+                  : variant === "landscape"
+                    ? "Trees, beds, steps, the patio — what should feel different after dark?"
+                    : "Tell us a little about your home or project…"
             }
             className={inputClass}
           />
@@ -354,22 +315,15 @@ export function LeadForm({
       <ConsentCheckboxes />
 
       {status === "error" && (
-        <p className="rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-          {error}
-        </p>
+        <p className="rounded-lg bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{error}</p>
       )}
 
-      <Button
-        type="submit"
-        size="lg"
-        fullWidth
-        className={status === "submitting" ? "pointer-events-none" : ""}
-      >
-        {status === "submitting" ? "Sending…" : VARIANT_SUBMIT[variant]}
+      <Button type="submit" size="lg" fullWidth className={status === "submitting" ? "pointer-events-none" : ""}>
+        {status === "submitting" ? "Sending…" : SUBMIT[variant]}
         {status !== "submitting" && <Icon name="arrowRight" className="h-5 w-5" />}
       </Button>
 
-      <p className="text-center text-xs text-ink-400">{VARIANT_NOTE[variant]}</p>
+      <p className="text-center text-xs text-ink-400">{NOTE[variant]}</p>
     </form>
   );
 }
@@ -419,12 +373,8 @@ function Field({
 }) {
   return (
     <div>
-      <label
-        htmlFor={name}
-        className="mb-1.5 block text-sm font-semibold text-ink-700"
-      >
-        {label}{" "}
-        {optional && <span className="font-normal text-ink-400">(optional)</span>}
+      <label htmlFor={name} className="mb-1.5 block text-sm font-semibold text-ink-700">
+        {label} {optional && <span className="font-normal text-ink-400">(optional)</span>}
         {required && <span className="text-gold-600">*</span>}
       </label>
       <input
@@ -445,51 +395,18 @@ function SelectField({
   name,
   children,
   defaultValue,
-  autoComplete,
-  placeholder,
-  asInput,
-  optional,
 }: {
   label: string;
   name: string;
   children?: React.ReactNode;
   defaultValue?: string;
-  autoComplete?: string;
-  placeholder?: string;
-  asInput?: boolean;
-  optional?: boolean;
 }) {
-  const labelEl = (
-    <label htmlFor={name} className="mb-1.5 block text-sm font-semibold text-ink-700">
-      {label}{" "}
-      {optional && <span className="font-normal text-ink-400">(optional)</span>}
-    </label>
-  );
-
-  if (asInput) {
-    return (
-      <div>
-        {labelEl}
-        <input
-          id={name}
-          name={name}
-          placeholder={placeholder}
-          autoComplete={autoComplete}
-          className={inputClass}
-        />
-      </div>
-    );
-  }
-
   return (
     <div>
-      {labelEl}
-      <select
-        id={name}
-        name={name}
-        defaultValue={defaultValue}
-        className={cn(inputClass, "appearance-none")}
-      >
+      <label htmlFor={name} className="mb-1.5 block text-sm font-semibold text-ink-700">
+        {label}
+      </label>
+      <select id={name} name={name} defaultValue={defaultValue} className={cn(inputClass, "appearance-none")}>
         {children}
       </select>
     </div>

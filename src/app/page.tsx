@@ -13,6 +13,7 @@ import { ChristmasGallery } from "@/components/home/ChristmasGallery";
 import { WhyRallyLighting } from "@/components/home/WhyRallyLighting";
 import { LandscapeTeaser } from "@/components/home/LandscapeTeaser";
 import { FinalCTA } from "@/components/home/FinalCTA";
+import { OtherServicesNote } from "@/components/home/OtherServicesNote";
 import { Testimonials } from "@/components/sections/Testimonials";
 import { ServiceArea } from "@/components/sections/ServiceArea";
 import { FAQ } from "@/components/sections/FAQ";
@@ -71,6 +72,7 @@ export default function HomePage() {
         ctaLabel="Start My Project"
       />
       <FinalCTA />
+      <OtherServicesNote />
     </>
   );
 }

@@ -6,6 +6,7 @@ import { showcase, beforeAfters } from "@/data/gallery";
 import { processSteps } from "@/data/content";
 import { site } from "@/lib/site";
 import { testimonialsForService } from "@/data/testimonials";
+import { getJourney } from "@/lib/journeys";
 
 import { BrandMark } from "@/components/layout/Logo";
 import { Stars } from "@/components/ui/Stars";
@@ -44,6 +45,9 @@ export default async function LandingPage({ params }: Params) {
   const photos = showcase.filter((s) => s.service === slug);
   const pairs = beforeAfters.filter((b) => b.service === slug);
   const benefits = service.benefits.slice(0, 6);
+  const journey = getJourney(service.slug);
+  const isLighting = service.category === "lighting";
+  const ctaLabel = isLighting ? journey.label : "Get My Free Estimate";
 
   const trust = [
     { icon: "shield" as const, label: "Fully insured" },
@@ -83,7 +87,7 @@ export default async function LandingPage({ params }: Params) {
               className="hidden text-sm font-bold text-ink-900 hover:text-gold-600 sm:inline-flex"
             />
             <Button href="#quote" size="sm">
-              Free Estimate
+              {isLighting ? journey.label : "Free Estimate"}
             </Button>
           </div>
         </div>
@@ -134,7 +138,7 @@ export default async function LandingPage({ params }: Params) {
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Button href="#quote" size="lg">
-                  Get My Free Estimate
+                  {ctaLabel}
                   <Icon name="arrowRight" className="h-5 w-5" />
                 </Button>
                 <TrackedCall
@@ -151,16 +155,16 @@ export default async function LandingPage({ params }: Params) {
             <div id="quote" className="scroll-mt-24 lg:justify-self-end">
               <div className="mx-auto w-full max-w-md rounded-2xl bg-white p-6 text-ink-900 shadow-cardHover sm:p-7">
                 <span className="rounded-full bg-gold-100 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-gold-700">
-                  Free Estimate
+                  {isLighting ? journey.eyebrow : "Free Estimate"}
                 </span>
                 <h2 className="mt-2 font-display text-2xl font-bold">
-                  Get your free quote
+                  {isLighting ? "Show us your home." : "Get your free quote"}
                 </h2>
                 <p className="mt-1 text-sm text-ink-500">
-                  {site.offer.sub} Takes about 30 seconds.
+                  {isLighting ? service.priceNote : `${site.offer.sub} Takes about 30 seconds.`}
                 </p>
                 <div className="mt-5">
-                  <LeadForm source={`lp_${slug}`} defaultService={slug} compact />
+                  <LeadForm source={`lp_${slug}`} defaultService={slug} variant={journey.form} compact />
                 </div>
               </div>
             </div>
@@ -239,7 +243,7 @@ export default async function LandingPage({ params }: Params) {
             </div>
             <div className="mt-10 text-center">
               <Button href="#quote" size="lg">
-                Get My Free Estimate
+                {ctaLabel}
                 <Icon name="arrowRight" className="h-5 w-5" />
               </Button>
             </div>
@@ -300,14 +304,14 @@ export default async function LandingPage({ params }: Params) {
           <div className="glow-gold pointer-events-none absolute left-1/2 top-0 h-[30rem] w-[30rem] -translate-x-1/2" />
           <div className="container relative">
             <h2 className="mx-auto max-w-2xl font-display text-3xl font-extrabold sm:text-4xl">
-              Ready to make your home the brightest on the block?
+              {isLighting ? "Ready to see your home differently?" : "Ready to make your home the cleanest on the block?"}
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-lg text-ink-200">
-              Free, no-pressure estimate — most quotes back same-day.
+              {isLighting ? "Show us your home. We'll take it from there." : "Free, no-pressure estimate — most quotes back same-day."}
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button href="#quote" size="lg">
-                Get My Free Estimate
+                {ctaLabel}
                 <Icon name="arrowRight" className="h-5 w-5" />
               </Button>
               <TrackedCall
@@ -376,7 +380,7 @@ export default async function LandingPage({ params }: Params) {
             className="inline-flex items-center justify-center gap-2 rounded-full bg-gold-400 px-4 py-3 text-sm font-bold text-ink-900 shadow-cta"
           >
             <Icon name="calendar" className="h-5 w-5" />
-            Free Quote
+            {isLighting ? (service.slug === "holiday-lighting" ? "Christmas Quote" : "Design My Home") : "Free Quote"}
           </a>
         </div>
       </div>

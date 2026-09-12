@@ -15,7 +15,7 @@ import { breadcrumbSchema } from "@/lib/schema";
 
 export const metadata: Metadata = {
   title: `Service Area — ${locations.length} Towns Across the Ohio Valley & Wheeling, WV`,
-  description: `Rally serves ${locations.length} towns across ${regionLabel} — pressure washing, house washing, gutter cleaning, permanent & Christmas lighting. Find your city for local details & free quotes.`,
+  description: `Rally serves ${locations.length} towns across ${regionLabel} — permanent, Christmas, and landscape lighting, plus house washing, roof washing, and pressure washing. Find your city for local details & quotes.`,
   alternates: { canonical: "/locations" },
 };
 
@@ -42,7 +42,7 @@ export default function LocationsPage() {
 
       <PageHeader
         eyebrow="Service Area"
-        title={`Exterior cleaning & lighting across the ${regionLabel} region`}
+        title={`Exterior lighting across the ${regionLabel} region`}
         description={`Locally owned and operating within about ${site.geo.serviceRadiusMiles} miles of Wheeling, WV — both sides of the Ohio River. Find your town below.`}
         crumbs={[
           { name: "Home", href: "/" },
@@ -51,7 +51,7 @@ export default function LocationsPage() {
       >
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button href="/contact" size="lg">
-            Get a Free Estimate
+            Start My Project
           </Button>
           <CallButton
             source="locations_header"

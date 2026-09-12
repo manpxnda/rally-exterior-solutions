@@ -138,12 +138,17 @@ export function ProjectChooser({
               ))}
             </ul>
 
-            <p className="mt-5 text-center text-xs text-ink-400">
-              Something else — pressure washing, house or roof washing, concrete?{" "}
-              <Link href="/contact" onClick={() => setOpen(false)} className="font-semibold text-ink-600 underline-offset-2 hover:underline">
-                Use the general form
+            <div className="mt-5 border-t border-ink-100 pt-4 text-center">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-ink-400">Looking for another Rally service?</p>
+              <Link
+                href="/contact#other"
+                onClick={() => setOpen(false)}
+                className="mt-1 inline-flex items-center gap-1 text-sm font-semibold text-ink-700 underline-offset-2 hover:text-ink-900 hover:underline"
+              >
+                Exterior cleaning &amp; washing
+                <Icon name="arrowRight" className="h-4 w-4" />
               </Link>
-            </p>
+            </div>
           </div>
         </div>,
         document.body

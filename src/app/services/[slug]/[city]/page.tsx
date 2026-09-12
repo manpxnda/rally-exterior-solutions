@@ -6,6 +6,7 @@ import { getLocation } from "@/data/locations";
 import { getComboCities, getAllCombos, isValidCombo } from "@/data/serviceAreas";
 import { beforeAfters, showcase } from "@/data/gallery";
 import { testimonialsForService } from "@/data/testimonials";
+import { getJourney } from "@/lib/journeys";
 import { getServiceFaqs } from "@/data/serviceFaqs";
 import { site } from "@/lib/site";
 
@@ -72,6 +73,7 @@ export default async function ServiceCityPage({ params }: Params) {
   const proof = beforeAfters.filter((b) => b.service === service.slug).slice(0, 2);
   const photos = showcase.filter((s) => s.service === service.slug).slice(0, 3);
   const reviews = testimonialsForService(service.slug, 3);
+  const journey = getJourney(service.slug);
   const otherCities = getComboCities(service.slug).filter((c) => c !== city);
   const serviceFaqItems = getServiceFaqs(service.slug);
 
@@ -106,8 +108,8 @@ export default async function ServiceCityPage({ params }: Params) {
         ]}
       >
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Button href={`/contact?service=${service.slug}`} size="lg">
-            Get a Free {loc.city} Estimate
+          <Button href={journey.href} size="lg">
+            {journey.label}
             <Icon name="arrowRight" className="h-5 w-5" />
           </Button>
           <CallButton
@@ -162,11 +164,11 @@ export default async function ServiceCityPage({ params }: Params) {
           <aside className="lg:sticky lg:top-24 lg:self-start">
             <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-cardHover">
               <h2 className="font-display text-xl font-bold text-ink-900">
-                Free {loc.city} {service.shortName.toLowerCase()} quote
+                {journey.heading.charAt(0).toUpperCase() + journey.heading.slice(1)} · {loc.city}
               </h2>
               <p className="mt-1 text-sm text-ink-500">{service.priceNote}</p>
               <div className="mt-5">
-                <LeadForm source={`combo_${service.slug}_${loc.slug}`} defaultService={service.slug} compact />
+                <LeadForm source={`combo_${service.slug}_${loc.slug}`} defaultService={service.slug} variant={journey.form} compact />
               </div>
             </div>
           </aside>
@@ -238,8 +240,13 @@ export default async function ServiceCityPage({ params }: Params) {
         </Section>
       )}
 
-      <FAQ items={serviceFaqItems} heading />
-      <CTASection title={`Ready for ${service.shortName.toLowerCase()} in ${loc.city}?`} service={service.slug} />
+      <FAQ items={serviceFaqItems} heading ctaHref={journey.href} ctaLabel={journey.label} />
+      <CTASection
+        title={`Ready for ${service.shortName.toLowerCase()} in ${loc.city}?`}
+        service={service.slug}
+        href={journey.href}
+        cta={journey.label}
+      />
     </>
   );
 }
