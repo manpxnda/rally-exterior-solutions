@@ -62,12 +62,12 @@ export function ChristmasGallery() {
               Christmas Gallery
             </p>
             <h2 className="font-display text-3xl font-bold leading-tight text-ink-900 sm:text-4xl">
-              Pick your look.
+              Choose your display.
             </h2>
           </div>
           <p className="max-w-sm text-lg text-ink-500">
             Rooflines, trees, bushes, and full displays — every home here was
-            installed by Rally.
+            installed by Rally. Professional displays generally start at $1,500.
           </p>
         </div>
 

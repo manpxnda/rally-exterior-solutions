@@ -98,7 +98,8 @@ export const services: Service[] = [
       "New builds & recently remodeled exteriors",
       "Anyone who wants effortless, year-round curb appeal",
     ],
-    priceNote: "Most residential installs are quoted per linear foot. Free on-site measurement.",
+    priceNote:
+      "Projects generally start at $3,500. Designed around your home — the final investment depends on the scope of the design.",
     metaTitle: "Permanent Outdoor Lighting Installation — Wheeling, WV | 4.9★",
     metaDescription:
       "Premium app-controlled permanent exterior lighting installed in the Ohio Valley & Wheeling, WV. Year-round curb appeal, holiday colors, no ladders. 4.9★-rated — free estimates.",
@@ -149,7 +150,7 @@ export const services: Service[] = [
       "Anyone tired of storing tangled lights",
     ],
     priceNote:
-      "Full-season packages start at $750 — design, install, maintenance, takedown & storage included. Book early for best dates.",
+      "Professional Christmas lighting packages generally start at $1,500 — design, lights, install, maintenance, takedown & storage included. Book early for best dates.",
     metaTitle: "Christmas Light Installation — Wheeling, WV | 4.9★ · Book Early",
     metaDescription:
       "Professional Christmas light installation in Wheeling, WV and the Ohio Valley. Design, install, maintenance, takedown & storage. 4.9★-rated — book early, free estimate.",

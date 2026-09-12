@@ -18,8 +18,8 @@ export function TwoPaths() {
           <article className="flex flex-col overflow-hidden rounded-2xl bg-ink-800 text-white shadow-card">
             <div className="relative aspect-[16/10] lg:aspect-[5/4]">
               <Image
-                src="/images/lighting/permanent-warm-white.jpg"
-                alt="Craftsman-style home at night with warm white permanent lighting outlining every gable and eave"
+                src="/images/lighting/permanent-pure-white.jpg"
+                alt="Craftsman-style home at night with clean white permanent lighting outlining every gable and eave"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"
@@ -51,16 +51,22 @@ export function TwoPaths() {
               <p className="font-display text-xl font-bold text-sky-300">
                 These lights never come down.
               </p>
+              {/* Qualifying price — package framing only, never per foot */}
+              <p className="text-sm leading-relaxed text-ink-100">
+                <span className="font-semibold text-white">Projects generally start at $3,500.</span>{" "}
+                Choose how far you want to take the home — the front elevation
+                or the whole property.
+              </p>
               <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-3 pt-2">
-                <Button href="#permanent">
-                  Explore Permanent Lighting
+                <Button href="/design-consultation">
+                  Design My Home
                   <Icon name="arrowRight" className="h-4 w-4" />
                 </Button>
                 <Link
-                  href="/services/permanent-lighting"
+                  href="#permanent"
                   className="text-sm font-semibold text-ink-100 underline-offset-4 hover:text-white hover:underline"
                 >
-                  Permanent lighting details →
+                  See how it works ↓
                 </Link>
               </div>
             </div>
@@ -99,6 +105,12 @@ export function TwoPaths() {
               </ul>
               <p className="font-display text-xl font-bold text-gold-600">
                 Your Christmas is handled.
+              </p>
+              {/* Qualifying price — package framing only */}
+              <p className="text-sm leading-relaxed text-ink-700">
+                <span className="font-semibold text-ink-900">Professional displays generally start at $1,500.</span>{" "}
+                Your final design depends on the areas of the home you&apos;d
+                like to light.
               </p>
               <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-3 pt-2">
                 <Button href="/christmas-quote">

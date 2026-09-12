@@ -5,6 +5,7 @@ import { Logo } from "./Logo";
 import { Icon } from "@/components/ui/Icon";
 import { CallLink } from "@/components/CallButton";
 import { Button } from "@/components/ui/Button";
+import { ProjectChooser } from "./ProjectChooser";
 
 /**
  * Site footer — lighting first, legacy services preserved under
@@ -27,9 +28,7 @@ export function Footer() {
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Button href="/contact" size="lg">
-              Start My Project
-            </Button>
+            <ProjectChooser size="lg" />
             <Button
               href={site.phoneHref}
               variant="outline"

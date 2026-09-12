@@ -73,6 +73,11 @@ export default function DesignConsultationPage() {
               schedule a design consultation.
             </p>
 
+            <p className="mt-5 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-ink-100">
+              <span className="font-semibold text-white">Most Rally permanent lighting projects begin around $3,500.</span>{" "}
+              Every home is different — the final investment depends on the scope of the design.
+            </p>
+
             <ol className="mt-8 space-y-4">
               {NEXT.map((s, i) => (
                 <li key={s.title} className="flex gap-4">

@@ -13,6 +13,8 @@ Conversion-focused marketing site for **Rally Exterior Solutions** — premium e
 - **Vercel:** project `rally-exterior-solutions`, scope `manpxndas-projects`
 - **Stack:** Next.js 15 (App Router) · TypeScript · Tailwind v3 · `sharp` for images
 
+**LIGHTING PRICING RULE (Jason, 2026-09-11, permanent):** never price lighting per linear foot anywhere public — no $/ft, per-foot ranges, footage formulas, or calculators. Rally sells designs/packages/outcomes. Only approved public price points: **permanent lighting projects generally start at $3,500**; **professional Christmas lighting packages generally start at $1,500**. Vocabulary: design / project / package / display / coverage / investment (not estimate / footage). Legacy cleaning pricing (per sq ft) is untouched by this rule.
+
 ## Architecture — where things live
 - `src/lib/site.ts` — **single source of truth** for business info (NAP, hours, stats, offer). Phone (740) 208-8632, email info@rallyexteriorsolutions.com. `site.description` is lighting-first (feeds schema/OG/manifest).
 - `src/lib/nav.ts` — `mainNav` (lighting links + `muted` "Other Services" dropdown) and `footerNav` (`lighting` / `otherServices` / `company`).

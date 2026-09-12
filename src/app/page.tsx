@@ -4,7 +4,6 @@ import { lightingFaqs } from "@/data/faqs";
 import { testimonials } from "@/data/testimonials";
 
 import { LightingHero } from "@/components/home/LightingHero";
-import { LightingTrust } from "@/components/home/LightingTrust";
 import { TwoPaths } from "@/components/home/TwoPaths";
 import { PermanentStory } from "@/components/home/PermanentStory";
 import { DayNight } from "@/components/home/DayNight";
@@ -47,7 +46,6 @@ export default function HomePage() {
     <>
       <JsonLd data={faqSchema(lightingFaqs)} />
       <LightingHero />
-      <LightingTrust />
       <TwoPaths />
       <PermanentStory />
       <DayNight />

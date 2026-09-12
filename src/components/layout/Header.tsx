@@ -10,6 +10,7 @@ import { Logo } from "./Logo";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { CallLink } from "@/components/CallButton";
+import { ProjectChooser } from "./ProjectChooser";
 
 /**
  * Sticky site header — lighting-first navigation.
@@ -123,9 +124,7 @@ export function Header() {
             source="header"
             className="hidden whitespace-nowrap text-sm font-semibold text-ink-700 hover:text-ink-900 2xl:inline-flex"
           />
-          <Button href="/contact" size="sm" className="hidden whitespace-nowrap sm:inline-flex">
-            Start My Project
-          </Button>
+          <ProjectChooser size="sm" className="hidden sm:inline-flex" />
 
           {/* Mobile toggle */}
           <button

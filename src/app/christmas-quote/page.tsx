@@ -68,6 +68,11 @@ export default function ChristmasQuotePage() {
               design and quote remotely.
             </p>
 
+            <p className="mt-5 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-ink-100">
+              <span className="font-semibold text-white">Professional Christmas lighting packages generally start at $1,500.</span>{" "}
+              Your final design depends on the areas of the home you&apos;d like to light.
+            </p>
+
             <h2 className="mt-8 text-sm font-bold uppercase tracking-wider text-ink-300">
               What&apos;s included
             </h2>

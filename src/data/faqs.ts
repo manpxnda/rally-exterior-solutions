@@ -59,6 +59,10 @@ export const lightingFaqs: Faq[] = [
     a: "Yes. Set your everyday schedule once and it runs itself. Change scenes any time from your phone.",
   },
   {
+    q: "How much does it cost?",
+    a: "Permanent lighting projects generally start at $3,500, and professional Christmas lighting packages generally start at $1,500. Every home is different — Rally designs around your architecture and the areas you want to light, so the final investment depends on the scope of the design.",
+  },
+  {
     q: "What happens if something stops working?",
     a: "You contact Rally, and Rally owns the next step. We'll diagnose it, schedule the fix, and keep you updated until it's resolved.",
   },

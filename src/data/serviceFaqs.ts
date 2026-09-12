@@ -32,7 +32,7 @@ export const serviceFaqs: Record<string, Faq[]> = {
   "permanent-lighting": [
     {
       q: "How much does permanent outdoor lighting cost?",
-      a: "Permanent lighting is quoted per linear foot — typically $25–$45/ft in the Ohio Valley. Most average two-story homes land around $3,500–$5,000 installed. Every Rally quote starts with a free on-site measurement, so you get an exact price in writing before you decide.",
+      a: "Most Rally permanent lighting projects begin around $3,500. Every home is different — Rally designs the system around the architecture and the areas you want to highlight, so the final investment depends on the scope of the design. A design consultation gives you the exact number for your home, in writing, with no pressure.",
     },
     {
       q: "Is permanent lighting really invisible during the day?",
@@ -58,7 +58,7 @@ export const serviceFaqs: Record<string, Faq[]> = {
     },
     {
       q: "How much does professional Christmas light installation cost?",
-      a: "Rally's full-season packages start at $750, with most Ohio Valley homes landing between $750 and $2,000 depending on roofline length and accents. One price covers design, commercial-grade lights, installation, in-season maintenance, takedown, and storage.",
+      a: "Professional Christmas lighting packages generally start at $1,500. Your final design depends on the areas of the home you'd like to light. One package price covers design, commercial-grade lights, installation, timers, in-season maintenance, takedown, and storage.",
     },
     {
       q: "Do you provide the lights, or do I use my own?",

@@ -85,10 +85,10 @@ export default async function ServicePage({ params }: Params) {
   // journeys; every other service keeps the generic estimate form (preselected).
   const journey =
     service.slug === "permanent-lighting"
-      ? { href: "/design-consultation", label: "Design My Home" }
+      ? { href: "/design-consultation", label: "Design My Home", form: "permanent" as const, heading: "Design my home" }
       : service.slug === "holiday-lighting"
-        ? { href: "/christmas-quote", label: "Get My Christmas Quote" }
-        : { href: `/contact?service=${service.slug}`, label: "Get a Free Estimate" };
+        ? { href: "/christmas-quote", label: "Get My Christmas Quote", form: "christmas" as const, heading: "Get my Christmas quote" }
+        : { href: `/contact?service=${service.slug}`, label: "Get a Free Estimate", form: "default" as const, heading: `Free ${service.shortName} estimate` };
 
   return (
     <>
@@ -252,13 +252,14 @@ export default async function ServicePage({ params }: Params) {
           <aside className="lg:sticky lg:top-24 lg:self-start">
             <div className="rounded-2xl border border-ink-100 bg-white p-6 shadow-cardHover">
               <h2 className="font-display text-xl font-bold text-ink-900">
-                Free {service.shortName} estimate
+                {journey.heading}
               </h2>
               <p className="mt-1 text-sm text-ink-500">{service.priceNote}</p>
               <div className="mt-5">
                 <LeadForm
                   source={`service_${service.slug}`}
                   defaultService={service.slug}
+                  variant={journey.form}
                   compact
                 />
               </div>
@@ -378,7 +379,12 @@ export default async function ServicePage({ params }: Params) {
         </Section>
       )}
 
-      <FAQ items={serviceFaqItems} heading />
+      <FAQ
+        items={serviceFaqItems}
+        heading
+        ctaHref={journey.href}
+        ctaLabel={isLighting ? journey.label : "Get a Free Estimate"}
+      />
       <CTASection
         title={`Ready for ${service.shortName.toLowerCase()} done right?`}
         service={service.slug}

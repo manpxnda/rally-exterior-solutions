@@ -50,6 +50,15 @@ export default async function GuidePage({ params }: Params) {
   if (!guide) notFound();
 
   const related = guide.relatedService ? getService(guide.relatedService) : undefined;
+  // Lighting guides route into the lighting journeys (design / package
+  // vocabulary); cleaning guides keep the generic estimate form.
+  const isLighting = related?.category === "lighting";
+  const journey =
+    guide.relatedService === "permanent-lighting"
+      ? { href: "/design-consultation", label: "Design My Home", nudgeTitle: "See what Rally would design for your home", nudgeBody: "A design consultation is the first step — we design around your architecture and present the design and the investment together. No pressure." }
+      : guide.relatedService === "holiday-lighting"
+        ? { href: "/christmas-quote", label: "Get My Christmas Quote", nudgeTitle: "Choose your display", nudgeBody: "Send your address and a photo of the front of the home — we can often design and quote remotely." }
+        : { href: related ? `/contact?service=${related.slug}` : "/contact", label: "Get My Free Estimate", nudgeTitle: "Want your exact price?", nudgeBody: "Skip the guesswork — get a free, no-pressure quote in writing, usually the same day." };
 
   return (
     <>
@@ -76,8 +85,8 @@ export default async function GuidePage({ params }: Params) {
         ]}
       >
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Button href="/contact" size="lg">
-            Get a Free Estimate
+          <Button href={journey.href} size="lg">
+            {isLighting ? journey.label : "Get a Free Estimate"}
             <Icon name="arrowRight" className="h-5 w-5" />
           </Button>
           <CallButton
@@ -164,18 +173,12 @@ export default async function GuidePage({ params }: Params) {
           {/* Inline conversion nudge */}
           <div className="mt-12 rounded-2xl border border-gold-200 bg-gold-50 p-6 text-center sm:p-8">
             <h2 className="font-display text-xl font-bold text-ink-900">
-              Want your exact price?
+              {journey.nudgeTitle}
             </h2>
-            <p className="mx-auto mt-2 max-w-xl text-ink-600">
-              Skip the guesswork — get a free, no-pressure quote in writing,
-              usually the same day.
-            </p>
+            <p className="mx-auto mt-2 max-w-xl text-ink-600">{journey.nudgeBody}</p>
             <div className="mt-5 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button
-                href={related ? `/contact?service=${related.slug}` : "/contact"}
-                size="lg"
-              >
-                Get My Free Estimate
+              <Button href={journey.href} size="lg">
+                {journey.label}
                 <Icon name="arrowRight" className="h-5 w-5" />
               </Button>
               <CallButton source={`guide_${guide.slug}_inline`} variant="outline" size="lg" />
@@ -196,8 +199,22 @@ export default async function GuidePage({ params }: Params) {
         </article>
       </Section>
 
-      <FAQ items={guide.faqs} heading />
-      <CTASection service={guide.relatedService} />
+      <FAQ
+        items={guide.faqs}
+        heading
+        ctaHref={journey.href}
+        ctaLabel={isLighting ? journey.label : "Get a Free Estimate"}
+      />
+      {isLighting ? (
+        <CTASection
+          title="Ready to see your home differently?"
+          subtitle="Show us your home. We'll take it from there."
+          href={journey.href}
+          cta={journey.label}
+        />
+      ) : (
+        <CTASection service={guide.relatedService} />
+      )}
     </>
   );
 }

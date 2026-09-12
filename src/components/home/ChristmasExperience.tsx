@@ -5,7 +5,7 @@ import { Icon } from "@/components/ui/Icon";
 
 const STEPS = [
   { title: "Show us your home", body: "Send your address and a photo if needed." },
-  { title: "Pick your look", body: "Rally creates a few clean options." },
+  { title: "Choose your display", body: "Rally creates a few clean options for your home." },
   { title: "We handle everything", body: "Lights, installation, timers, and in-season service." },
   { title: "Enjoy Christmas", body: "Come home to the finished display." },
   { title: "We return in January", body: "Removal, labeling, organization, and storage." },
