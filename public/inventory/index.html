@@ -10,7 +10,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .topbar{background:#1a1a1a;color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .brand{font-size:15px;font-weight:600;white-space:nowrap}
 .brand span{color:#aaa;font-weight:400;margin-left:8px;font-size:13px}
-.topbar-actions{display:flex;gap:6px;flex-wrap:wrap}
+.topbar-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.sync-pill{font-size:11px;padding:5px 11px;border-radius:20px;background:#2a2a2a;color:#bbb;border:1px solid #444;cursor:pointer;font-family:inherit;white-space:nowrap}
+.sync-pill.ok{color:#8fd19e;border-color:#3a5a42}
+.sync-pill.busy{color:#eee}
+.sync-pill.warn{color:#f5c76e;border-color:#6b5a2a}
+.sync-pill.err{color:#f0a0a0;border-color:#6b3a3a}
 .container{max-width:1300px;margin:0 auto;padding:20px 24px}
 .nav{display:flex;gap:4px;margin-bottom:20px;background:#fff;border:1px solid #e5e5e3;border-radius:10px;padding:4px;flex-wrap:wrap}
 .nav button{padding:7px 15px;font-size:13px;border:none;border-radius:7px;background:transparent;color:#666;cursor:pointer;font-family:inherit;transition:all 0.15s;white-space:nowrap}
@@ -207,6 +212,7 @@ tr.drag-over-bottom td{border-bottom:2px solid #1a1a1a!important}
 <div class="topbar">
   <div class="brand">Rally Exterior Solutions <span>Lighting Inventory</span></div>
   <div class="topbar-actions">
+    <button class="sync-pill" id="sync-pill" onclick="pullFromCloud('manual')" title="Cloud sync status — click to sync now">☁ Connecting…</button>
     <button class="btn btn-sm btn-ghost" onclick="openSettings()" style="color:#aaa;border-color:#444">⚙ Settings</button>
     <button class="btn btn-sm btn-export" onclick="exportCSV()" style="background:transparent">↓ CSV</button>
     <button class="btn btn-sm btn-muted" onclick="exportJSON()">↓ Backup</button>
@@ -491,8 +497,17 @@ function bundleLabel(v) {
 }
 
 /* ── PERSISTENCE ────────────────────────────────────────── */
+function saveLocal() {
+  try {
+    localStorage.setItem('rally_v3', JSON.stringify(state));
+    localStorage.setItem(SYNC_META_KEY, JSON.stringify(syncMeta));
+  } catch(e) {}
+}
 function save() {
-  try { localStorage.setItem('rally_v3', JSON.stringify(state)); } catch(e) {}
+  // Every edit in the app goes through here: save on this device, then sync.
+  syncMeta.updatedAt = Date.now();
+  saveLocal();
+  queuePush();
 }
 function load() {
   try {
@@ -2042,8 +2057,129 @@ function closeModal() { document.getElementById('modal-root').innerHTML = ''; }
 /* ── UTIL ────────────────────────────────────────────────── */
 function esc(s) { return String(s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
 
+/* ── CLOUD SYNC ──────────────────────────────────────────── */
+/* The app is served from rallyexteriorsolutions.com/inventory behind a login.
+   Its whole state is mirrored to /inventory/api (a private cloud file) so every
+   device sees the same inventory. localStorage stays as the offline cache.
+   Rule: newest `updatedAt` wins; the server refuses (409) a stale overwrite. */
+const SYNC_URL = '/inventory/api';
+const SYNC_META_KEY = 'rally_v3_meta';
+let syncMeta = { updatedAt: 0, device: '' };
+try { const m = JSON.parse(localStorage.getItem(SYNC_META_KEY) || 'null'); if (m && typeof m === 'object') syncMeta = Object.assign(syncMeta, m); } catch(e) {}
+if (!syncMeta.device) syncMeta.device = Math.random().toString(36).slice(2, 10);
+
+let pushTimer = null, pushing = false, pushAgain = false, cloudAvailable = true;
+
+function setSync(kind, text) {
+  const el = document.getElementById('sync-pill');
+  if (!el) return;
+  el.className = 'sync-pill ' + kind;
+  el.textContent = text;
+}
+function timeLabel(ts) {
+  if (!ts) return '';
+  return new Date(ts).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+function hasData(s) {
+  if (!s || typeof s !== 'object') return false;
+  const inv = Array.isArray(s.inventory) ? s.inventory : [];
+  const stocked = inv.some(i => Array.isArray(i.variants) && i.variants.some(v => (v.qty || 0) > 0 || (v.reserved || 0) > 0));
+  return stocked || (s.projects && s.projects.length > 0) || (s.installs && s.installs.length > 0) || (s.wasteLog && s.wasteLog.length > 0);
+}
+
+function queuePush() {
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(pushToCloud, 600);
+}
+
+async function pushToCloud() {
+  if (!cloudAvailable) return;
+  if (pushing) { pushAgain = true; return; }
+  if (!navigator.onLine) { setSync('warn', '⚠ Offline — saved on this device'); return; }
+  pushing = true;
+  setSync('busy', '☁ Syncing…');
+  try {
+    const res = await fetch(SYNC_URL, {
+      method: 'PUT',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ updatedAt: syncMeta.updatedAt, device: syncMeta.device, state }),
+    });
+    if (res.status === 409) {
+      // Another device saved after us. Take the cloud copy and tell the user.
+      const remote = await res.json();
+      applyRemote(remote);
+      alert('Inventory was updated on another device just now. This screen now shows the latest cloud data — please re-check your last change.');
+    } else if (res.status === 503) {
+      cloudAvailable = false;
+      setSync('warn', '⚠ Cloud sync not set up — saved on this device');
+    } else if (!res.ok) {
+      throw new Error('HTTP ' + res.status);
+    } else {
+      setSync('ok', '☁ Synced ' + timeLabel(syncMeta.updatedAt));
+    }
+  } catch (e) {
+    setSync('err', '⚠ Sync failed — saved on this device');
+  }
+  pushing = false;
+  if (pushAgain) { pushAgain = false; queuePush(); }
+}
+
+async function pullFromCloud(reason) {
+  if (!cloudAvailable) { setSync('warn', '⚠ Cloud sync not set up — saved on this device'); return; }
+  if (!navigator.onLine) { setSync('warn', '⚠ Offline — saved on this device'); return; }
+  if (reason === 'manual') setSync('busy', '☁ Syncing…');
+  try {
+    const res = await fetch(SYNC_URL + '?t=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' });
+    if (res.status === 503) { cloudAvailable = false; setSync('warn', '⚠ Cloud sync not set up — saved on this device'); return; }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const remote = await res.json();
+
+    if (!remote || !remote.state) {
+      // Cloud is empty: seed it from this device if there is anything here.
+      if (hasData(state)) { if (!syncMeta.updatedAt) syncMeta.updatedAt = Date.now(); saveLocal(); queuePush(); }
+      else setSync('ok', '☁ Synced');
+      return;
+    }
+
+    if (remote.updatedAt > syncMeta.updatedAt) {
+      // First sync on a device that already has data → ask which copy to keep.
+      if (reason === 'boot' && !syncMeta.updatedAt && hasData(state)) {
+        const useCloud = confirm(
+          'Cloud inventory data was found (saved from another device).\n\n' +
+          'OK = use the cloud data on this device (recommended).\n' +
+          'Cancel = keep THIS device\'s data and upload it to the cloud, replacing the cloud copy.'
+        );
+        if (!useCloud) { syncMeta.updatedAt = Date.now(); saveLocal(); queuePush(); return; }
+      }
+      applyRemote(remote);
+    } else if (remote.updatedAt < syncMeta.updatedAt) {
+      queuePush(); // this device has newer (offline) edits
+    } else {
+      setSync('ok', '☁ Synced ' + timeLabel(syncMeta.updatedAt));
+    }
+  } catch (e) {
+    setSync('err', '⚠ Sync failed — saved on this device');
+  }
+}
+
+function applyRemote(remote) {
+  try { localStorage.setItem('rally_v3_prev', localStorage.getItem('rally_v3') || ''); } catch(e) {} // safety copy
+  state = remote.state;
+  syncMeta.updatedAt = remote.updatedAt || Date.now();
+  saveLocal();
+  closeModal();
+  render();
+  setSync('ok', '☁ Synced ' + timeLabel(syncMeta.updatedAt));
+}
+
 /* ── BOOT ────────────────────────────────────────────────── */
 render();
+pullFromCloud('boot');
+setInterval(() => { if (document.visibilityState === 'visible') pullFromCloud('interval'); }, 45000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pullFromCloud('focus'); });
+window.addEventListener('online', () => pullFromCloud('online'));
+window.addEventListener('offline', () => setSync('warn', '⚠ Offline — saved on this device'));
 </script>
 </body>
 </html>
