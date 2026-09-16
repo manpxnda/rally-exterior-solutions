@@ -30,7 +30,8 @@ Conversion-focused marketing site for **Rally Exterior Solutions** — premium e
 - **Lighting mockup tool** (`/mockup`): client canvas (`components/mockup/LightingMockup.tsx`) — upload home photo → best-effort sky-heuristic roofline auto-detect + drag/tap to adjust → live-renders C9/permanent lights (glow, facing, spacing, color, night mode). Submits rendered preview + photo to `/api/mockup` → Resend email (base64 attachments) to `LEAD_EMAIL_TO`. Component is reusable — meant to embed into `/lp/*` later.
 - **`HideOnDashboard`** hides global nav chrome on **`/dashboard` AND `/lp`** (`BARE_ROUTES`). `/lp/[slug]` renders its own minimal header/footer (use `<div>` not landmark tags — it's nested in root `<main>`). `TrackedCall` = style-able tracked phone link for custom CTAs.
 - `src/components/` — `layout/`, `sections/` (homepage blocks), `ui/` (Button, Section, Icon, MediaFrame, **BeforeAfter** slider…), `analytics/`.
-- `src/middleware.ts` — Basic Auth gate for `/dashboard`.
+- `src/middleware.ts` — Basic Auth gate for `/dashboard` (DASHBOARD_*) and **`/inventory`** (INVENTORY_* → falls back to DASHBOARD_*).
+- **`/inventory`** — Rally's private lighting-inventory app: the single-file HTML from `Rally Inventory/rally_lighting_inventory.html`, copied to `public/inventory/index.html` and served at `/inventory` via a `beforeFiles` rewrite in `next.config.mjs`. Data lives in the browser's `localStorage` (per device/browser — no shared backend yet). To update the app, overwrite `public/inventory/index.html`. Disallowed in robots.
 - Favicons: `public/favicon.ico` + `public/icon.png` + `public/apple-icon.png` + `public/icon.svg`, declared via `metadata.icons` in `layout.tsx` (NOT app/icon convention — that conflicted).
 - Real photos: `public/images/gallery/` (before/after pairs), `/lighting/` (12), `/services/` (spliced before|after hero composites), `/team/rally-driveway.png`.
 

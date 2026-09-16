@@ -1,0 +1,2049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rally Exterior Solutions — Lighting Inventory</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px;line-height:1.5}
+.topbar{background:#1a1a1a;color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-size:15px;font-weight:600;white-space:nowrap}
+.brand span{color:#aaa;font-weight:400;margin-left:8px;font-size:13px}
+.topbar-actions{display:flex;gap:6px;flex-wrap:wrap}
+.container{max-width:1300px;margin:0 auto;padding:20px 24px}
+.nav{display:flex;gap:4px;margin-bottom:20px;background:#fff;border:1px solid #e5e5e3;border-radius:10px;padding:4px;flex-wrap:wrap}
+.nav button{padding:7px 15px;font-size:13px;border:none;border-radius:7px;background:transparent;color:#666;cursor:pointer;font-family:inherit;transition:all 0.15s;white-space:nowrap}
+.nav button.active{background:#1a1a1a;color:#fff}
+.nav button:hover:not(.active){background:#f5f5f3}
+.section{display:none}.section.active{display:block}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap}
+h2{font-size:17px;font-weight:600}
+
+/* Cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:20px}
+.card{background:#fff;border:1px solid #e5e5e3;border-radius:10px;padding:14px 16px}
+.card .label{font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.05em}
+.card .value{font-size:22px;font-weight:600}
+.card .sub{font-size:11px;color:#aaa;margin-top:2px}
+.card.warn .value{color:#d97706}
+.card.danger .value{color:#dc2626}
+
+/* Category pills */
+.cat-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.pill{padding:5px 13px;font-size:12px;border:1px solid #e0e0de;border-radius:20px;background:#fff;color:#555;cursor:pointer;font-family:inherit;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px}
+.pill.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.pill:hover:not(.active){background:#f5f5f3}
+.pill .pill-count{font-size:10px;opacity:0.7}
+
+/* Category section */
+.cat-section{margin-bottom:28px}
+.cat-head{display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:2px solid #1a1a1a;margin-bottom:10px}
+.cat-name{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.09em}
+.cat-stats{font-size:11px;color:#888;display:flex;gap:14px}
+.cat-stats .warn{color:#d97706;font-weight:600}
+.cat-stats .danger{color:#dc2626;font-weight:600}
+
+/* Table */
+.tbl-wrap{background:#fff;border:1px solid #e5e5e3;border-radius:10px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;padding:8px 11px;border-bottom:1px solid #e5e5e3;color:#888;font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;background:#fafaf8;white-space:nowrap}
+td{padding:8px 11px;border-bottom:1px solid #f0f0ee;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+
+/* Group rows */
+.g-row td{background:#fff}
+.g-row:hover td{background:#fafaf8;cursor:pointer}
+.g-row td:first-child{font-weight:600}
+.expand-btn{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:4px;background:#f0f0ee;color:#666;font-size:9px;margin-right:6px;transition:transform 0.15s;flex-shrink:0;vertical-align:middle}
+.g-row.open .expand-btn{transform:rotate(90deg)}
+
+/* Variant rows */
+.v-row td{background:#fafaf8;border-bottom:1px solid #ebebea}
+.v-row:last-child td,
+.v-row.v-last td{border-bottom:1px solid #f0f0ee}
+.v-row td:first-child{padding-left:36px;color:#444}
+
+/* Single item rows */
+.i-row:hover td{background:#fafaf8}
+
+/* Badges */
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500;white-space:nowrap}
+.ok{background:#dcfce7;color:#166534}
+.warn{background:#fef9c3;color:#854d0e}
+.danger{background:#fee2e2;color:#991b1b}
+.info{background:#dbeafe;color:#1e40af}
+.neutral{background:#f4f4f2;color:#666}
+.purple{background:#f3e8ff;color:#7e22ce}
+.green-soft{background:#d1fae5;color:#065f46}
+
+/* Inputs */
+input[type=number],input[type=text],input[type=date],select,textarea{font-size:13px;padding:6px 9px;border:1px solid #e0e0de;border-radius:6px;background:#fff;color:#1a1a1a;font-family:inherit;width:100%;transition:border-color 0.15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#1a1a1a}
+.qty-input{width:65px!important}
+.ro-input{width:55px!important}
+
+/* Buttons */
+.btn{padding:7px 13px;font-size:13px;border:1px solid #e0e0de;border-radius:7px;background:#fff;color:#1a1a1a;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;transition:all 0.15s;white-space:nowrap}
+.btn:hover{background:#f5f5f3}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-primary:hover{background:#333}
+.btn-sm{padding:4px 9px;font-size:12px}
+.btn-xs{padding:2px 7px;font-size:11px}
+.btn-danger{border-color:#fca5a5;color:#991b1b}
+.btn-danger:hover{background:#fee2e2}
+.btn-ghost{border-color:transparent;background:transparent;color:#888}
+.btn-ghost:hover{background:#f5f5f3;color:#1a1a1a;border-color:#e0e0de}
+.btn-export{border-color:#a7f3d0;color:#065f46}
+.btn-export:hover{background:#d1fae5}
+.btn-muted{border-color:#444;color:#aaa;background:transparent}
+.btn-muted:hover{background:#333;color:#fff}
+
+/* Form */
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px}
+.fg label{font-size:11px;color:#888;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.04em;font-weight:500}
+.full{grid-column:1/-1}
+.hint{font-size:11px;color:#aaa;margin-top:3px}
+
+/* Variant editor */
+.ve-wrap{border:1px solid #e5e5e3;border-radius:8px;overflow:hidden;margin-top:4px}
+.ve-head{display:grid;grid-template-columns:1.8fr 90px 90px 90px 60px 60px 24px;gap:6px;padding:6px 10px;background:#fafaf8;font-size:10px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid #e5e5e3}
+.ve-row{display:grid;grid-template-columns:1.8fr 90px 90px 90px 60px 60px 24px;gap:6px;padding:7px 10px;border-bottom:1px solid #f0f0ee;align-items:center}
+.ve-row:last-child{border-bottom:none}
+.ve-row input{min-width:0;padding:5px 7px;font-size:12px}
+.ve-add{padding:8px 10px;text-align:center;border-top:1px solid #e5e5e3;background:#fafaf8}
+
+/* Alerts */
+.alert{padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px}
+.alert-warn{background:#fef9c3;color:#854d0e;border:1px solid #fde68a}
+.alert-success{background:#dcfce7;color:#166534;border:1px solid #bbf7d0}
+.alert-info{background:#dbeafe;color:#1e40af;border:1px solid #bfdbfe}
+
+/* Section label */
+.sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:#888;margin:18px 0 8px;padding-bottom:5px;border-bottom:1px solid #e5e5e3}
+
+/* Tag */
+.tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:11px;background:#f0f0ee;color:#666;margin-left:3px}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:100;padding:16px}
+.modal{background:#fff;border-radius:12px;padding:24px;width:100%;max-width:660px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,0.18)}
+.modal-title{font-size:15px;font-weight:600;margin-bottom:18px}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid #f0f0ee}
+
+/* Progress */
+.progress-bar{height:4px;border-radius:2px;background:#f0f0ee;overflow:hidden;margin-top:3px;min-width:50px}
+.progress-fill{height:100%;border-radius:2px;background:#1a1a1a}
+.progress-fill.warn-fill{background:#d97706}
+.progress-fill.danger-fill{background:#dc2626}
+
+/* Reorder list */
+.reorder-item{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid #f0f0ee}
+.reorder-item:last-child{border-bottom:none}
+.reorder-name{font-weight:500;font-size:13px}
+.reorder-meta{font-size:11px;color:#888;margin-top:2px}
+.reorder-cost{font-size:13px;font-weight:600;color:#1a1a1a;text-align:right}
+.reorder-cost-sub{font-size:11px;color:#888;margin-top:1px;text-align:right}
+
+/* Settings panel */
+.settings-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0ee}
+.settings-row:last-child{border-bottom:none}
+.settings-label{font-size:13px;font-weight:500}
+.settings-sub{font-size:11px;color:#888;margin-top:1px}
+.settings-input{width:100px;text-align:right}
+
+/* Reserve form */
+.res-project-bar{background:#fff;border:1px solid #e5e5e3;border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.res-project-bar select{flex:1;min-width:180px;max-width:320px}
+.res-project-meta{font-size:12px;color:#888;flex:1}
+.res-summary{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;color:#166534}
+.res-summary-items{margin-top:4px;font-size:12px;color:#166534;opacity:0.85}
+.res-filter{display:flex;gap:6px;margin-bottom:16px}
+.res-cat-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.09em;color:#1a1a1a;padding:10px 14px 6px;border-bottom:1px solid #e5e5e3;background:#fafaf8}
+.res-group-head{font-size:12px;font-weight:600;color:#555;padding:7px 14px 4px;background:#fafaf8;border-bottom:1px solid #f0f0ee}
+.res-row{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:9px 14px;border-bottom:1px solid #f0f0ee}
+.res-row:last-child{border-bottom:none}
+.res-row.dimmed{opacity:0.4}
+.res-row-name{font-size:13px}
+.res-row-avail{font-size:12px;color:#888;white-space:nowrap;text-align:right;min-width:90px}
+.res-row-avail.none{color:#dc2626}
+.stepper{display:flex;align-items:center;gap:0}
+.step-btn{width:28px;height:30px;border:1px solid #e0e0de;background:#fff;color:#555;cursor:pointer;font-size:15px;font-family:inherit;transition:background 0.1s;flex-shrink:0}
+.step-btn:first-child{border-radius:6px 0 0 6px;border-right:none}
+.step-btn:last-child{border-radius:0 6px 6px 0;border-left:none}
+.step-btn:hover{background:#f5f5f3}
+.step-input{width:52px;height:30px;border:1px solid #e0e0de;border-radius:0;text-align:center;font-size:13px;padding:0 4px}
+.step-input:focus{outline:none;border-color:#1a1a1a;position:relative;z-index:1}
+
+/* Avail column in inventory */
+.avail-cell{display:flex;flex-direction:column;gap:1px}
+.avail-num{font-weight:600}
+.avail-num.avail-ok{color:#166534}
+.avail-num.avail-partial{color:#d97706}
+.avail-num.avail-zero{color:#dc2626}
+.avail-rsv{font-size:10px;color:#aaa}
+
+/* Auto-calc indicator in modal */
+.calc-input{background:#f0fdf4 !important;color:#166534 !important}
+
+/* Drag-and-drop */
+.drag-handle{cursor:grab;color:#ccc;padding:0 7px 0 0;user-select:none;font-size:13px;display:inline-block;line-height:1;vertical-align:middle}
+.drag-handle:hover{color:#666}
+tr.inv-dragging td{opacity:0.35;background:#f5f5f3!important}
+tr.drag-over-top td{border-top:2px solid #1a1a1a!important}
+tr.drag-over-bottom td{border-bottom:2px solid #1a1a1a!important}
+.cat-section.drag-cat-target .cat-head{background:#eff6ff}
+.cat-section.drag-cat-target .tbl-wrap{outline:2px dashed #93c5fd;border-radius:10px}
+
+/* Upload Order */
+.upload-zone{border:2px dashed #d0d0ce;border-radius:10px;padding:28px;text-align:center;cursor:pointer;transition:border-color 0.15s,background 0.15s}
+.upload-zone:hover,.upload-zone.drag-over{border-color:#1a1a1a;background:#fafaf8}
+.upload-zone input[type=file]{display:none}
+.upload-preview{max-width:100%;max-height:200px;border-radius:8px;border:1px solid #e5e5e3;display:block;margin:8px auto 0}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">Rally Exterior Solutions <span>Lighting Inventory</span></div>
+  <div class="topbar-actions">
+    <button class="btn btn-sm btn-ghost" onclick="openSettings()" style="color:#aaa;border-color:#444">⚙ Settings</button>
+    <button class="btn btn-sm btn-export" onclick="exportCSV()" style="background:transparent">↓ CSV</button>
+    <button class="btn btn-sm btn-muted" onclick="exportJSON()">↓ Backup</button>
+    <label class="btn btn-sm btn-muted" style="cursor:pointer">↑ Restore <input type="file" accept=".json" onchange="importJSON(this)" style="display:none"></label>
+  </div>
+</div>
+
+<div class="container">
+<nav class="nav">
+  <button class="active" onclick="showSection('inventory',this)">📦 Inventory</button>
+  <button onclick="showSection('reorder',this)">🔔 Reorder</button>
+  <button onclick="showSection('projects',this)">📋 Projects</button>
+  <button onclick="showSection('reserve',this)">🔒 Reserve</button>
+  <button onclick="showSection('confirm',this)">✅ Confirm install</button>
+  <button onclick="showSection('reports',this)">📊 Reports</button>
+</nav>
+
+<!-- INVENTORY -->
+<div id="inventory" class="section active">
+  <div class="toolbar">
+    <h2>Inventory</h2>
+    <button class="btn btn-sm btn-ghost" onclick="recalcReserved()" title="Recompute reserved counts from all active projects">↺ Refresh reserved</button>
+    <button class="btn btn-sm" onclick="openUploadOrder()" style="border-color:#7c3aed;color:#7c3aed">↑ Upload order</button>
+    <button class="btn btn-sm btn-primary" onclick="openAddGroup()">+ Add item / group</button>
+  </div>
+  <div id="inv-alerts"></div>
+  <div id="inv-cards" class="cards"></div>
+  <div id="cat-pills" class="cat-pills"></div>
+  <div id="inv-body"></div>
+</div>
+
+<!-- REORDER -->
+<div id="reorder" class="section">
+  <div class="toolbar"><h2>Reorder needed</h2></div>
+  <p style="font-size:13px;color:#888;margin-bottom:16px">Items at or below their reorder point, with estimated cost to replenish.</p>
+  <div id="reorder-body"></div>
+</div>
+
+<!-- PROJECTS -->
+<div id="projects" class="section">
+  <div class="toolbar">
+    <h2>Projects</h2>
+    <button class="btn btn-sm btn-primary" onclick="openAddProject()">+ New project</button>
+  </div>
+  <div id="proj-sort-bar" style="margin-bottom:16px"></div>
+  <div id="proj-list"></div>
+</div>
+
+<!-- RESERVE -->
+<div id="reserve" class="section">
+  <div class="toolbar">
+    <div>
+      <h2>Reserve inventory</h2>
+      <p style="font-size:13px;color:#888;margin-top:2px">Allocate stock to a project ahead of installation.</p>
+    </div>
+  </div>
+  <div class="res-project-bar">
+    <div class="fg" style="margin:0;min-width:200px;max-width:320px">
+      <label style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.04em;font-weight:500;display:block;margin-bottom:4px">Project</label>
+      <select id="res-project" onchange="renderReserveForm()"></select>
+    </div>
+    <div class="res-project-meta" id="res-project-meta"></div>
+    <button class="btn btn-sm btn-primary" onclick="openAddProject()">+ New project</button>
+  </div>
+  <div id="reserve-form"></div>
+</div>
+
+<!-- CONFIRM -->
+<div id="confirm" class="section">
+  <div class="toolbar">
+    <div>
+      <h2>Confirm installation</h2>
+      <p style="font-size:13px;color:#888;margin-top:2px">Log what was actually used after the job is done.</p>
+    </div>
+  </div>
+  <div class="res-project-bar">
+    <div class="fg" style="margin:0;min-width:200px;max-width:320px">
+      <label style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.04em;font-weight:500;display:block;margin-bottom:4px">Project</label>
+      <select id="conf-project" onchange="renderConfirmForm()"></select>
+    </div>
+    <div class="res-project-meta" id="conf-project-meta"></div>
+  </div>
+  <div id="confirm-form"></div>
+</div>
+
+<!-- REPORTS -->
+<div id="reports" class="section">
+  <h2 style="margin-bottom:16px">Reports</h2>
+  <div id="report-cards" class="cards"></div>
+  <div class="sec-label">Cost per foot — completed installs</div>
+  <div class="tbl-wrap" style="margin-bottom:20px">
+    <table>
+      <thead><tr><th>Project</th><th>Address</th><th>Date</th><th>Footage</th><th>Material cost</th><th>Cost / ft</th><th>Notes</th></tr></thead>
+      <tbody id="report-tbody"></tbody>
+    </table>
+  </div>
+  <div class="sec-label">Stock value by category</div>
+  <div class="tbl-wrap" style="margin-bottom:20px">
+    <table>
+      <thead><tr><th>Category</th><th>Groups</th><th>SKUs</th><th>Total units</th><th>Stock value</th><th>% of total</th></tr></thead>
+      <tbody id="cat-report-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- /container -->
+<div id="modal-root"></div>
+
+<script>
+/* ── CONSTANTS ────────────────────────────────────────── */
+const CATS = [
+  {id:'track',      name:'Track & Mounting'},
+  {id:'lights',     name:'Lights'},
+  {id:'wire',       name:'Extension Wire'},
+  {id:'connectors', name:'Connectors'},
+  {id:'power',      name:'Power Supplies'},
+  {id:'controllers',name:'Controllers'},
+  {id:'accessories',name:'Accessories'},
+];
+
+/* ── STATE ────────────────────────────────────────────── */
+let state = {
+  settings: { taxPct: 6, shippingEst: 0 },
+  inventory: [
+    /* ── TRACK & MOUNTING ── */
+    {id:'g1', name:'Base Track',       cat:'track', unit:'3ft section', taxPct:null, shippingEst:null,
+      variants:[{id:'g1v1',label:null,qty:0,reserved:0,reorderAt:10,unitCost:4.40,bundleQty:null,bundleCost:null}]},
+    {id:'g2', name:'Mounting Channel', cat:'track', unit:'3ft section', taxPct:null, shippingEst:null,
+      variants:[{id:'g2v1',label:null,qty:0,reserved:0,reorderAt:10,unitCost:3.62,bundleQty:null,bundleCost:null}]},
+    {id:'g3', name:'Track Covers',     cat:'track', unit:'9.75in section', taxPct:null, shippingEst:null,
+      variants:[{id:'g3v1',label:null,qty:0,reserved:0,reorderAt:20,unitCost:0.52,bundleQty:null,bundleCost:null}]},
+    {id:'g4', name:'Pebble Clips',     cat:'track', unit:'each', taxPct:null, shippingEst:null,
+      variants:[{id:'g4v1',label:null,qty:0,reserved:0,reorderAt:50,unitCost:0.89,bundleQty:null,bundleCost:null}]},
+    {id:'g5', name:'3M VHB Tape',      cat:'track', unit:'105ft roll', taxPct:null, shippingEst:null,
+      variants:[{id:'g5v1',label:null,qty:0,reserved:0,reorderAt:2,unitCost:87.93,bundleQty:null,bundleCost:null}]},
+    {id:'g6', name:'Lite Clip Strips', cat:'track', unit:'pack', taxPct:null, shippingEst:null,
+      variants:[{id:'g6v1',label:null,qty:0,reserved:0,reorderAt:1,unitCost:777.40,bundleQty:null,bundleCost:null}]},
+
+    /* ── LIGHTS ── */
+    {id:'g7', name:'RGBW Pebbles', cat:'lights', unit:'strand', taxPct:null, shippingEst:null,
+      variants:[
+        {id:'g7v1',label:'25ft (×16)',  qty:0,reserved:0,reorderAt:5,unitCost:4.57, bundleQty:25,bundleCost:114.17},
+        {id:'g7v2',label:'10ft (×20)',  qty:0,reserved:0,reorderAt:5,unitCost:5.84, bundleQty:10,bundleCost:58.36},
+        {id:'g7v3',label:'5ft (×30)',   qty:0,reserved:0,reorderAt:5,unitCost:5.94, bundleQty:5, bundleCost:29.71},
+        {id:'g7v4',label:'2ft (×30)',   qty:0,reserved:0,reorderAt:5,unitCost:6.33, bundleQty:2, bundleCost:12.65},
+        {id:'g7v5',label:'1ft (×30)',   qty:0,reserved:0,reorderAt:5,unitCost:8.05, bundleQty:1, bundleCost:8.05},
+      ]},
+    {id:'g8', name:'RGBW Pearls', cat:'lights', unit:'strand', taxPct:null, shippingEst:null,
+      variants:[
+        {id:'g8v1',label:'25ft', qty:0,reserved:0,reorderAt:5,unitCost:6.47,bundleQty:25,bundleCost:161.69},
+        {id:'g8v2',label:'10ft', qty:0,reserved:0,reorderAt:5,unitCost:6.75,bundleQty:10,bundleCost:67.46},
+        {id:'g8v3',label:'5ft',  qty:0,reserved:0,reorderAt:5,unitCost:6.91,bundleQty:5, bundleCost:34.55},
+        {id:'g8v4',label:'2ft',  qty:0,reserved:0,reorderAt:5,unitCost:8.98,bundleQty:2, bundleCost:17.96},
+        {id:'g8v5',label:'1ft',  qty:0,reserved:0,reorderAt:5,unitCost:null,bundleQty:null,bundleCost:null},
+      ]},
+    {id:'g9', name:'RGBW C9', cat:'lights', unit:'strand', taxPct:null, shippingEst:null,
+      variants:[
+        {id:'g9v1',label:'30ft (25 bulbs)',   qty:0,reserved:0,reorderAt:5,unitCost:5.17,bundleQty:25,bundleCost:129.33},
+        {id:'g9v2',label:'12.5ft (10 bulbs)', qty:0,reserved:0,reorderAt:5,unitCost:5.69,bundleQty:10,bundleCost:56.88},
+        {id:'g9v3',label:'6.25ft (5 bulbs)',  qty:0,reserved:0,reorderAt:5,unitCost:5.79,bundleQty:5, bundleCost:28.93},
+        {id:'g9v4',label:'2.5ft (2 bulbs)',   qty:0,reserved:0,reorderAt:5,unitCost:6.70,bundleQty:2, bundleCost:13.41},
+        {id:'g9v5',label:'1.25ft (1 bulb)',   qty:0,reserved:0,reorderAt:5,unitCost:9.27,bundleQty:1, bundleCost:9.27},
+      ]},
+
+    /* ── EXTENSION WIRE ── */
+    {id:'g10', name:'Extension Wire', cat:'wire', unit:'wire', taxPct:null, shippingEst:null,
+      variants:[
+        {id:'g10v1',label:'50ft',qty:0,reserved:0,reorderAt:5,unitCost:1.55,bundleQty:50,bundleCost:77.58},
+        {id:'g10v2',label:'25ft',qty:0,reserved:0,reorderAt:5,unitCost:1.90,bundleQty:25,bundleCost:47.56},
+        {id:'g10v3',label:'20ft',qty:0,reserved:0,reorderAt:5,unitCost:2.02,bundleQty:20,bundleCost:40.32},
+        {id:'g10v4',label:'10ft',qty:0,reserved:0,reorderAt:5,unitCost:2.07,bundleQty:10,bundleCost:20.65},
+        {id:'g10v5',label:'5ft', qty:0,reserved:0,reorderAt:5,unitCost:2.68,bundleQty:5, bundleCost:13.41},
+        {id:'g10v6',label:'2ft', qty:0,reserved:0,reorderAt:5,unitCost:5.15,bundleQty:2, bundleCost:10.30},
+        {id:'g10v7',label:'1ft', qty:0,reserved:0,reorderAt:5,unitCost:7.20,bundleQty:1, bundleCost:7.20},
+      ]},
+
+    /* ── POWER SUPPLIES ── */
+    {id:'g11', name:'Power Supply', cat:'power', unit:'each', taxPct:null, shippingEst:25,
+      variants:[
+        {id:'g11v1',label:'4.17A (100W)',qty:0,reserved:0,reorderAt:2,unitCost:93.10, bundleQty:null,bundleCost:null},
+        {id:'g11v2',label:'5.0A',        qty:0,reserved:0,reorderAt:2,unitCost:99.67, bundleQty:null,bundleCost:3271.26},
+        {id:'g11v3',label:'8.3A',        qty:0,reserved:0,reorderAt:1,unitCost:160.43,bundleQty:null,bundleCost:3799.83},
+      ]},
+
+    /* ── CONTROLLERS ── */
+    {id:'g12', name:'WEC Controller', cat:'controllers', unit:'each', taxPct:null, shippingEst:15,
+      variants:[
+        {id:'g12v1',label:'Mini (WEC3)',       qty:0,reserved:0,reorderAt:2,unitCost:132.25,bundleQty:null,bundleCost:null},
+        {id:'g12v2',label:'Boss (WEC3)',       qty:0,reserved:0,reorderAt:1,unitCost:217.30,bundleQty:null,bundleCost:null},
+        {id:'g12v3',label:'Dual Port (WEC3)',  qty:0,reserved:0,reorderAt:1,unitCost:241.50,bundleQty:null,bundleCost:null},
+      ]},
+
+    /* ── CONNECTORS ── */
+    {id:'g13', name:'T Connectors', cat:'connectors', unit:'each', taxPct:null, shippingEst:null,
+      variants:[
+        {id:'g13v1',label:'Power Tee',         qty:0,reserved:0,reorderAt:5,unitCost:26.86,bundleQty:null,bundleCost:null},
+        {id:'g13v2',label:'Basic 4-Pin (White)',qty:0,reserved:0,reorderAt:5,unitCost:10.30,bundleQty:null,bundleCost:null},
+      ]},
+    {id:'g14', name:'Smart-T Connector', cat:'connectors', unit:'each', taxPct:null, shippingEst:null,
+      variants:[{id:'g14v1',label:null,qty:0,reserved:0,reorderAt:3,unitCost:25.95,bundleQty:null,bundleCost:null}]},
+    {id:'g15', name:'Signal Booster',    cat:'connectors', unit:'2-piece set', taxPct:null, shippingEst:null,
+      variants:[{id:'g15v1',label:null,qty:0,reserved:0,reorderAt:2,unitCost:25.00,bundleQty:null,bundleCost:null}]},
+    {id:'g16', name:'Conversion Cable',  cat:'connectors', unit:'each', taxPct:null, shippingEst:null,
+      variants:[
+        {id:'g16v1',label:'2-to-4 Pin',qty:0,reserved:0,reorderAt:3,unitCost:7.95, bundleQty:null,bundleCost:null},
+        {id:'g16v2',label:'3-to-4 Pin',qty:0,reserved:0,reorderAt:3,unitCost:9.95, bundleQty:null,bundleCost:null},
+      ]},
+    {id:'g17', name:'Meshtek Repeater', cat:'connectors', unit:'each', taxPct:null, shippingEst:null,
+      variants:[{id:'g17v1',label:null,qty:0,reserved:0,reorderAt:1,unitCost:160.00,bundleQty:null,bundleCost:null}]},
+  ],
+  projects: [],
+  installs: [],
+  wasteLog: [],
+  nextId: 300,
+};
+
+/* ── EXPAND STATE (not persisted) ── */
+let expanded = new Set();
+let activeCat = 'all';
+let confirmExtras = [];
+let lastConfirmPid = null;
+
+/* ── HELPERS ────────────────────────────────────────────── */
+function uid() { return 'x' + (state.nextId++); }
+
+function tax(g)  { return (g.taxPct  != null ? g.taxPct  : state.settings.taxPct)  / 100; }
+function ship(g) { return g.shippingEst != null ? g.shippingEst : state.settings.shippingEst; }
+
+function effectiveCost(v) {
+  if (v.bundleQty && v.bundleCost) return +(v.bundleCost / v.bundleQty).toFixed(4);
+  return v.unitCost || 0;
+}
+
+function avail(v) { return v.qty - v.reserved; }
+
+function reorderEst(g, v) {
+  const t = 1 + tax(g);
+  const s = ship(g);
+  if (v.bundleCost) return +(v.bundleCost * t + s).toFixed(2);
+  const qty = v.bundleQty || Math.max(v.reorderAt, 1);
+  return +((v.unitCost || 0) * qty * t + s).toFixed(2);
+}
+
+function vStatus(v) {
+  if (v.qty === 0) return 'danger';
+  if (v.qty <= v.reorderAt) return 'warn';
+  return 'ok';
+}
+
+function gStatus(g) {
+  const s = g.variants.map(vStatus);
+  if (s.includes('danger')) return 'danger';
+  if (s.includes('warn'))   return 'warn';
+  return 'ok';
+}
+
+function statusLabel(s) {
+  return s === 'ok' ? 'In stock' : s === 'warn' ? 'Reorder now' : 'Out of stock';
+}
+
+function statusClass(s) {
+  return s === 'ok' ? 'ok' : s === 'warn' ? 'warn' : 'danger';
+}
+
+function isSingle(g) {
+  return g.variants.length === 1 && !g.variants[0].label;
+}
+
+function catName(id) {
+  return (CATS.find(c => c.id === id) || {name: id}).name;
+}
+
+function fmtCost(v) {
+  const c = effectiveCost(v);
+  return c ? '$' + c.toFixed(2) : '—';
+}
+
+function bundleLabel(v) {
+  if (!v.bundleCost) return '—';
+  if (v.bundleQty) return v.bundleQty + ' for $' + v.bundleCost.toFixed(2);
+  return '? qty / $' + v.bundleCost.toFixed(2) + ' ⚠';
+}
+
+/* ── PERSISTENCE ────────────────────────────────────────── */
+function save() {
+  try { localStorage.setItem('rally_v3', JSON.stringify(state)); } catch(e) {}
+}
+function load() {
+  try {
+    const s = localStorage.getItem('rally_v3');
+    if (s) { const d = JSON.parse(s); Object.assign(state, d); }
+  } catch(e) {}
+}
+
+load();
+
+/* ── NAVIGATION ─────────────────────────────────────────── */
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  render();
+}
+
+function render() {
+  renderInventory();
+  renderReorder();
+  renderProjects();
+  renderReserveSelects();
+  renderConfirmSelects();
+  renderReports();
+}
+
+/* ── INVENTORY ──────────────────────────────────────────── */
+function renderInventory() {
+  // Summary cards
+  const allVariants = state.inventory.flatMap(g => g.variants);
+  const totalValue  = state.inventory.reduce((s, g) => s + g.variants.reduce((sv, v) => sv + effectiveCost(v) * v.qty, 0), 0);
+  const lowCount    = state.inventory.filter(g => g.variants.some(v => !v.muteReorder && vStatus(v) !== 'ok')).length;
+  const activeProj  = state.projects.filter(p => !state.installs.find(i => i.projectId === p.id)).length;
+  const totalReserved = allVariants.reduce((s, v) => s + v.reserved, 0);
+
+  document.getElementById('inv-cards').innerHTML = `
+    <div class="card"><div class="label">Stock value</div><div class="value">$${Math.round(totalValue).toLocaleString()}</div><div class="sub">at cost</div></div>
+    <div class="card"><div class="label">Item groups</div><div class="value">${state.inventory.length}</div></div>
+    <div class="card"><div class="label">Total SKUs</div><div class="value">${allVariants.length}</div></div>
+    <div class="card ${lowCount > 0 ? 'warn' : ''}"><div class="label">Reorder alerts</div><div class="value">${lowCount}</div></div>
+    <div class="card"><div class="label">Units reserved</div><div class="value">${totalReserved}</div></div>
+    <div class="card"><div class="label">Active projects</div><div class="value">${activeProj}</div></div>
+  `;
+
+  // Low stock alert
+  const lowItems = state.inventory.filter(g => g.variants.some(v => !v.muteReorder && vStatus(v) !== 'ok'));
+  document.getElementById('inv-alerts').innerHTML = lowItems.length
+    ? `<div class="alert alert-warn">⚠ ${lowItems.length} item group${lowItems.length > 1 ? 's' : ''} need reordering — <a href="#" onclick="event.preventDefault();document.querySelector('[onclick*=reorder]').click()">view reorder list</a></div>`
+    : '';
+
+  // Category pills
+  const pillsEl = document.getElementById('cat-pills');
+  const catCounts = {};
+  state.inventory.forEach(g => { catCounts[g.cat] = (catCounts[g.cat] || 0) + 1; });
+  pillsEl.innerHTML = `<button class="pill ${activeCat === 'all' ? 'active' : ''}" onclick="setCat('all')">All <span class="pill-count">${state.inventory.length}</span></button>`
+    + CATS.filter(c => catCounts[c.id]).map(c =>
+      `<button class="pill ${activeCat === c.id ? 'active' : ''}" onclick="setCat('${c.id}')">${c.name} <span class="pill-count">${catCounts[c.id] || 0}</span></button>`
+    ).join('');
+
+  // Body
+  const visibleCats = activeCat === 'all' ? CATS : CATS.filter(c => c.id === activeCat);
+  const body = document.getElementById('inv-body');
+  body.innerHTML = visibleCats.map(c => {
+    const groups = state.inventory.filter(g => g.cat === c.id);
+    if (!groups.length) return '';
+    return renderCatSection(c, groups);
+  }).join('');
+  attachInvDragListeners();
+}
+
+function setCat(id) {
+  activeCat = id;
+  renderInventory();
+}
+
+function renderCatSection(cat, groups) {
+  const totalUnits  = groups.reduce((s, g) => s + g.variants.reduce((sv, v) => sv + v.qty, 0), 0);
+  const totalVal    = groups.reduce((s, g) => s + g.variants.reduce((sv, v) => sv + effectiveCost(v) * v.qty, 0), 0);
+  const alertCount  = groups.filter(g => g.variants.some(v => !v.muteReorder && vStatus(v) !== 'ok')).length;
+
+  const rows = groups.map(g => {
+    if (isSingle(g)) return renderItemRow(g, g.variants[0]);
+    return renderGroupRow(g) + (expanded.has(g.id) ? renderVariantRows(g) : '');
+  }).join('');
+
+  return `
+  <div class="cat-section" data-cat-id="${cat.id}">
+    <div class="cat-head" ondragover="invCatHeadDragOver(event)" ondragleave="invCatHeadDragLeave(event)" ondrop="invCatHeadDrop(event,'${cat.id}')">
+      <div class="cat-name">${cat.name}</div>
+      <div class="cat-stats">
+        <span>${groups.length} group${groups.length !== 1 ? 's' : ''}</span>
+        <span>$${Math.round(totalVal).toLocaleString()} value</span>
+        ${alertCount ? `<span class="${alertCount ? 'danger' : ''}">⚠ ${alertCount} alert${alertCount !== 1 ? 's' : ''}</span>` : '<span style="color:#166534">✓ All good</span>'}
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr>
+          <th style="min-width:180px">Item</th>
+          <th>Unit</th>
+          <th>Stock</th>
+          <th>Reserved</th>
+          <th>Avail</th>
+          <th>Reorder at</th>
+          <th>Unit cost</th>
+          <th>Bundle</th>
+          <th>Est. reorder</th>
+          <th>Status</th>
+          <th></th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderGroupRow(g) {
+  const totalQty  = g.variants.reduce((s, v) => s + v.qty, 0);
+  const totalRsvd = g.variants.reduce((s, v) => s + v.reserved, 0);
+  const totalAvail = totalQty - totalRsvd;
+  const s = gStatus(g);
+  const isOpen = expanded.has(g.id);
+  return `<tr class="g-row ${isOpen ? 'open' : ''}" data-gid="${g.id}" data-cat="${g.cat}" draggable="true" ondragstart="invDragStart(event,'${g.id}')" ondragend="invDragEnd(event)" onclick="toggleGroup('${g.id}')">
+    <td><span class="drag-handle" onclick="event.stopPropagation()">⠿</span><span class="expand-btn">▶</span>${g.name} <span class="tag" style="color:#888">${g.variants.length} variants</span></td>
+    <td style="color:#888">${g.unit}</td>
+    <td>${totalQty}</td>
+    <td style="color:#888">${totalRsvd}</td>
+    <td style="font-weight:600">${totalAvail}</td>
+    <td style="color:#aaa">—</td>
+    <td style="color:#aaa">—</td>
+    <td style="color:#aaa">—</td>
+    <td style="color:#aaa">—</td>
+    <td><span class="badge ${statusClass(s)}">${statusLabel(s)}</span></td>
+    <td style="white-space:nowrap">
+      <button class="btn btn-xs" onclick="event.stopPropagation();openEditGroup('${g.id}')">Edit</button>
+      <button class="btn btn-xs btn-danger" onclick="event.stopPropagation();deleteGroup('${g.id}')">✕</button>
+    </td>
+  </tr>`;
+}
+
+function renderVariantRows(g) {
+  return g.variants.map((v, i) => {
+    const av = avail(v);
+    const s = vStatus(v);
+    const est = reorderEst(g, v);
+    const isLast = i === g.variants.length - 1;
+    const availClass = av === 0 ? 'avail-zero' : v.reserved > 0 ? 'avail-partial' : 'avail-ok';
+    return `<tr class="v-row ${isLast ? 'v-last' : ''}">
+      <td>${v.label}</td>
+      <td style="color:#888">${g.unit}</td>
+      <td><input class="qty-input" type="number" min="0" value="${v.qty}" onchange="setQty('${g.id}','${v.id}',this.value)" onclick="event.stopPropagation()"></td>
+      <td style="color:#888;font-size:12px">${v.reserved > 0 ? v.reserved : '—'}</td>
+      <td><div class="avail-cell"><span class="avail-num ${availClass}">${av}</span>${v.reserved > 0 ? `<span class="avail-rsv">${v.reserved} reserved</span>` : ''}</div></td>
+      <td><input class="ro-input" type="number" min="0" value="${v.reorderAt}" onchange="setReorder('${g.id}','${v.id}',this.value)" onclick="event.stopPropagation()"></td>
+      <td>${fmtCost(v)}</td>
+      <td><span class="badge ${v.bundleCost ? 'purple' : 'neutral'}" style="${!v.bundleCost ? 'background:transparent;color:#aaa;padding:0' : ''}">${bundleLabel(v)}</span></td>
+      <td><span class="badge green-soft">$${est.toFixed(2)}</span></td>
+      <td><span class="badge ${statusClass(s)}">${statusLabel(s)}</span></td>
+      <td></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderItemRow(g, v) {
+  const av = avail(v);
+  const s = vStatus(v);
+  const est = reorderEst(g, v);
+  const availClass = av === 0 ? 'avail-zero' : v.reserved > 0 ? 'avail-partial' : 'avail-ok';
+  return `<tr class="i-row" data-gid="${g.id}" data-cat="${g.cat}" draggable="true" ondragstart="invDragStart(event,'${g.id}')" ondragend="invDragEnd(event)">
+    <td style="font-weight:500"><span class="drag-handle">⠿</span>${g.name}</td>
+    <td style="color:#888">${g.unit}</td>
+    <td><input class="qty-input" type="number" min="0" value="${v.qty}" onchange="setQty('${g.id}','${v.id}',this.value)"></td>
+    <td style="color:#888;font-size:12px">${v.reserved > 0 ? v.reserved : '—'}</td>
+    <td><div class="avail-cell"><span class="avail-num ${availClass}">${av}</span>${v.reserved > 0 ? `<span class="avail-rsv">${v.reserved} reserved</span>` : ''}</div></td>
+    <td><input class="ro-input" type="number" min="0" value="${v.reorderAt}" onchange="setReorder('${g.id}','${v.id}',this.value)"></td>
+    <td>${fmtCost(v)}</td>
+    <td><span class="badge ${v.bundleCost ? 'purple' : 'neutral'}" style="${!v.bundleCost ? 'background:transparent;color:#aaa;padding:0' : ''}">${bundleLabel(v)}</span></td>
+    <td><span class="badge green-soft">$${est.toFixed(2)}</span></td>
+    <td><span class="badge ${statusClass(s)}">${statusLabel(s)}</span></td>
+    <td style="white-space:nowrap">
+      <button class="btn btn-xs" onclick="openEditGroup('${g.id}')">Edit</button>
+      <button class="btn btn-xs btn-danger" onclick="deleteGroup('${g.id}')">✕</button>
+    </td>
+  </tr>`;
+}
+
+function toggleGroup(id) {
+  expanded.has(id) ? expanded.delete(id) : expanded.add(id);
+  renderInventory();
+}
+
+function setQty(gid, vid, val) {
+  const g = state.inventory.find(g => g.id === gid);
+  const v = g && g.variants.find(v => v.id === vid);
+  if (v) v.qty = Math.max(0, parseInt(val) || 0);
+  save(); renderInventory();
+}
+
+function setReorder(gid, vid, val) {
+  const g = state.inventory.find(g => g.id === gid);
+  const v = g && g.variants.find(v => v.id === vid);
+  if (v) v.reorderAt = Math.max(0, parseInt(val) || 0);
+  save(); renderInventory();
+}
+
+function deleteGroup(id) {
+  if (!confirm('Delete this item/group?')) return;
+  state.inventory = state.inventory.filter(g => g.id !== id);
+  save(); render();
+}
+
+/* ── INVENTORY DRAG-AND-DROP ─────────────────────────────── */
+let invDragGid = null;
+
+function invDragStart(e, gid) {
+  invDragGid = gid;
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', gid);
+  requestAnimationFrame(() => {
+    const row = document.querySelector(`tr[data-gid="${gid}"]`);
+    if (row) row.classList.add('inv-dragging');
+  });
+}
+
+function invDragEnd() {
+  document.querySelectorAll('.inv-dragging').forEach(el => el.classList.remove('inv-dragging'));
+  invClearDropIndicators();
+  invDragGid = null;
+}
+
+function invClearDropIndicators() {
+  document.querySelectorAll('.drag-over-top, .drag-over-bottom').forEach(el => {
+    el.classList.remove('drag-over-top', 'drag-over-bottom');
+  });
+  document.querySelectorAll('.drag-cat-target').forEach(el => el.classList.remove('drag-cat-target'));
+}
+
+function invCatHeadDragOver(e) {
+  if (!invDragGid) return;
+  e.preventDefault();
+  e.stopPropagation();
+  e.dataTransfer.dropEffect = 'move';
+  invClearDropIndicators();
+  e.currentTarget.closest('.cat-section').classList.add('drag-cat-target');
+}
+
+function invCatHeadDragLeave(e) {
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    e.currentTarget.closest('.cat-section').classList.remove('drag-cat-target');
+  }
+}
+
+function invCatHeadDrop(e, catId) {
+  e.preventDefault();
+  e.stopPropagation();
+  if (!invDragGid) return;
+  const dragIdx = state.inventory.findIndex(g => g.id === invDragGid);
+  if (dragIdx === -1) return;
+  const [item] = state.inventory.splice(dragIdx, 1);
+  item.cat = catId;
+  // Insert before the first item in this category
+  const firstIdx = state.inventory.findIndex(g => g.cat === catId);
+  state.inventory.splice(firstIdx === -1 ? state.inventory.length : firstIdx, 0, item);
+  invDragGid = null;
+  save(); render();
+}
+
+function attachInvDragListeners() {
+  document.querySelectorAll('#inv-body table').forEach(table => {
+    table.addEventListener('dragover', e => {
+      if (!invDragGid) return;
+      const row = e.target.closest('tr[data-gid]');
+      if (!row || row.dataset.gid === invDragGid) { invClearDropIndicators(); return; }
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      invClearDropIndicators();
+      const mid = row.getBoundingClientRect().top + row.getBoundingClientRect().height / 2;
+      row.classList.add(e.clientY < mid ? 'drag-over-top' : 'drag-over-bottom');
+    });
+
+    table.addEventListener('dragleave', e => {
+      if (!table.contains(e.relatedTarget)) invClearDropIndicators();
+    });
+
+    table.addEventListener('drop', e => {
+      e.preventDefault();
+      if (!invDragGid) return;
+      const row = e.target.closest('tr[data-gid]');
+      if (!row || row.dataset.gid === invDragGid) return;
+      const targetGid = row.dataset.gid;
+      const targetCat = row.dataset.cat;
+      const before = e.clientY < row.getBoundingClientRect().top + row.getBoundingClientRect().height / 2;
+      const dragIdx = state.inventory.findIndex(g => g.id === invDragGid);
+      if (dragIdx === -1) return;
+      const [item] = state.inventory.splice(dragIdx, 1);
+      item.cat = targetCat;
+      const targetIdx = state.inventory.findIndex(g => g.id === targetGid);
+      state.inventory.splice(before ? targetIdx : targetIdx + 1, 0, item);
+      invDragGid = null;
+      save(); render();
+    });
+  });
+}
+
+function recalcReserved() {
+  // Zero out all reserved counts
+  state.inventory.forEach(g => g.variants.forEach(v => { v.reserved = 0; }));
+  // Re-tally from all projects that haven't been installed
+  state.projects.forEach(p => {
+    if (state.installs.find(i => i.projectId === p.id)) return;
+    p.items.forEach(pi => {
+      const g = state.inventory.find(g => g.id === pi.groupId);
+      const v = g && g.variants.find(v => v.id === pi.variantId);
+      if (v) v.reserved += pi.qty;
+    });
+  });
+  save(); render();
+}
+
+/* ── REORDER TAB ─────────────────────────────────────────── */
+function renderReorder() {
+  const el = document.getElementById('reorder-body');
+  const active = [], muted = [];
+  state.inventory.forEach(g => {
+    g.variants.forEach(v => {
+      if (vStatus(v) !== 'ok') {
+        (v.muteReorder ? muted : active).push({ g, v });
+      }
+    });
+  });
+
+  if (!active.length && !muted.length) {
+    el.innerHTML = '<div class="alert alert-success">✓ All items are above their reorder points.</div>';
+    return;
+  }
+
+  function buildList(list, dim) {
+    const byCat = {};
+    list.forEach(({ g, v }) => {
+      if (!byCat[g.cat]) byCat[g.cat] = [];
+      byCat[g.cat].push({ g, v });
+    });
+    return Object.entries(byCat).map(([catId, catList]) => `
+      <div class="sec-label">${catName(catId)}</div>
+      <div class="tbl-wrap" style="margin-bottom:16px${dim ? ';opacity:0.5' : ''}">
+        ${catList.map(({ g, v }) => {
+          const s = vStatus(v);
+          const est = reorderEst(g, v);
+          const name = isSingle(g) ? g.name : `${g.name} — ${v.label}`;
+          const taxPct = (g.taxPct != null ? g.taxPct : state.settings.taxPct);
+          const shipAmt = ship(g);
+          let reorderDetail = '';
+          if (v.bundleCost && v.bundleQty) {
+            reorderDetail = `Bundle of ${v.bundleQty} × $${v.bundleCost.toFixed(2)} + ${taxPct}% tax + $${shipAmt} ship`;
+          } else if (v.bundleCost) {
+            reorderDetail = `Bulk order $${v.bundleCost.toFixed(2)} (enter bundle qty) + ${taxPct}% tax + $${shipAmt} ship`;
+          } else {
+            reorderDetail = `${v.reorderAt} × $${(v.unitCost||0).toFixed(2)}/unit + ${taxPct}% tax + $${shipAmt} ship`;
+          }
+          return `<div class="reorder-item">
+            <div>
+              <div class="reorder-name">${name}</div>
+              <div class="reorder-meta">Stock: ${v.qty} · Reorder at: ${v.reorderAt} · ${reorderDetail}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+              ${!dim ? `<div><div class="reorder-cost">$${est.toFixed(2)}</div><div class="reorder-cost-sub"><span class="badge ${statusClass(s)}">${statusLabel(s)}</span></div></div>` : ''}
+              <button class="btn btn-xs btn-ghost" onclick="toggleMuteReorder('${g.id}','${v.id}')">${dim ? 'Unmute' : 'Mute alerts'}</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    `).join('');
+  }
+
+  let html = '';
+  if (active.length) {
+    html += buildList(active, false);
+  } else {
+    html += '<div class="alert alert-success" style="margin-bottom:16px">✓ All active reorder alerts are clear.</div>';
+  }
+  if (muted.length) {
+    html += `<div class="sec-label" style="margin-top:4px;color:#aaa">Muted <span style="font-size:11px;font-weight:400;text-transform:none">(${muted.length} item${muted.length !== 1 ? 's' : ''} with alerts suppressed)</span></div>`;
+    html += buildList(muted, true);
+  }
+  el.innerHTML = html;
+}
+
+function toggleMuteReorder(gid, vid) {
+  const g = state.inventory.find(g => g.id === gid);
+  const v = g && g.variants.find(v => v.id === vid);
+  if (!v) return;
+  v.muteReorder = !v.muteReorder;
+  save(); renderReorder(); renderInventory();
+}
+
+/* ── ADD / EDIT GROUP MODAL ──────────────────────────────── */
+let editingGroupId = null;
+let modalVariants = [];
+
+function openAddGroup() {
+  editingGroupId = null;
+  modalVariants = [{ label: '', unitCost: '', bundleQty: '', bundleCost: '', qty: 0, reorderAt: 5 }];
+  showGroupModal('Add item / group', '', 'lights', '', state.settings.taxPct, state.settings.shippingEst);
+}
+
+function openEditGroup(id) {
+  const g = state.inventory.find(g => g.id === id);
+  if (!g) return;
+  editingGroupId = id;
+  modalVariants = g.variants.map(v => ({
+    id: v.id,
+    label: v.label || '',
+    unitCost: v.unitCost != null ? v.unitCost : '',
+    bundleQty: v.bundleQty != null ? v.bundleQty : '',
+    bundleCost: v.bundleCost != null ? v.bundleCost : '',
+    qty: v.qty,
+    reorderAt: v.reorderAt,
+  }));
+  const taxVal = g.taxPct != null ? g.taxPct : '';
+  const shipVal = g.shippingEst != null ? g.shippingEst : '';
+  showGroupModal('Edit item / group', g.name, g.cat, g.unit, taxVal, shipVal);
+}
+
+function showGroupModal(title, name, cat, unit, taxVal, shipVal) {
+  showModal(`
+    <div class="modal-title">${title}</div>
+    <div class="form-row">
+      <div class="fg full"><label>Name</label><input type="text" id="mg-name" value="${esc(name)}" placeholder="e.g. RGBW Pebbles, Power Supply"></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label>Category</label>
+        <select id="mg-cat">${CATS.map(c => `<option value="${c.id}" ${c.id === cat ? 'selected' : ''}>${c.name}</option>`).join('')}</select>
+      </div>
+      <div class="fg"><label>Unit label</label><input type="text" id="mg-unit" value="${esc(unit)}" placeholder="strand, each, section…"></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label>Tax % <span style="color:#aaa;font-weight:400;text-transform:none">(blank = use default ${state.settings.taxPct}%)</span></label>
+        <input type="number" id="mg-tax" min="0" step="0.1" value="${taxVal}" placeholder="${state.settings.taxPct}">
+      </div>
+      <div class="fg"><label>Shipping per order $ <span style="color:#aaa;font-weight:400;text-transform:none">(blank = default $${state.settings.shippingEst})</span></label>
+        <input type="number" id="mg-ship" min="0" step="0.01" value="${shipVal}" placeholder="${state.settings.shippingEst}">
+      </div>
+    </div>
+
+    <div class="sec-label" style="margin-top:16px">Variants / sizes
+      <span style="font-size:11px;color:#aaa;font-weight:400;text-transform:none;margin-left:6px">— leave label blank for single items</span>
+    </div>
+    <div class="ve-wrap">
+      <div class="ve-head">
+        <div>Label (color, size…)</div>
+        <div>Unit cost $</div>
+        <div>Bundle qty</div>
+        <div>Bundle price $</div>
+        <div>On hand</div>
+        <div>Reorder</div>
+        <div></div>
+      </div>
+      <div id="ve-rows"></div>
+      <div class="ve-add"><button class="btn btn-xs" onclick="addModalVariant()">+ Add variant</button></div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveGroup()">Save</button>
+    </div>
+  `);
+  renderModalVariants();
+}
+
+function renderModalVariants() {
+  const el = document.getElementById('ve-rows');
+  if (!el) return;
+  el.innerHTML = modalVariants.map((v, i) => {
+    const isCalc = v.bundleQty && v.bundleCost && parseFloat(v.bundleQty) > 0 && parseFloat(v.bundleCost) > 0;
+    const calcVal = isCalc ? (parseFloat(v.bundleCost) / parseFloat(v.bundleQty)).toFixed(2) : '';
+    const displayCost = isCalc ? calcVal : (v.unitCost != null ? v.unitCost : '');
+    return `<div class="ve-row">
+      <input type="text"   value="${esc(v.label)}"  oninput="modalVariants[${i}].label=this.value"  placeholder="e.g. Black, 25ft">
+      <input type="number" id="ve-uc-${i}" value="${displayCost}" oninput="modalVariants[${i}].unitCost=this.value;modalVariants[${i}]._manualCost=true" step="0.01" min="0" placeholder="0.00" title="${isCalc ? 'Auto-calculated from bundle price ÷ qty' : ''}" class="${isCalc ? 'calc-input' : ''}">
+      <input type="number" value="${v.bundleQty}"   oninput="modalVariants[${i}].bundleQty=this.value;onBundleInput(${i})"  min="1" placeholder="—">
+      <input type="number" value="${v.bundleCost}"  oninput="modalVariants[${i}].bundleCost=this.value;onBundleInput(${i})" step="0.01" min="0" placeholder="—">
+      <input type="number" value="${v.qty}"         oninput="modalVariants[${i}].qty=this.value"        min="0">
+      <input type="number" value="${v.reorderAt}"   oninput="modalVariants[${i}].reorderAt=this.value"  min="0">
+      <button class="btn btn-xs btn-danger" onclick="removeModalVariant(${i})" ${modalVariants.length < 2 ? 'disabled' : ''}>✕</button>
+    </div>`;
+  }).join('');
+}
+
+function onBundleInput(i) {
+  const v = modalVariants[i];
+  const bq = parseFloat(v.bundleQty);
+  const bc = parseFloat(v.bundleCost);
+  if (bq > 0 && bc > 0) {
+    const calc = parseFloat((bc / bq).toFixed(4));
+    modalVariants[i].unitCost = calc;
+    modalVariants[i]._manualCost = false;
+    const el = document.getElementById('ve-uc-' + i);
+    if (el) {
+      el.value = calc.toFixed(2);
+      el.classList.add('calc-input');
+      el.title = 'Auto-calculated from bundle price ÷ qty';
+    }
+  }
+}
+
+function addModalVariant() {
+  modalVariants.push({ label: '', unitCost: '', bundleQty: '', bundleCost: '', qty: 0, reorderAt: 5 });
+  renderModalVariants();
+}
+
+function removeModalVariant(i) {
+  if (modalVariants.length < 2) return;
+  modalVariants.splice(i, 1);
+  renderModalVariants();
+}
+
+function saveGroup() {
+  const name = document.getElementById('mg-name').value.trim();
+  if (!name) { alert('Name required'); return; }
+  const cat   = document.getElementById('mg-cat').value;
+  const unit  = document.getElementById('mg-unit').value.trim() || 'each';
+  const taxRaw  = document.getElementById('mg-tax').value;
+  const shipRaw = document.getElementById('mg-ship').value;
+  const taxPct    = taxRaw  !== '' ? parseFloat(taxRaw)  : null;
+  const shippingEst = shipRaw !== '' ? parseFloat(shipRaw) : null;
+
+  const variants = modalVariants.map(mv => ({
+    id: mv.id || uid(),
+    label: mv.label.trim() || null,
+    qty:        parseInt(mv.qty)        || 0,
+    reserved:   0,
+    reorderAt:  parseInt(mv.reorderAt)  || 5,
+    unitCost:   parseFloat(mv.unitCost)  || null,
+    bundleQty:  mv.bundleQty !== '' ? parseInt(mv.bundleQty)    : null,
+    bundleCost: mv.bundleCost !== '' ? parseFloat(mv.bundleCost) : null,
+  }));
+
+  if (editingGroupId) {
+    const g = state.inventory.find(g => g.id === editingGroupId);
+    if (g) {
+      // preserve reserved counts for existing variants
+      variants.forEach(nv => {
+        const old = g.variants.find(ov => ov.id === nv.id);
+        if (old) { nv.reserved = old.reserved; nv.muteReorder = old.muteReorder; }
+      });
+      Object.assign(g, { name, cat, unit, taxPct, shippingEst, variants });
+    }
+  } else {
+    state.inventory.push({ id: uid(), name, cat, unit, taxPct, shippingEst, variants });
+  }
+
+  save(); closeModal(); render();
+}
+
+/* ── SETTINGS MODAL ─────────────────────────────────────── */
+function openSettings() {
+  showModal(`
+    <div class="modal-title">Settings</div>
+    <div style="margin-bottom:16px">
+      <div class="settings-row">
+        <div><div class="settings-label">Default tax rate</div><div class="settings-sub">Applied to reorder cost estimates when not overridden per item</div></div>
+        <input class="settings-input" type="number" id="s-tax" min="0" step="0.1" value="${state.settings.taxPct}" style="width:80px">
+        <span style="font-size:13px;color:#888;margin-left:4px">%</span>
+      </div>
+      <div class="settings-row">
+        <div><div class="settings-label">Default shipping estimate</div><div class="settings-sub">Per order, when not overridden per item</div></div>
+        <span style="font-size:13px;color:#888;margin-right:4px">$</span>
+        <input class="settings-input" type="number" id="s-ship" min="0" step="0.01" value="${state.settings.shippingEst}" style="width:80px">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+    </div>
+  `);
+}
+
+function saveSettings() {
+  state.settings.taxPct      = parseFloat(document.getElementById('s-tax').value)  || 0;
+  state.settings.shippingEst = parseFloat(document.getElementById('s-ship').value) || 0;
+  save(); closeModal(); render();
+}
+
+/* ── PROJECTS ────────────────────────────────────────────── */
+let modalNeededItems = {};
+let projSort = 'date';
+
+function projEstCost(p) {
+  return (p.neededItems || []).reduce((sum, pi) => {
+    const g = state.inventory.find(g => g.id === pi.groupId);
+    const v = g && g.variants.find(v => v.id === pi.variantId);
+    return sum + (v ? effectiveCost(v) * pi.qty : 0);
+  }, 0);
+}
+
+function projShortCount(p) {
+  return (p.neededItems || []).filter(pi => {
+    const g = state.inventory.find(g => g.id === pi.groupId);
+    const v = g && g.variants.find(v => v.id === pi.variantId);
+    if (!g || !v) return false;
+    const reservedQty = (p.items.find(ri => ri.groupId === pi.groupId && ri.variantId === pi.variantId) || {}).qty || 0;
+    return (avail(v) + reservedQty) < pi.qty;
+  }).length;
+}
+
+function setProjSort(key) {
+  projSort = key;
+  renderProjects();
+}
+
+function renderProjects() {
+  const sortBar = document.getElementById('proj-sort-bar');
+  if (sortBar) {
+    sortBar.innerHTML = `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:11px;color:#888;font-weight:500;text-transform:uppercase;letter-spacing:0.04em;white-space:nowrap">Sort by:</span>
+      ${[
+        {key:'date',    label:'Install date'},
+        {key:'status',  label:'Reserved'},
+        {key:'waiting', label:'Waiting on stock'},
+        {key:'cost',    label:'Material cost'},
+      ].map(s => `<button class="pill ${projSort === s.key ? 'active' : ''}" onclick="setProjSort('${s.key}')">${s.label}</button>`).join('')}
+    </div>`;
+  }
+
+  const el = document.getElementById('proj-list');
+  if (!state.projects.length) {
+    el.innerHTML = '<p style="color:#888;font-size:13px">No projects yet.</p>';
+    return;
+  }
+
+  const sorted = [...state.projects].sort((a, b) => {
+    const ai = state.installs.find(i => i.projectId === a.id);
+    const bi = state.installs.find(i => i.projectId === b.id);
+    if (projSort === 'date') {
+      if (!a.date && !b.date) return 0;
+      if (!a.date) return 1;
+      if (!b.date) return -1;
+      return a.date.localeCompare(b.date);
+    }
+    if (projSort === 'status') {
+      const rank = p => {
+        if (state.installs.find(i => i.projectId === p.id)) return 3;
+        if (p.status === 'reserved') return 0;
+        if (p.items.length > 0) return 1;
+        return 2;
+      };
+      return rank(a) - rank(b);
+    }
+    if (projSort === 'waiting') {
+      const as = projShortCount(a), bs = projShortCount(b);
+      if (as !== bs) return bs - as;
+      return 0;
+    }
+    if (projSort === 'cost') return projEstCost(b) - projEstCost(a);
+    return 0;
+  });
+
+  el.innerHTML = sorted.map(p => {
+    const inst = state.installs.find(i => i.projectId === p.id);
+    const isPartial = !inst && p.status !== 'reserved' && p.items.length > 0;
+    const statusBadge = inst
+      ? '<span class="badge ok">✓ Installed</span>'
+      : p.status === 'reserved'
+        ? '<span class="badge info">Reserved</span>'
+        : isPartial
+          ? '<span class="badge warn">Partial</span>'
+          : '<span class="badge neutral">Planned</span>';
+
+    const neededItems = p.neededItems || [];
+    const hasNeeded = neededItems.length > 0;
+
+    const itemLines = hasNeeded
+      ? neededItems.filter(pi => pi.qty > 0).map(pi => {
+          const g = state.inventory.find(g => g.id === pi.groupId);
+          const v = g && g.variants.find(v => v.id === pi.variantId);
+          if (!g || !v) return '';
+          const label = isSingle(g) ? g.name : `${g.name} — ${v.label}`;
+          const reservedQty = (p.items.find(ri => ri.groupId === pi.groupId && ri.variantId === pi.variantId) || {}).qty || 0;
+          const isFullyReserved = reservedQty >= pi.qty;
+          const isPartiallyReserved = reservedQty > 0 && reservedQty < pi.qty;
+          const availForThis = avail(v) + reservedQty;
+          const canFulfill = availForThis >= pi.qty;
+          let statusText, statusColor;
+          if (isFullyReserved) {
+            statusText = '✓ reserved'; statusColor = '#166534';
+          } else if (isPartiallyReserved) {
+            statusText = reservedQty + ' reserved · ' + (pi.qty - reservedQty) + ' needs ordering'; statusColor = '#d97706';
+          } else if (p.items.length > 0) {
+            statusText = 'needs ordering'; statusColor = '#dc2626';
+          } else if (canFulfill) {
+            statusText = availForThis + ' avail'; statusColor = '#888';
+          } else {
+            statusText = availForThis + '/' + pi.qty + ' avail'; statusColor = '#dc2626';
+          }
+          return `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f5f5f3">
+            <span style="color:#555">${label}</span>
+            <span style="font-weight:500">${pi.qty} ${g.unit} <span style="color:${statusColor};font-weight:400;margin-left:6px">${statusText}</span></span>
+          </div>`;
+        }).filter(Boolean)
+      : p.items.filter(pi => pi.qty > 0).map(pi => {
+          const g = state.inventory.find(g => g.id === pi.groupId);
+          const v = g && g.variants.find(v => v.id === pi.variantId);
+          if (!g || !v) return '';
+          const label = isSingle(g) ? g.name : `${g.name} — ${v.label}`;
+          return `<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f5f5f3">
+            <span style="color:#555">${label}</span>
+            <span style="font-weight:500">${pi.qty} ${g.unit}</span>
+          </div>`;
+        }).filter(Boolean);
+    const lines = itemLines.join('');
+
+    let needsBadge = '';
+    if (hasNeeded && !inst && p.status !== 'reserved') {
+      if (p.items.length > 0) {
+        const needsOrderCount = neededItems.filter(pi => {
+          const rqty = (p.items.find(ri => ri.groupId === pi.groupId && ri.variantId === pi.variantId) || {}).qty || 0;
+          return rqty < pi.qty;
+        }).length;
+        if (needsOrderCount > 0) {
+          needsBadge = `<span class="badge warn">${needsOrderCount} item${needsOrderCount !== 1 ? 's' : ''} need ordering</span>`;
+        }
+      } else {
+        const shortCount = projShortCount(p);
+        needsBadge = shortCount > 0
+          ? `<span class="badge warn">${shortCount} item${shortCount !== 1 ? 's' : ''} short</span>`
+          : `<span class="badge ok">Ready to reserve</span>`;
+      }
+    }
+
+    const estCost = projEstCost(p);
+    const cpf = inst && p.footage ? '$' + inst.costPerFoot.toFixed(2) + '/ft' : '—';
+    const costStr = estCost > 0 ? ' · <strong style="color:#1a1a1a">$' + Math.round(estCost).toLocaleString() + ' est. material</strong>' : '';
+    const emptyMsg = hasNeeded ? '' : '<p style="font-size:12px;color:#aaa">No inventory planned yet.</p>';
+    return `<div class="tbl-wrap" style="padding:16px 18px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div>
+          <div style="font-weight:600;font-size:15px">${p.name}</div>
+          <div style="font-size:12px;color:#888;margin-top:2px">${p.address} · ${p.date || 'No date'} · ${p.footage} ft est. · ${cpf}${costStr}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">${statusBadge}${needsBadge}
+          ${!inst ? `<button class="btn btn-xs" onclick="openEditProjectPlan('${p.id}')">Edit plan</button>` : ''}
+          ${!inst ? `<button class="btn btn-xs btn-primary" onclick="reserveProject('${p.id}')">Reserve</button>` : ''}
+          <button class="btn btn-xs btn-danger" onclick="deleteProject('${p.id}')">✕</button>
+        </div>
+      </div>
+      ${p.notes ? `<p style="font-size:12px;color:#888;margin-bottom:8px;font-style:italic">${p.notes}</p>` : ''}
+      ${lines ? `<div style="border-top:1px solid #f0f0ee;padding-top:6px">${lines}</div>` : emptyMsg}
+    </div>`;
+  }).join('');
+}
+
+function openAddProject() {
+  modalNeededItems = {};
+  showModal(`
+    <div class="modal-title">New project</div>
+    <div class="form-row"><div class="fg full"><label>Client / project name</label><input type="text" id="pn-name" placeholder="Smith Residence"></div></div>
+    <div class="form-row"><div class="fg full"><label>Address</label><input type="text" id="pn-addr" placeholder="123 Main St, Wheeling WV"></div></div>
+    <div class="form-row">
+      <div class="fg"><label>Install date</label><input type="date" id="pn-date"></div>
+      <div class="fg"><label>Estimated footage (ft)</label><input type="number" id="pn-footage" min="0" placeholder="150"></div>
+    </div>
+    <div class="form-row"><div class="fg full"><label>Notes</label><input type="text" id="pn-notes" placeholder="Corner house, 2-story…"></div></div>
+    <div class="sec-label" style="margin-top:16px">Planned items
+      <span style="font-size:11px;color:#aaa;font-weight:400;text-transform:none;margin-left:6px">— optional; reserve when stock is available</span>
+    </div>
+    <div id="pn-items"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveNewProject()">Add project</button>
+    </div>
+  `);
+  renderModalItemPicker();
+}
+
+function saveNewProject() {
+  const name = document.getElementById('pn-name').value.trim();
+  if (!name) { alert('Name required'); return; }
+  const neededItems = Object.entries(modalNeededItems)
+    .filter(([, qty]) => qty > 0)
+    .map(([key, qty]) => {
+      const sep = key.indexOf('|');
+      return { groupId: key.slice(0, sep), variantId: key.slice(sep + 1), qty };
+    });
+  state.projects.push({
+    id: uid(), name,
+    address:  document.getElementById('pn-addr').value.trim(),
+    date:     document.getElementById('pn-date').value,
+    footage:  parseInt(document.getElementById('pn-footage').value) || 0,
+    notes:    document.getElementById('pn-notes').value.trim(),
+    status: 'planned', items: [], neededItems
+  });
+  save(); closeModal(); render();
+}
+
+function renderModalItemPicker() {
+  const el = document.getElementById('pn-items');
+  if (!el) return;
+  if (!state.inventory.length) {
+    el.innerHTML = '<p style="font-size:12px;color:#aaa;padding:8px 0">No inventory items yet.</p>';
+    return;
+  }
+  el.innerHTML = CATS.map(cat => {
+    const groups = state.inventory.filter(g => g.cat === cat.id);
+    if (!groups.length) return '';
+    const groupBlocks = groups.map(g => {
+      const entries = isSingle(g)
+        ? [{ v: g.variants[0], name: g.name }]
+        : g.variants.map(v => ({ v, name: v.label }));
+      const rows = entries.map(({ v, name }) => {
+        const key = g.id + '|' + v.id;
+        const cur = modalNeededItems[key] || 0;
+        const av = avail(v);
+        const stockColor = av === 0 ? '#dc2626' : av <= v.reorderAt ? '#d97706' : '#166534';
+        return `<div class="res-row">
+          <div class="res-row-name">${name}</div>
+          <div class="res-row-avail" style="color:${stockColor}">${av} in stock</div>
+          <div class="stepper">
+            <button class="step-btn" onclick="stepNeeded('${g.id}','${v.id}',-1)">−</button>
+            <input class="step-input" type="number" id="pni-${g.id}-${v.id}" value="${cur}" min="0" oninput="modalNeededItems['${g.id}|${v.id}']=Math.max(0,parseInt(this.value)||0)">
+            <button class="step-btn" onclick="stepNeeded('${g.id}','${v.id}',1)">+</button>
+          </div>
+        </div>`;
+      }).join('');
+      if (isSingle(g)) return rows;
+      return `<div class="res-group-head">${g.name} <span style="color:#aaa;font-weight:400">${g.unit}</span></div>${rows}`;
+    }).join('');
+    if (!groupBlocks.trim()) return '';
+    return `<div class="tbl-wrap" style="margin-bottom:14px">
+      <div class="res-cat-head">${cat.name}</div>
+      ${groupBlocks}
+    </div>`;
+  }).join('');
+}
+
+function stepNeeded(gid, vid, delta) {
+  const key = gid + '|' + vid;
+  modalNeededItems[key] = Math.max(0, (modalNeededItems[key] || 0) + delta);
+  const el = document.getElementById('pni-' + gid + '-' + vid);
+  if (el) el.value = modalNeededItems[key];
+}
+
+function openEditProjectPlan(pid) {
+  const proj = state.projects.find(p => p.id === pid);
+  if (!proj) return;
+  modalNeededItems = {};
+  (proj.neededItems || []).forEach(pi => {
+    modalNeededItems[pi.groupId + '|' + pi.variantId] = pi.qty;
+  });
+  showModal(`
+    <div class="modal-title">Edit plan — ${esc(proj.name)}</div>
+    <p style="font-size:12px;color:#888;margin-bottom:12px">Update what inventory you'll need. Reservations are not affected until you go to the Reserve tab.</p>
+    <div id="pn-items"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEditProjectPlan('${pid}')">Save plan</button>
+    </div>
+  `);
+  renderModalItemPicker();
+}
+
+function saveEditProjectPlan(pid) {
+  const proj = state.projects.find(p => p.id === pid);
+  if (!proj) return;
+  proj.neededItems = Object.entries(modalNeededItems)
+    .filter(([, qty]) => qty > 0)
+    .map(([key, qty]) => {
+      const sep = key.indexOf('|');
+      return { groupId: key.slice(0, sep), variantId: key.slice(sep + 1), qty };
+    });
+  save(); closeModal(); render();
+}
+
+function deleteProject(id) {
+  if (!confirm('Delete this project?')) return;
+  const proj = state.projects.find(p => p.id === id);
+  if (proj) {
+    proj.items.forEach(pi => {
+      const g = state.inventory.find(g => g.id === pi.groupId);
+      const v = g && g.variants.find(v => v.id === pi.variantId);
+      if (v) v.reserved = Math.max(0, v.reserved - pi.qty);
+    });
+  }
+  state.projects = state.projects.filter(p => p.id !== id);
+  state.installs = state.installs.filter(i => i.projectId !== id);
+  save(); render();
+}
+
+/* ── RESERVE ─────────────────────────────────────────────── */
+let reserveShowAll = false;
+
+function renderReserveSelects() {
+  const sel = document.getElementById('res-project');
+  const active = state.projects.filter(p => !state.installs.find(i => i.projectId === p.id));
+  sel.innerHTML = active.length
+    ? active.map(p => `<option value="${p.id}">${p.name}</option>`).join('')
+    : '<option value="">No active projects</option>';
+  renderReserveForm();
+}
+
+function renderReserveForm() {
+  const pid  = document.getElementById('res-project').value;
+  const proj = state.projects.find(p => p.id === pid);
+  const meta = document.getElementById('res-project-meta');
+  const el   = document.getElementById('reserve-form');
+
+  if (!proj) {
+    if (meta) meta.innerHTML = '';
+    el.innerHTML = state.projects.length
+      ? '<p style="font-size:13px;color:#888">Select a project above.</p>'
+      : '<p style="font-size:13px;color:#888">No active projects — create one first.</p>';
+    return;
+  }
+
+  if (meta) meta.innerHTML = `<span style="font-weight:500">${proj.name}</span> · ${proj.address || 'No address'} · ${proj.date || 'No date'} · ${proj.footage || 0} ft`;
+
+  // Summary of what's currently reserved
+  const reserved = proj.items.filter(pi => pi.qty > 0);
+  let summaryHtml = '';
+  if (reserved.length) {
+    const parts = reserved.map(pi => {
+      const g = state.inventory.find(g => g.id === pi.groupId);
+      const v = g && g.variants.find(v => v.id === pi.variantId);
+      if (!g || !v) return null;
+      return `${isSingle(g) ? g.name : g.name + ' ' + v.label} ×${pi.qty}`;
+    }).filter(Boolean);
+    summaryHtml = `<div class="res-summary">
+      <div style="font-weight:600">Currently reserved for ${proj.name}:</div>
+      <div class="res-summary-items">${parts.join(' · ')}</div>
+    </div>`;
+  }
+
+  // Filter toggle
+  const filterHtml = `<div class="res-filter">
+    <button class="pill ${!reserveShowAll ? 'active' : ''}" onclick="reserveShowAll=false;renderReserveForm()">In stock only</button>
+    <button class="pill ${reserveShowAll ? 'active' : ''}" onclick="reserveShowAll=true;renderReserveForm()">All items</button>
+  </div>`;
+
+  // Build category sections
+  const sections = CATS.map(cat => {
+    const groups = state.inventory.filter(g => g.cat === cat.id);
+    if (!groups.length) return '';
+
+    const groupBlocks = groups.map(g => {
+      const entries = isSingle(g)
+        ? [{ v: g.variants[0], name: g.name }]
+        : g.variants.map(v => ({ v, name: v.label }));
+
+      const visibleEntries = reserveShowAll ? entries : entries.filter(e => {
+        const reservedItem = proj.items.find(pi => pi.groupId === g.id && pi.variantId === e.v.id);
+        const isNeeded = !!(proj.neededItems || []).find(pi => pi.groupId === g.id && pi.variantId === e.v.id);
+        return (avail(e.v) + (reservedItem ? reservedItem.qty : 0)) > 0 || isNeeded;
+      });
+      if (!visibleEntries.length) return '';
+
+      const rows = entries.map(({ v, name }) => {
+        const reservedItem = proj.items.find(pi => pi.groupId === g.id && pi.variantId === v.id);
+        const neededItem = (proj.neededItems || []).find(pi => pi.groupId === g.id && pi.variantId === v.id);
+        const cur = reservedItem ? reservedItem.qty : (neededItem ? neededItem.qty : 0);
+        const freeAvail = avail(v) + (reservedItem ? reservedItem.qty : 0);
+        const isNeeded = !!neededItem;
+        const hidden = !reserveShowAll && freeAvail === 0 && !isNeeded;
+        if (hidden) return '';
+        const isShort = isNeeded && freeAvail < neededItem.qty;
+        const availClass = freeAvail === 0 ? 'none' : '';
+        const availText = freeAvail + ' available' + (isShort ? ' · need ' + (neededItem.qty - freeAvail) + ' more' : '');
+        const availStyle = isShort ? 'color:#dc2626' : '';
+        return `<div class="res-row${freeAvail === 0 && !isNeeded ? ' dimmed' : ''}">
+          <div class="res-row-name">${name}${isNeeded ? ` <span class="tag" style="background:#dbeafe;color:#1e40af">needs ${neededItem.qty}</span>` : ''}</div>
+          <div class="res-row-avail ${availClass}"${availStyle ? ` style="${availStyle}"` : ''}>${availText}</div>
+          <div class="stepper">
+            <button class="step-btn" onclick="stepRes('${g.id}','${v.id}',-1)">−</button>
+            <input class="step-input" type="number" id="res-${g.id}-${v.id}" value="${cur}" min="0">
+            <button class="step-btn" onclick="stepRes('${g.id}','${v.id}',1)">+</button>
+          </div>
+        </div>`;
+      }).join('');
+
+      if (!rows.trim()) return '';
+
+      if (isSingle(g)) return rows;
+      return `<div class="res-group-head">${g.name} <span style="color:#aaa;font-weight:400">${g.unit}</span></div>${rows}`;
+    }).join('');
+
+    if (!groupBlocks.trim()) return '';
+
+    return `<div class="tbl-wrap" style="margin-bottom:14px">
+      <div class="res-cat-head">${cat.name}</div>
+      ${groupBlocks}
+    </div>`;
+  }).join('');
+
+  let shortAlert = '';
+  let shortCount = 0;
+  if (proj.neededItems && proj.neededItems.length > 0 && proj.status !== 'reserved') {
+    shortCount = proj.neededItems.filter(pi => {
+      const g = state.inventory.find(g => g.id === pi.groupId);
+      const v = g && g.variants.find(v => v.id === pi.variantId);
+      if (!g || !v) return false;
+      const reservedQty = (proj.items.find(ri => ri.groupId === pi.groupId && ri.variantId === pi.variantId) || {}).qty || 0;
+      return (avail(v) + reservedQty) < pi.qty;
+    }).length;
+    if (shortCount > 0) {
+      shortAlert = `<div class="alert alert-warn">⚠ ${shortCount} item${shortCount !== 1 ? 's' : ''} below needed quantity — available stock will be reserved and the rest flagged as needs ordering.</div>`;
+    }
+  }
+
+  const btnLabel = shortCount > 0 ? 'Reserve available + flag rest' : 'Save reservation';
+
+  el.innerHTML = `
+    ${shortAlert}
+    ${summaryHtml}
+    ${filterHtml}
+    ${sections || '<p style="font-size:13px;color:#888">No items with available stock. Update inventory quantities first.</p>'}
+    <div style="margin-top:16px;display:flex;gap:10px;align-items:center">
+      <button class="btn btn-primary" onclick="saveReservation('${pid}')">${btnLabel}</button>
+      ${reserved.length ? `<button class="btn btn-danger" onclick="clearReservation('${pid}')">Clear all</button>` : ''}
+    </div>`;
+}
+
+function stepRes(gid, vid, delta, max) {
+  const el = document.getElementById(`res-${gid}-${vid}`);
+  if (!el) return;
+  const cur = parseInt(el.value) || 0;
+  const next = cur + delta;
+  el.value = Math.max(0, max !== undefined ? Math.min(max, next) : next);
+}
+
+function saveReservation(pid) {
+  const proj = state.projects.find(p => p.id === pid);
+  if (!proj) return;
+
+  // Release all existing reservations for this project first
+  proj.items.forEach(pi => {
+    const g = state.inventory.find(g => g.id === pi.groupId);
+    const v = g && g.variants.find(v => v.id === pi.variantId);
+    if (v) v.reserved = Math.max(0, v.reserved - pi.qty);
+  });
+  proj.items = [];
+
+  // Reserve as much as available for each item; track shortfalls
+  const shortItems = [];
+  state.inventory.forEach(g => {
+    g.variants.forEach(v => {
+      const input = document.getElementById(`res-${g.id}-${v.id}`);
+      if (!input) return;
+      const wanted = parseInt(input.value) || 0;
+      if (wanted <= 0) return;
+      const canReserve = Math.min(wanted, avail(v));
+      const short = wanted - canReserve;
+      if (canReserve > 0) {
+        proj.items.push({ groupId: g.id, variantId: v.id, qty: canReserve });
+        v.reserved += canReserve;
+      }
+      if (short > 0) {
+        const name = isSingle(g) ? g.name : `${g.name} — ${v.label}`;
+        shortItems.push({ name, canReserve, wanted, short });
+      }
+    });
+  });
+
+  // 'reserved' only when all neededItems are fully covered
+  if (proj.neededItems && proj.neededItems.length > 0) {
+    const allCovered = proj.neededItems.every(pi => {
+      const rqty = (proj.items.find(ri => ri.groupId === pi.groupId && ri.variantId === pi.variantId) || {}).qty || 0;
+      return rqty >= pi.qty;
+    });
+    proj.status = allCovered ? 'reserved' : 'planned';
+  } else {
+    proj.status = proj.items.length > 0 ? 'reserved' : 'planned';
+  }
+
+  save(); render();
+
+  const el = document.getElementById('reserve-form');
+  if (!el) return;
+  let msg;
+  if (shortItems.length === 0) {
+    msg = '<div class="alert alert-success" style="margin-bottom:14px">✓ All materials reserved.</div>';
+  } else {
+    const rows = shortItems.map(s =>
+      `<div>· ${s.name}: reserved ${s.canReserve} of ${s.wanted} — <strong>need ${s.short} ordered</strong></div>`
+    ).join('');
+    msg = `<div class="alert alert-warn" style="margin-bottom:14px">
+      ⚠ Partially reserved — ${shortItems.length} item${shortItems.length !== 1 ? 's' : ''} need ordering:
+      <div style="margin-top:6px;font-size:12px;line-height:1.8">${rows}</div>
+    </div>`;
+  }
+  el.insertAdjacentHTML('afterbegin', msg);
+  setTimeout(() => { const a = el.querySelector('.alert'); if (a) a.remove(); }, 6000);
+}
+
+function clearReservation(pid) {
+  if (!confirm('Remove all reservations for this project?')) return;
+  const proj = state.projects.find(p => p.id === pid);
+  if (!proj) return;
+  proj.items.forEach(pi => {
+    const g = state.inventory.find(g => g.id === pi.groupId);
+    const v = g && g.variants.find(v => v.id === pi.variantId);
+    if (v) v.reserved = Math.max(0, v.reserved - pi.qty);
+  });
+  proj.items = [];
+  proj.status = 'planned';
+  save(); render();
+}
+
+/* jump to reserve tab pre-selected to a project */
+function reserveProject(pid) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('reserve').classList.add('active');
+  document.querySelector('.nav button[onclick*="reserve"]').classList.add('active');
+  render();
+  const sel = document.getElementById('res-project');
+  if (sel) { sel.value = pid; renderReserveForm(); }
+}
+
+/* ── CONFIRM INSTALL ─────────────────────────────────────── */
+function renderConfirmSelects() {
+  const sel = document.getElementById('conf-project');
+  const curVal = sel.value;
+  const reserved = state.projects.filter(p => p.status === 'reserved' && !state.installs.find(i => i.projectId === p.id));
+  sel.innerHTML = reserved.length
+    ? reserved.map(p => `<option value="${p.id}" ${p.id === curVal ? 'selected' : ''}>${p.name}</option>`).join('')
+    : '<option value="">No reserved projects</option>';
+  renderConfirmForm();
+}
+
+function renderConfirmForm() {
+  const pid  = document.getElementById('conf-project').value;
+  const proj = state.projects.find(p => p.id === pid);
+  const meta = document.getElementById('conf-project-meta');
+  const el   = document.getElementById('confirm-form');
+
+  if (!proj) {
+    if (meta) meta.innerHTML = '';
+    el.innerHTML = state.projects.length
+      ? '<p style="font-size:13px;color:#888">Select a reserved project above.</p>'
+      : '<p style="font-size:13px;color:#888">No reserved projects to confirm — reserve inventory for a project first.</p>';
+    return;
+  }
+  if (meta) meta.innerHTML = `<span style="font-weight:500">${proj.name}</span> · ${proj.address || 'No address'} · ${proj.footage || 0} ft est.`;
+
+  const reserved = proj.items.filter(pi => pi.qty > 0);
+  if (!reserved.length) { el.innerHTML = '<p style="font-size:13px;color:#888">No inventory reserved for this project.</p>'; return; }
+
+  if (pid !== lastConfirmPid) { confirmExtras = []; lastConfirmPid = pid; }
+  const todayStr = new Date().toISOString().slice(0, 10);
+
+  const itemRows = reserved.map(pi => {
+    const g = state.inventory.find(g => g.id === pi.groupId);
+    const v = g && g.variants.find(v => v.id === pi.variantId);
+    if (!g || !v) return '';
+    const label = isSingle(g) ? g.name : `${g.name} — ${v.label}`;
+    const cost = effectiveCost(v);
+    return `<tr>
+      <td style="font-weight:500">${label}<div style="font-size:11px;color:#aaa">${g.unit}</div></td>
+      <td style="text-align:center;color:#888">${pi.qty}</td>
+      <td style="text-align:center">
+        <input type="number" min="0" value="${pi.qty}" id="conf-${g.id}-${v.id}" style="width:70px;text-align:center"
+          oninput="updateConfirmRow('${g.id}','${v.id}',${pi.qty},${cost})">
+      </td>
+      <td id="var-${g.id}-${v.id}" style="text-align:center;color:#888;font-size:12px">—</td>
+      <td style="color:#888;text-align:right;white-space:nowrap">$${cost.toFixed(2)}</td>
+      <td id="line-${g.id}-${v.id}" style="font-weight:600;text-align:right;white-space:nowrap">$${(pi.qty * cost).toFixed(2)}</td>
+    </tr>`;
+  }).filter(Boolean).join('');
+
+  el.innerHTML = `
+    <div class="form-row" style="max-width:540px;margin-bottom:16px">
+      <div class="fg">
+        <label>Install date</label>
+        <input type="date" id="conf-date" value="${todayStr}" oninput="updateConfirmLive()">
+      </div>
+      <div class="fg">
+        <label>Actual footage (ft)</label>
+        <input type="number" id="conf-footage" min="0" value="${proj.footage || ''}" placeholder="${proj.footage || '0'}" oninput="updateConfirmLive()">
+      </div>
+      <div class="fg full">
+        <label>Notes</label>
+        <input type="text" id="conf-notes" placeholder="Any notes about this install…">
+      </div>
+    </div>
+
+    <div class="sec-label">Reserved items</div>
+    <div class="tbl-wrap" style="margin-bottom:16px">
+      <table>
+        <thead><tr>
+          <th>Item</th>
+          <th style="text-align:center">Reserved</th>
+          <th style="text-align:center">Used</th>
+          <th style="text-align:center">Variance</th>
+          <th style="text-align:right">Unit cost</th>
+          <th style="text-align:right">Line total</th>
+        </tr></thead>
+        <tbody>${itemRows}</tbody>
+      </table>
+    </div>
+
+    <div class="sec-label">Items used but not reserved <span style="font-size:11px;color:#aaa;font-weight:400;text-transform:none">— optional</span></div>
+    <div id="conf-extras" style="margin-bottom:10px"></div>
+    <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:22px;padding-bottom:4px">
+      <div style="flex:2;min-width:160px">
+        <label style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.04em;font-weight:500;display:block;margin-bottom:4px">Item</label>
+        <select id="conf-ex-group" onchange="onConfExGroupChange()" style="width:100%;font-size:13px;padding:6px 9px;border:1px solid #e0e0de;border-radius:6px;background:#fff;font-family:inherit">
+          <option value="">— Select —</option>
+          ${state.inventory.map(g => `<option value="${g.id}">${g.name}</option>`).join('')}
+        </select>
+      </div>
+      <div id="conf-ex-var-wrap" style="flex:1;min-width:120px"></div>
+      <div style="flex-shrink:0">
+        <label style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.04em;font-weight:500;display:block;margin-bottom:4px">Qty</label>
+        <input type="number" id="conf-ex-qty" min="1" value="1" style="width:65px">
+      </div>
+      <button class="btn btn-sm" onclick="commitConfirmExtra()" style="flex-shrink:0">+ Add</button>
+    </div>
+
+    <div style="background:#f5f5f3;border:1px solid #e5e5e3;border-radius:10px;padding:14px 20px;margin-bottom:20px;display:flex;gap:28px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Material cost</div>
+        <div id="conf-s-mat" style="font-size:20px;font-weight:700">$0.00</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Returned to stock</div>
+        <div id="conf-s-returned" style="font-size:20px;font-weight:700">0 units</div>
+        <div style="font-size:11px;color:#aaa">goes back to inventory</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Cost / ft</div>
+        <div id="conf-s-cpf" style="font-size:20px;font-weight:700">—</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="saveInstall('${pid}')">Confirm &amp; close job</button>
+      <span style="font-size:12px;color:#aaa">Deducts used quantities from inventory and marks the project complete.</span>
+    </div>`;
+
+  updateConfirmLive();
+}
+
+function updateConfirmRow(gid, vid, reserved, cost) {
+  const input  = document.getElementById(`conf-${gid}-${vid}`);
+  const varEl  = document.getElementById(`var-${gid}-${vid}`);
+  const lineEl = document.getElementById(`line-${gid}-${vid}`);
+  if (!input) return;
+  const used = parseInt(input.value) || 0;
+  const diff = reserved - used;
+  if (varEl) {
+    if (diff === 0)      { varEl.textContent = '—';                      varEl.style.color = '#888'; }
+    else if (diff > 0)   { varEl.textContent = `+${diff} returned`;      varEl.style.color = '#166534'; }
+    else                 { varEl.textContent = `${Math.abs(diff)} over`; varEl.style.color = '#dc2626'; }
+  }
+  if (lineEl) lineEl.textContent = '$' + (used * cost).toFixed(2);
+  updateConfirmLive();
+}
+
+function updateConfirmLive() {
+  const pid = document.getElementById('conf-project')?.value;
+  const proj = state.projects.find(p => p.id === pid);
+  if (!proj) return;
+  let matCost = 0, returnedUnits = 0;
+
+  proj.items.filter(pi => pi.qty > 0).forEach(pi => {
+    const g = state.inventory.find(g => g.id === pi.groupId);
+    const v = g && g.variants.find(v => v.id === pi.variantId);
+    if (!g || !v) return;
+    const input = document.getElementById(`conf-${g.id}-${v.id}`);
+    const used = input ? (parseInt(input.value) || 0) : pi.qty;
+    const cost = effectiveCost(v);
+    matCost       += used * cost;
+    returnedUnits += Math.max(0, pi.qty - used);
+  });
+
+  confirmExtras.forEach(ex => {
+    const g = state.inventory.find(g => g.id === ex.groupId);
+    const v = g && g.variants.find(v => v.id === ex.variantId);
+    if (g && v) matCost += ex.qty * effectiveCost(v);
+  });
+
+  const footage = parseInt(document.getElementById('conf-footage')?.value) || 0;
+
+  const matEl  = document.getElementById('conf-s-mat');
+  const retEl  = document.getElementById('conf-s-returned');
+  const cpfEl  = document.getElementById('conf-s-cpf');
+
+  if (matEl) matEl.textContent = '$' + matCost.toFixed(2);
+  if (retEl) retEl.textContent = returnedUnits + (returnedUnits === 1 ? ' unit' : ' units');
+  if (cpfEl) cpfEl.textContent = footage > 0 ? '$' + (matCost / footage).toFixed(2) : '—';
+}
+
+function onConfExGroupChange() {
+  const gid  = document.getElementById('conf-ex-group').value;
+  const wrap = document.getElementById('conf-ex-var-wrap');
+  if (!wrap) return;
+  const g = state.inventory.find(g => g.id === gid);
+  if (!g || isSingle(g)) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = `
+    <label style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.04em;font-weight:500;display:block;margin-bottom:4px">Variant</label>
+    <select id="conf-ex-variant" style="width:100%;font-size:13px;padding:6px 9px;border:1px solid #e0e0de;border-radius:6px;background:#fff;font-family:inherit">
+      ${g.variants.map(v => `<option value="${v.id}">${v.label}</option>`).join('')}
+    </select>`;
+}
+
+function commitConfirmExtra() {
+  const gid = document.getElementById('conf-ex-group')?.value;
+  if (!gid) return;
+  const g = state.inventory.find(g => g.id === gid);
+  if (!g) return;
+  const vid = isSingle(g) ? g.variants[0].id : (document.getElementById('conf-ex-variant')?.value || '');
+  if (!vid) return;
+  const qty = parseInt(document.getElementById('conf-ex-qty')?.value) || 0;
+  if (qty <= 0) return;
+  const existing = confirmExtras.find(e => e.groupId === gid && e.variantId === vid);
+  if (existing) existing.qty += qty;
+  else confirmExtras.push({ groupId: gid, variantId: vid, qty });
+  document.getElementById('conf-ex-group').value = '';
+  const wrap = document.getElementById('conf-ex-var-wrap');
+  if (wrap) wrap.innerHTML = '';
+  document.getElementById('conf-ex-qty').value = 1;
+  renderConfirmExtras();
+  updateConfirmLive();
+}
+
+function renderConfirmExtras() {
+  const el = document.getElementById('conf-extras');
+  if (!el) return;
+  if (!confirmExtras.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="tbl-wrap" style="margin-bottom:8px"><table>
+    <tbody>${confirmExtras.map((ex, i) => {
+      const g = state.inventory.find(g => g.id === ex.groupId);
+      const v = g && g.variants.find(v => v.id === ex.variantId);
+      if (!g || !v) return '';
+      const label = isSingle(g) ? g.name : `${g.name} — ${v.label}`;
+      const cost  = effectiveCost(v);
+      return `<tr>
+        <td style="font-weight:500">${label}<div style="font-size:11px;color:#aaa">${g.unit}</div></td>
+        <td style="text-align:center;color:#aaa">—</td>
+        <td style="text-align:center">
+          <input type="number" min="1" value="${ex.qty}" style="width:70px;text-align:center"
+            oninput="confirmExtras[${i}].qty=Math.max(0,parseInt(this.value)||0);updateConfirmLive()">
+        </td>
+        <td style="text-align:center;color:#aaa">—</td>
+        <td style="color:#888;text-align:right;white-space:nowrap">$${cost.toFixed(2)}</td>
+        <td style="font-weight:600;text-align:right;white-space:nowrap">$${(ex.qty * cost).toFixed(2)}</td>
+        <td><button class="btn btn-xs btn-danger" onclick="removeConfirmExtra(${i})">✕</button></td>
+      </tr>`;
+    }).filter(Boolean).join('')}</tbody>
+  </table></div>`;
+}
+
+function removeConfirmExtra(i) {
+  confirmExtras.splice(i, 1);
+  renderConfirmExtras();
+  updateConfirmLive();
+}
+
+function saveInstall(pid) {
+  const proj = state.projects.find(p => p.id === pid);
+  if (!proj) return;
+  if (!state.wasteLog) state.wasteLog = [];
+
+  const actualDate    = document.getElementById('conf-date')?.value    || new Date().toISOString().slice(0, 10);
+  const actualFootage = parseInt(document.getElementById('conf-footage')?.value) || proj.footage || 0;
+  const notes         = document.getElementById('conf-notes')?.value.trim() || '';
+
+  let totalCost = 0, returnedUnits = 0;
+
+  proj.items.forEach(pi => {
+    const g = state.inventory.find(g => g.id === pi.groupId);
+    const v = g && g.variants.find(v => v.id === pi.variantId);
+    if (!g || !v) return;
+    const actual  = parseInt(document.getElementById(`conf-${g.id}-${v.id}`)?.value) || 0;
+    const leftover = Math.max(0, pi.qty - actual);
+    totalCost    += actual * effectiveCost(v);
+    returnedUnits += leftover;
+    // Release reservation; only deduct what was actually used — leftovers stay in qty
+    v.reserved = Math.max(0, v.reserved - pi.qty);
+    v.qty      = Math.max(0, v.qty - actual);
+  });
+
+  confirmExtras.forEach(ex => {
+    const g = state.inventory.find(g => g.id === ex.groupId);
+    const v = g && g.variants.find(v => v.id === ex.variantId);
+    if (!g || !v) return;
+    totalCost += ex.qty * effectiveCost(v);
+    v.qty = Math.max(0, v.qty - ex.qty);
+  });
+
+  state.installs.push({
+    projectId: pid,
+    date: actualDate, notes,
+    totalCost,
+    footage: actualFootage,
+    costPerFoot: actualFootage ? totalCost / actualFootage : 0,
+  });
+
+  confirmExtras = [];
+  lastConfirmPid = null;
+  save(); render();
+
+  const cpfStr = actualFootage ? '$' + (totalCost / actualFootage).toFixed(2) + '/ft' : '—';
+  document.getElementById('confirm-form').innerHTML = `
+    <div class="alert alert-success" style="margin-bottom:14px">✓ Job closed — inventory updated.</div>
+    <div style="background:#f5f5f3;border:1px solid #e5e5e3;border-radius:10px;padding:14px 20px;display:flex;gap:28px;flex-wrap:wrap">
+      <div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Material cost</div><div style="font-size:20px;font-weight:700">$${totalCost.toFixed(2)}</div></div>
+      <div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Returned to stock</div><div style="font-size:20px;font-weight:700;color:#166534">${returnedUnits} unit${returnedUnits !== 1 ? 's' : ''}</div></div>
+      <div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Cost / ft</div><div style="font-size:20px;font-weight:700">${cpfStr}</div></div>
+      ${notes ? `<div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Notes</div><div style="font-size:13px;color:#555">${esc(notes)}</div></div>` : ''}
+    </div>`;
+}
+
+/* ── REPORTS ─────────────────────────────────────────────── */
+function renderReports() {
+  const insts = state.installs;
+  const totalMat = insts.reduce((s, i) => s + (i.totalCost || 0), 0);
+  const validCpf = insts.filter(i => i.footage > 0);
+  const avgCpf   = validCpf.length ? validCpf.reduce((s, i) => s + i.costPerFoot, 0) / validCpf.length : 0;
+
+  document.getElementById('report-cards').innerHTML = `
+    <div class="card"><div class="label">Completed installs</div><div class="value">${insts.length}</div></div>
+    <div class="card"><div class="label">Avg cost / foot</div><div class="value">$${avgCpf.toFixed(2)}</div></div>
+    <div class="card"><div class="label">Total material spend</div><div class="value">$${Math.round(totalMat).toLocaleString()}</div></div>
+  `;
+
+  const tbody = document.getElementById('report-tbody');
+  if (!insts.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="color:#aaa;text-align:center;padding:20px">No completed installs yet.</td></tr>';
+  } else {
+    tbody.innerHTML = insts.map(inst => {
+      const p = state.projects.find(p => p.id === inst.projectId) || {};
+      return `<tr>
+        <td style="font-weight:500">${p.name || 'Unknown'}</td>
+        <td style="color:#888">${p.address || ''}</td>
+        <td style="color:#888">${inst.date}</td>
+        <td>${inst.footage} ft</td>
+        <td>$${inst.totalCost.toFixed(2)}</td>
+        <td style="font-weight:600">${inst.costPerFoot > 0 ? '$' + inst.costPerFoot.toFixed(2) : '—'}</td>
+        <td style="color:#888;font-size:12px">${inst.notes || ''}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Category breakdown
+  const catMap = {};
+  state.inventory.forEach(g => {
+    if (!catMap[g.cat]) catMap[g.cat] = { groups: 0, skus: 0, units: 0, value: 0 };
+    catMap[g.cat].groups++;
+    g.variants.forEach(v => {
+      catMap[g.cat].skus++;
+      catMap[g.cat].units += v.qty;
+      catMap[g.cat].value += effectiveCost(v) * v.qty;
+    });
+  });
+  const catTotal = Object.values(catMap).reduce((s, c) => s + c.value, 0);
+  document.getElementById('cat-report-tbody').innerHTML = Object.entries(catMap)
+    .sort((a, b) => b[1].value - a[1].value)
+    .map(([catId, d]) => {
+      const pct = catTotal > 0 ? Math.round(d.value / catTotal * 100) : 0;
+      return `<tr>
+        <td style="font-weight:500">${catName(catId)}</td>
+        <td>${d.groups}</td>
+        <td>${d.skus}</td>
+        <td>${d.units}</td>
+        <td>$${d.value.toFixed(2)}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px">
+            <div class="progress-bar" style="flex:1;min-width:50px">
+              <div class="progress-fill" style="width:${pct}%"></div>
+            </div>
+            <span style="font-size:12px;min-width:30px">${pct}%</span>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+
+}
+
+/* ── EXPORT / IMPORT ─────────────────────────────────────── */
+function exportCSV() {
+  const rows = [['Category','Group','Variant','Unit','Stock','Reserved','Available','Reorder At','Unit Cost','Bundle Qty','Bundle Price','Est Reorder Cost','Status']];
+  state.inventory.forEach(g => {
+    g.variants.forEach(v => {
+      const s = vStatus(v);
+      rows.push([
+        catName(g.cat), g.name, v.label || '',
+        g.unit, v.qty, v.reserved, avail(v), v.reorderAt,
+        (effectiveCost(v) || 0).toFixed(4),
+        v.bundleQty || '', v.bundleCost != null ? v.bundleCost.toFixed(2) : '',
+        reorderEst(g, v).toFixed(2),
+        statusLabel(s)
+      ]);
+    });
+  });
+  rows.push([]);
+  rows.push(['PROJECTS','Name','Address','Date','Footage','Status','Notes']);
+  state.projects.forEach(p => {
+    const inst = state.installs.find(i => i.projectId === p.id);
+    rows.push(['', p.name, p.address, p.date, p.footage, inst ? 'Installed' : p.status, p.notes]);
+  });
+  rows.push([]);
+  rows.push(['INSTALLS','Project','Date','Footage','Total Cost','Cost/ft','Notes']);
+  state.installs.forEach(inst => {
+    const p = state.projects.find(p => p.id === inst.projectId) || {};
+    rows.push(['', p.name || 'Unknown', inst.date, inst.footage,
+      inst.totalCost.toFixed(2), inst.costPerFoot > 0 ? inst.costPerFoot.toFixed(2) : '', inst.notes || '']);
+  });
+  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+  dl('rally_inventory_' + today() + '.csv', 'text/csv', csv);
+}
+
+function exportJSON() {
+  dl('rally_backup_' + today() + '.json', 'application/json', JSON.stringify(state, null, 2));
+}
+
+function importJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      if (!confirm('Replace all current data with backup?')) return;
+      state = d; save(); render(); alert('Restored.');
+    } catch { alert('Invalid file.'); }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+function today() { return new Date().toISOString().slice(0, 10); }
+function dl(name, type, content) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type }));
+  a.download = name; a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ── MODAL ───────────────────────────────────────────────── */
+function showModal(html) {
+  document.getElementById('modal-root').innerHTML =
+    `<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`;
+}
+function closeModal() { document.getElementById('modal-root').innerHTML = ''; }
+
+/* ── UTIL ────────────────────────────────────────────────── */
+function esc(s) { return String(s || '').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+
+/* ── BOOT ────────────────────────────────────────────────── */
+render();
+</script>
+</body>
+</html>

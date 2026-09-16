@@ -11,6 +11,13 @@ const nextConfig = {
       { protocol: "https", hostname: "res.cloudinary.com" },
     ],
   },
+  async rewrites() {
+    return {
+      // Private inventory app: a single static HTML file in /public/inventory,
+      // served at the clean URL /inventory (gated by middleware Basic Auth).
+      beforeFiles: [{ source: "/inventory", destination: "/inventory/index.html" }],
+    };
+  },
   async redirects() {
     // 301 redirects to capture traffic from the OLD SiteGround site's indexed
     // URLs so nothing is wasted. Add more here if Search Console shows others.
