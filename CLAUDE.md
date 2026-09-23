@@ -1,6 +1,6 @@
 # CLAUDE.md — Rally Exterior Solutions
 
-Context for AI coding sessions on this repo. (User-facing setup docs are in `README.md`; local-SEO playbook in `docs/LOCAL-SEO.md`.)
+Context for AI coding sessions on this repo. (User-facing setup docs are in `README.md`; local-SEO playbook in `docs/LOCAL-SEO.md`; **positioning/voice/pricing/journey rules in `docs/LIGHTING-POSITIONING-PLAYBOOK.md` — read it before touching the homepage, nav, forms or lighting copy**; session logs in `docs/SESSION-*.md`.)
 **This repo is public — never commit secrets. All credential *values* live in Vercel env vars.**
 
 ## What this is
