@@ -205,6 +205,28 @@ tr.drag-over-bottom td{border-bottom:2px solid #1a1a1a!important}
 .upload-zone:hover,.upload-zone.drag-over{border-color:#1a1a1a;background:#fafaf8}
 .upload-zone input[type=file]{display:none}
 .upload-preview{max-width:100%;max-height:200px;border-radius:8px;border:1px solid #e5e5e3;display:block;margin:8px auto 0}
+
+/* Minleon live pricing */
+.live-chip{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;white-space:nowrap;vertical-align:middle}
+.live-chip.up{background:#fee2e2;color:#991b1b}
+.live-chip.down{background:#dcfce7;color:#166534}
+.sup-table{min-width:760px}
+.sup-table td.num,.sup-table th.num{text-align:right;white-space:nowrap}
+.sup-sub{font-size:11px;color:#888}
+.sup-link{color:#1a1a1a;text-decoration:none;border-bottom:1px dotted #aaa}
+.sup-link:hover{border-bottom-color:#1a1a1a}
+.delta-up{color:#b91c1c;font-weight:600}
+.delta-down{color:#15803d;font-weight:600}
+.delta-zero{color:#aaa}
+.badge.sug{background:#fef3c7;color:#92400e}
+.bm-link{display:inline-block;padding:8px 14px;border-radius:8px;background:#1a1a1a;color:#fff;font-weight:600;text-decoration:none;cursor:grab;font-size:13px}
+.bm-link:active{cursor:grabbing}
+.howto{background:#fff;border:1px solid #e5e5e3;border-radius:10px;padding:14px 16px}
+.lk-results{max-height:260px;overflow:auto;border:1px solid #e5e5e3;border-radius:8px;margin-top:8px}
+.lk-row{padding:7px 10px;border-bottom:1px solid #f0f0ee;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;gap:10px}
+.lk-row:last-child{border-bottom:none}
+.lk-row:hover{background:#f5f5f3}
+.lk-row.sel{background:#eff6ff}
 </style>
 </head>
 <body>
@@ -228,6 +250,7 @@ tr.drag-over-bottom td{border-bottom:2px solid #1a1a1a!important}
   <button onclick="showSection('reserve',this)">🔒 Reserve</button>
   <button onclick="showSection('confirm',this)">✅ Confirm install</button>
   <button onclick="showSection('reports',this)">📊 Reports</button>
+  <button onclick="showSection('supplier',this)">🏷 Minleon prices</button>
 </nav>
 
 <!-- INVENTORY -->
@@ -316,6 +339,26 @@ tr.drag-over-bottom td{border-bottom:2px solid #1a1a1a!important}
       <tbody id="cat-report-tbody"></tbody>
     </table>
   </div>
+</div>
+
+<!-- MINLEON PRICES -->
+<div id="supplier" class="section">
+  <div class="toolbar">
+    <div>
+      <h2>Minleon prices</h2>
+      <p style="font-size:13px;color:#888;margin-top:2px">Live prices from minleonpermanentlighting.com next to the costs stored here. Nothing changes until you click Apply.</p>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn btn-sm btn-ghost" onclick="loadMinleonCatalog(true)" title="Re-read Minleon's public catalog now (it refreshes automatically every day)">↻ Refresh catalog</button>
+      <button class="btn btn-sm" onclick="openPasteModal()">Paste captured prices</button>
+      <button class="btn btn-sm" onclick="openSyncHelp()" style="border-color:#1a1a1a">☁ Sync my prices</button>
+      <button class="btn btn-sm btn-primary" onclick="applyAllLive()">Apply all changes</button>
+    </div>
+  </div>
+  <div id="sup-cards" class="cards"></div>
+  <div id="sup-alerts"></div>
+  <div id="sup-body"></div>
+  <div id="sup-changes"></div>
 </div>
 
 </div><!-- /container -->
@@ -426,6 +469,7 @@ let state = {
   projects: [],
   installs: [],
   wasteLog: [],
+  supplier: { map: {}, dealer: null },
   nextId: 300,
 };
 
@@ -534,6 +578,7 @@ function render() {
   renderReserveSelects();
   renderConfirmSelects();
   renderReports();
+  renderSupplier();
 }
 
 /* ── INVENTORY ──────────────────────────────────────────── */
@@ -556,9 +601,9 @@ function renderInventory() {
 
   // Low stock alert
   const lowItems = state.inventory.filter(g => g.variants.some(v => !v.muteReorder && vStatus(v) !== 'ok'));
-  document.getElementById('inv-alerts').innerHTML = lowItems.length
+  document.getElementById('inv-alerts').innerHTML = (lowItems.length
     ? `<div class="alert alert-warn">⚠ ${lowItems.length} item group${lowItems.length > 1 ? 's' : ''} need reordering — <a href="#" onclick="event.preventDefault();document.querySelector('[onclick*=reorder]').click()">view reorder list</a></div>`
-    : '';
+    : '') + minleonAlertHtml();
 
   // Category pills
   const pillsEl = document.getElementById('cat-pills');
@@ -664,7 +709,7 @@ function renderVariantRows(g) {
       <td style="color:#888;font-size:12px">${v.reserved > 0 ? v.reserved : '—'}</td>
       <td><div class="avail-cell"><span class="avail-num ${availClass}">${av}</span>${v.reserved > 0 ? `<span class="avail-rsv">${v.reserved} reserved</span>` : ''}</div></td>
       <td><input class="ro-input" type="number" min="0" value="${v.reorderAt}" onchange="setReorder('${g.id}','${v.id}',this.value)" onclick="event.stopPropagation()"></td>
-      <td>${fmtCost(v)}</td>
+      <td>${fmtCost(v)}${liveChip(g, v)}</td>
       <td><span class="badge ${v.bundleCost ? 'purple' : 'neutral'}" style="${!v.bundleCost ? 'background:transparent;color:#aaa;padding:0' : ''}">${bundleLabel(v)}</span></td>
       <td><span class="badge green-soft">$${est.toFixed(2)}</span></td>
       <td><span class="badge ${statusClass(s)}">${statusLabel(s)}</span></td>
@@ -685,7 +730,7 @@ function renderItemRow(g, v) {
     <td style="color:#888;font-size:12px">${v.reserved > 0 ? v.reserved : '—'}</td>
     <td><div class="avail-cell"><span class="avail-num ${availClass}">${av}</span>${v.reserved > 0 ? `<span class="avail-rsv">${v.reserved} reserved</span>` : ''}</div></td>
     <td><input class="ro-input" type="number" min="0" value="${v.reorderAt}" onchange="setReorder('${g.id}','${v.id}',this.value)"></td>
-    <td>${fmtCost(v)}</td>
+    <td>${fmtCost(v)}${liveChip(g, v)}</td>
     <td><span class="badge ${v.bundleCost ? 'purple' : 'neutral'}" style="${!v.bundleCost ? 'background:transparent;color:#aaa;padding:0' : ''}">${bundleLabel(v)}</span></td>
     <td><span class="badge green-soft">$${est.toFixed(2)}</span></td>
     <td><span class="badge ${statusClass(s)}">${statusLabel(s)}</span></td>
@@ -2084,7 +2129,8 @@ function hasData(s) {
   if (!s || typeof s !== 'object') return false;
   const inv = Array.isArray(s.inventory) ? s.inventory : [];
   const stocked = inv.some(i => Array.isArray(i.variants) && i.variants.some(v => (v.qty || 0) > 0 || (v.reserved || 0) > 0));
-  return stocked || (s.projects && s.projects.length > 0) || (s.installs && s.installs.length > 0) || (s.wasteLog && s.wasteLog.length > 0);
+  return stocked || (s.projects && s.projects.length > 0) || (s.installs && s.installs.length > 0) || (s.wasteLog && s.wasteLog.length > 0)
+    || !!(s.supplier && (s.supplier.dealer || (s.supplier.map && Object.keys(s.supplier.map).length)));
 }
 
 function queuePush() {
@@ -2173,9 +2219,613 @@ function applyRemote(remote) {
   setSync('ok', '☁ Synced ' + timeLabel(syncMeta.updatedAt));
 }
 
+/* ── MINLEON LIVE PRICING ────────────────────────────────── */
+/* Rally buys from minleonpermanentlighting.com (Shopify). Two price layers:
+   1. RETAIL — the public catalog, pulled by the website server once a day
+      (/inventory/api/minleon, Vercel cron) with prices + availability.
+   2. YOUR ACCOUNT PRICES — Minleon's login is Shopify's email-code system, so
+      no server can log in for you. The "Sync my prices" bookmark runs on the
+      Minleon site while you are logged in, reads the prices the store shows
+      YOU, and hands them to this app (window.postMessage). They live in the
+      synced state (state.supplier.dealer) so every device sees them.
+   Nothing changes a stored cost by itself — you review and click Apply. */
+const MINLEON_ORIGIN = 'https://minleonpermanentlighting.com';
+const MINLEON_API = '/inventory/api/minleon';
+const MINLEON_CACHE_KEY = 'rally_minleon_catalog';
+
+/* Suggested links for the stock items: Rally variant id → Minleon variant id
+   + "pack" = how many Rally units/bundles one Minleon purchase contains.
+   Shown as SUGGESTED until confirmed; a suggestion never changes a cost. */
+const MINLEON_SUGGESTED = {
+  g1v1:  { vid: 46661605687463, pack: 100,  note: 'Base Bracket, white, box of 100 (3 ft each). Confirm color.' },
+  g2v1:  { vid: 46634368696487, pack: 100,  note: 'Pebble Track Channel, white, 100 pieces. Other colors are priced differently — confirm.' },
+  g3v1:  { vid: 46634323116199, pack: 1000, note: '12" spacing cover (9¾"), white, box of 1000. Confirm color.' },
+  g4v1:  { vid: 49093289902247, pack: 100,  note: 'P50H deep-pebble clip, tape on bottom, bag of 100. Confirm clip type (P50T traditional is a different price).' },
+  g5v1:  { vid: 47351560339623, pack: 1,    note: 'Individual roll. A 15-roll bulk variant also exists.' },
+  g7v1:  { vid: 47398650478759, pack: 16,   note: 'Bulk case = 16 strands of 25 pebbles, 12" spacing, black.' },
+  g7v2:  { vid: 47398650544295, pack: 20,   note: 'Bulk case = 20 strands of 10 pebbles.' },
+  g7v3:  { vid: 47398650609831, pack: 30,   note: 'Bulk case = 30 strands of 5 pebbles.' },
+  g7v4:  { vid: 47398650675367, pack: 30,   note: 'Bulk case = 30 strands of 2 pebbles.' },
+  g7v5:  { vid: 47398650740903, pack: 30,   note: 'Bulk case = 30 single pebbles.' },
+  g8v1:  { vid: 46626311045287, pack: 1 },
+  g8v2:  { vid: 46626311078055, pack: 1 },
+  g8v3:  { vid: 46626311110823, pack: 1 },
+  g8v4:  { vid: 46626311143591, pack: 1 },
+  g9v1:  { vid: 46626329591975, pack: 1 },
+  g9v2:  { vid: 46626329624743, pack: 1 },
+  g9v3:  { vid: 46626329657511, pack: 1 },
+  g9v4:  { vid: 46626329690279, pack: 1 },
+  g9v5:  { vid: 46626329723047, pack: 1 },
+  g10v1: { vid: 46626317631655, pack: 1,    note: 'Black. Confirm color.' },
+  g10v2: { vid: 47381962588327, pack: 20,   note: '25 ft is only sold as a bulk case of 20 (black).' },
+  g10v3: { vid: 46626317828263, pack: 1 },
+  g10v4: { vid: 46626317926567, pack: 1 },
+  g10v5: { vid: 46626318024871, pack: 1 },
+  g10v6: { vid: 46626318123175, pack: 1 },
+  g10v7: { vid: 46626318221479, pack: 1 },
+  g11v1: { vid: 46626313765031, pack: 1,    note: 'Single unit. A 15-count bulk variant also exists.' },
+  g11v2: { vid: 46626313797799, pack: 1,    note: 'Single unit. A 15-count bulk variant also exists.' },
+  g12v1: { vid: 47351142383783, pack: 1,    note: 'Single controller. A 20-count bulk variant also exists.' },
+  g12v2: { vid: 47351188914343, pack: 1,    note: 'Single controller. A 10-count bulk variant also exists.' },
+  g12v3: { vid: 47351182295207, pack: 1,    note: 'Single controller. A 10-count bulk variant also exists.' },
+  g13v1: { vid: 46626318647463, pack: 1,    note: 'White. Confirm color.' },
+  g13v2: { vid: 46626313961639, pack: 1 },
+  g14v1: { vid: 46714735526055, pack: 1,    note: 'White. Confirm color.' },
+  g15v1: { vid: 46626327527591, pack: 1,    note: 'White. Confirm color.' },
+  g16v1: { vid: 46626319663271, pack: 1 },
+  g16v2: { vid: 46637066027175, pack: 1,    note: 'Black (white is out of stock).' },
+  g17v1: { vid: 46626319499431, pack: 1 },
+};
+
+let minleonCatalog = null;          // newest server snapshot
+let minleonIndex = new Map();       // Minleon variant id → { p, v }
+let minleonStatus = '';             // human-readable status line
+let minleonAwaiting = false;        // true while this tab was opened by the bookmark and waits for prices
+
+function sup() {
+  if (!state.supplier || typeof state.supplier !== 'object') state.supplier = { map: {}, dealer: null };
+  if (!state.supplier.map || typeof state.supplier.map !== 'object') state.supplier.map = {};
+  return state.supplier;
+}
+
+function getLink(v) {
+  const m = sup().map[v.id];
+  if (m && m.vid) return { vid: Number(m.vid), pack: Number(m.pack) || 1, ok: true };
+  const s = MINLEON_SUGGESTED[v.id];
+  if (s) return { vid: s.vid, pack: s.pack, ok: false, note: s.note || '' };
+  return null;
+}
+
+function indexCatalog(snap) {
+  minleonIndex = new Map();
+  (snap.products || []).forEach(p => (p.variants || []).forEach(v => minleonIndex.set(Number(v.id), { p, v })));
+}
+
+async function loadMinleonCatalog(force) {
+  if (!minleonCatalog) {
+    try { const c = JSON.parse(localStorage.getItem(MINLEON_CACHE_KEY) || 'null'); if (c && c.products) { minleonCatalog = c; indexCatalog(c); } } catch(e) {}
+  }
+  minleonStatus = force ? 'Refreshing the Minleon catalog…' : 'Checking the Minleon catalog…';
+  renderSupplier();
+  try {
+    const res = force
+      ? await fetch(MINLEON_API, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'refresh' }) })
+      : await fetch(MINLEON_API + '?t=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' });
+    if (res.status === 503) { minleonStatus = 'Cloud storage is not set up — retail prices unavailable.'; renderSupplier(); return; }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const snap = await res.json();
+    if (!snap || !snap.ok || !Array.isArray(snap.products)) throw new Error('bad payload');
+    minleonCatalog = snap;
+    indexCatalog(snap);
+    try { localStorage.setItem(MINLEON_CACHE_KEY, JSON.stringify(snap)); } catch(e) {}
+    minleonStatus = snap.throttled ? 'Catalog was refreshed less than 10 minutes ago — showing that copy.' : '';
+  } catch(e) {
+    minleonStatus = minleonCatalog ? 'Could not reach the catalog service — showing the last copy.' : 'Could not load the Minleon catalog.';
+  }
+  renderSupplier();
+  renderInventory();
+}
+
+/* Price that this app stores for one Rally "line": the bundle price when the
+   variant is bundled (e.g. one 25-pebble strand), otherwise the unit cost. */
+function rallyLinePrice(v) {
+  return (v.bundleQty && v.bundleCost) ? v.bundleCost : (v.unitCost || 0);
+}
+function setRallyLinePrice(v, price) {
+  const p = +Number(price).toFixed(2);
+  if (v.bundleQty) { v.bundleCost = p; v.unitCost = +(p / v.bundleQty).toFixed(4); }
+  else { v.unitCost = p; }
+}
+function lineUnitLabel(g, v) {
+  return (v.bundleQty && v.bundleCost) ? 'per ' + v.bundleQty + ' (' + g.unit + ')' : 'per ' + g.unit;
+}
+
+/* Everything the UI needs to know about one Rally variant's Minleon link. */
+function liveInfo(g, v) {
+  const link = getLink(v);
+  if (!link) return null;
+  const hit = minleonIndex.get(link.vid) || null;
+  const d = sup().dealer;
+  const row = d && d.prices ? d.prices[link.vid] : null;
+  const retail = hit ? Number(hit.v.price) : null;
+  const yours = row ? Number(row[0]) : null;
+  const available = row ? !!row[1] : (hit ? !!hit.v.available : null);
+  const price = yours != null ? yours : retail;
+  const stored = rallyLinePrice(v);
+  const info = { link, hit, retail, yours, available, price, stored, perLine: null, delta: 0, pct: 0, changed: false, missing: !hit && yours == null };
+  if (price != null) {
+    info.perLine = +(price / link.pack).toFixed(2);
+    info.delta = +(info.perLine - stored).toFixed(2);
+    info.pct = stored ? (info.delta / stored) * 100 : 0;
+    info.changed = Math.abs(info.delta) >= 0.01;
+  }
+  return info;
+}
+
+function liveChip(g, v) {
+  const li = liveInfo(g, v);
+  if (!li || !li.link.ok || !li.changed || li.perLine == null) return '';
+  const up = li.delta > 0;
+  const src = li.yours != null ? 'your Minleon price' : 'Minleon retail';
+  return `<span class="live-chip ${up ? 'up' : 'down'}" title="${src}: $${li.perLine.toFixed(2)} ${esc(lineUnitLabel(g, v))} (stored $${li.stored.toFixed(2)})">${up ? '↑' : '↓'} $${li.perLine.toFixed(2)}</span>`;
+}
+
+function liveSummary() {
+  let changed = 0, suggested = 0, confirmed = 0, total = 0, missing = 0;
+  state.inventory.forEach(g => g.variants.forEach(v => {
+    total++;
+    const li = liveInfo(g, v);
+    if (!li) return;
+    if (li.link.ok) confirmed++; else suggested++;
+    if (li.missing) missing++;
+    if (li.link.ok && li.changed) changed++;
+  }));
+  return { changed, suggested, confirmed, total, missing };
+}
+
+function minleonAlertHtml() {
+  const s = liveSummary();
+  if (s.changed) return `<div class="alert alert-info">🏷 Minleon pricing differs from your stored cost on ${s.changed} item${s.changed > 1 ? 's' : ''} — <a href="#" onclick="event.preventDefault();showSupplierTab()">review in Minleon prices</a></div>`;
+  if (s.suggested && !s.confirmed) return `<div class="alert alert-info">🏷 ${s.suggested} items can be linked to Minleon products for live pricing — <a href="#" onclick="event.preventDefault();showSupplierTab()">review the suggested links</a></div>`;
+  return '';
+}
+
+function showSupplierTab() {
+  const btn = document.querySelector('.nav button[onclick*="supplier"]');
+  if (btn) showSection('supplier', btn);
+}
+
+function whenLabel(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts), now = new Date();
+  const sameDay = d.toDateString() === now.toDateString();
+  return (sameDay ? 'Today' : d.toLocaleDateString([], { month: 'short', day: 'numeric' })) + ' ' + d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+function money(n) { return '$' + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+/* ── Rendering ── */
+function renderSupplier() {
+  const body = document.getElementById('sup-body');
+  if (!body) return;
+  const s = liveSummary();
+  const d = sup().dealer;
+  const cat = minleonCatalog;
+
+  document.getElementById('sup-cards').innerHTML = `
+    <div class="card"><div class="label">Minleon catalog</div><div class="value" style="font-size:16px">${cat ? whenLabel(cat.fetchedAt) : '…'}</div><div class="sub">${cat ? cat.productCount + ' products · refreshes daily' : 'loading'}</div></div>
+    <div class="card ${d && !d.loggedIn ? 'warn' : ''}"><div class="label">Your account prices</div><div class="value" style="font-size:16px">${d ? whenLabel(d.at) : 'Not synced yet'}</div><div class="sub">${d ? (d.loggedIn ? 'account #' + esc(d.cid || '?') + ' · ' : '⚠ not logged in · ') + d.n + ' prices' : 'use “Sync my prices”'}</div></div>
+    <div class="card"><div class="label">Linked items</div><div class="value">${s.confirmed}<span style="font-size:13px;color:#aaa;font-weight:400"> / ${s.total}</span></div><div class="sub">${s.suggested ? s.suggested + ' suggested — confirm below' : (s.total - s.confirmed) + ' not linked'}</div></div>
+    <div class="card ${s.changed ? 'warn' : ''}"><div class="label">Cost changes</div><div class="value">${s.changed}</div><div class="sub">vs stored costs</div></div>
+  `;
+
+  let alerts = '';
+  if (minleonAwaiting) alerts += `<div class="alert alert-info">☁ Waiting for prices from the Minleon tab… keep this tab open.</div>`;
+  if (minleonStatus) alerts += `<div class="alert alert-warn">${esc(minleonStatus)}</div>`;
+  if (!d) alerts += `<div class="alert alert-info">Showing Minleon's <strong>public retail</strong> prices. To load your account pricing, click <strong>Sync my prices</strong> and follow the two steps.</div>`;
+  else if (!d.loggedIn) alerts += `<div class="alert alert-warn">⚠ The last sync ran while <strong>not logged in</strong>, so it captured public retail prices. Log into minleonpermanentlighting.com and run the Rally bookmark again.</div>`;
+  else if (d.diffFromRetail === 0) alerts += `<div class="alert alert-warn">Your logged-in prices matched the public list on every product page. If Minleon applies your discount in the cart instead, the numbers here are list prices — tell Jason's assistant and we'll add a discount setting.</div>`;
+  if (s.suggested) alerts += `<div class="alert alert-info">${s.suggested} suggested link${s.suggested > 1 ? 's' : ''} need a quick look — check the product/variant/color, then <a href="#" onclick="event.preventDefault();confirmAllSuggestions()">confirm all</a> or confirm one at a time.</div>`;
+  document.getElementById('sup-alerts').innerHTML = alerts;
+
+  // Table, grouped by category
+  const parts = [];
+  CATS.forEach(c => {
+    const groups = state.inventory.filter(g => g.cat === c.id);
+    if (!groups.length) return;
+    const rows = [];
+    groups.forEach(g => g.variants.forEach(v => rows.push(supRow(g, v))));
+    parts.push(`<div class="sec-label">${c.name}</div>
+      <div class="tbl-wrap" style="overflow-x:auto;margin-bottom:18px"><table class="sup-table">
+        <thead><tr><th>Rally item</th><th>Minleon product</th><th class="num">Pack</th><th class="num">Retail</th><th class="num">Your price</th><th class="num">In app</th><th class="num">Change</th><th></th></tr></thead>
+        <tbody>${rows.join('')}</tbody></table></div>`);
+  });
+  body.innerHTML = parts.join('');
+
+  // Catalog changes since the previous snapshot, for linked items
+  const chEl = document.getElementById('sup-changes');
+  if (cat && Array.isArray(cat.changes) && cat.changes.length) {
+    const linkedVids = new Set();
+    state.inventory.forEach(g => g.variants.forEach(v => { const l = getLink(v); if (l) linkedVids.add(l.vid); }));
+    const mine = cat.changes.filter(ch => linkedVids.has(Number(ch.vid)));
+    const li = mine.map(ch => {
+      const what = ch.from == null ? 'new variant · ' + money(ch.to) : ch.to == null ? 'removed (was ' + money(ch.from) + ')' : ch.from !== ch.to ? money(ch.from) + ' → ' + money(ch.to) : (ch.availableTo ? 'back in stock' : 'out of stock');
+      return `<li><strong>${esc(ch.product)}</strong> <span class="sup-sub">${esc(ch.variant)}</span> — ${what}</li>`;
+    });
+    chEl.innerHTML = `<div class="sec-label">Catalog changes ${cat.previousFetchedAt ? 'since ' + whenLabel(cat.previousFetchedAt) : ''}</div>
+      <div class="howto">${mine.length ? `<ul style="margin:0 0 0 18px;font-size:13px">${li.join('')}</ul>` : '<span class="sup-sub">No changes to your linked items.</span>'}
+      <div class="sup-sub" style="margin-top:8px">${cat.changes.length} change${cat.changes.length > 1 ? 's' : ''} across the whole Minleon catalog.</div></div>`;
+  } else {
+    chEl.innerHTML = '';
+  }
+}
+
+function supRow(g, v) {
+  const li = liveInfo(g, v);
+  const name = `<div style="font-weight:500">${esc(g.name)}${v.label ? ` <span class="sup-sub">${esc(v.label)}</span>` : ''}</div><div class="sup-sub">${esc(lineUnitLabel(g, v))}</div>`;
+  const linkBtn = (txt) => `<button class="btn btn-xs" onclick="openLinkModal('${g.id}','${v.id}')">${txt}</button>`;
+  if (!li) {
+    return `<tr><td>${name}</td><td colspan="6" class="sup-sub">Not linked to a Minleon product</td><td style="white-space:nowrap">${linkBtn('Link…')}</td></tr>`;
+  }
+  const { link, hit } = li;
+  const mlTitle = hit ? `<a class="sup-link" href="${MINLEON_ORIGIN}/products/${esc(hit.p.handle)}?variant=${link.vid}" target="_blank" rel="noopener">${esc(hit.p.title)}</a>` : `<span class="sup-sub">Variant ${link.vid} not in the current catalog</span>`;
+  const mlSub = hit ? `${esc(hit.v.title)}${li.available === false ? ' · <span style="color:#b91c1c">out of stock</span>' : ''}` : '';
+  const sug = link.ok ? '' : ` <span class="badge sug">suggested</span>${link.note ? `<div class="sup-sub" style="margin-top:2px">${esc(link.note)}</div>` : ''}`;
+  const packTxt = link.pack > 1 ? `÷ ${link.pack}` : '1';
+  const retail = li.retail != null ? `${money(li.retail / link.pack)}<div class="sup-sub">${money(li.retail)} list</div>` : '<span class="sup-sub">—</span>';
+  const yours = li.yours != null ? `<strong>${money(li.yours / link.pack)}</strong>${link.pack > 1 ? `<div class="sup-sub">${money(li.yours)} each</div>` : ''}` : '<span class="sup-sub">—</span>';
+  const inApp = li.stored ? money(li.stored) : '<span class="sup-sub">—</span>';
+  let change = '<span class="delta-zero">—</span>';
+  if (li.perLine != null && li.stored) {
+    change = li.changed ? `<span class="${li.delta > 0 ? 'delta-up' : 'delta-down'}">${li.delta > 0 ? '+' : '−'}$${Math.abs(li.delta).toFixed(2)}<div class="sup-sub">${li.pct > 0 ? '+' : ''}${li.pct.toFixed(1)}%</div></span>` : '<span class="delta-zero">same</span>';
+  } else if (li.perLine != null && !li.stored) {
+    change = '<span class="sup-sub">no cost yet</span>';
+  }
+  const actions = [];
+  if (!link.ok) actions.push(`<button class="btn btn-xs" style="border-color:#1a1a1a" onclick="confirmLink('${v.id}')">✓ Confirm</button>`);
+  if (link.ok && li.changed) actions.push(`<button class="btn btn-xs btn-primary" onclick="applyLive('${g.id}','${v.id}')">Apply</button>`);
+  actions.push(linkBtn(link.ok ? 'Change' : 'Pick other…'));
+  return `<tr><td>${name}</td><td>${mlTitle}${sug}<div class="sup-sub">${mlSub}</div></td><td class="num">${packTxt}</td><td class="num">${retail}</td><td class="num">${yours}</td><td class="num">${inApp}</td><td class="num">${change}</td><td style="white-space:nowrap">${actions.join(' ')}</td></tr>`;
+}
+
+/* ── Links (confirm / pick) ── */
+function confirmLink(rvid) {
+  const s = MINLEON_SUGGESTED[rvid];
+  const existing = sup().map[rvid];
+  if (!s && !existing) return;
+  if (!existing) sup().map[rvid] = { vid: s.vid, pack: s.pack };
+  save(); render();
+}
+function confirmAllSuggestions() {
+  let n = 0;
+  state.inventory.forEach(g => g.variants.forEach(v => {
+    const l = getLink(v);
+    if (l && !l.ok) { sup().map[v.id] = { vid: l.vid, pack: l.pack }; n++; }
+  }));
+  if (n) { save(); render(); }
+}
+
+let linkModal = null;
+function guessPack(title) {
+  const t = String(title || '');
+  const pats = [/\((\d+)\s*ct\)/i, /bag of (\d+)/i, /case of (\d+)/i, /(\d+) pieces/i, /bulk buy \((\d+)/i, /\((\d+) rolls\)/i, /\/\s*(\d{2,4})\s*$/];
+  for (const re of pats) { const m = t.match(re); if (m) return parseInt(m[1], 10) || 1; }
+  return 1;
+}
+function openLinkModal(gid, rvid) {
+  const g = state.inventory.find(x => x.id === gid); if (!g) return;
+  const v = g.variants.find(x => x.id === rvid); if (!v) return;
+  const cur = getLink(v);
+  linkModal = { gid, rvid, q: '', vid: cur ? cur.vid : null, pack: cur ? cur.pack : 1 };
+  showModal(`
+    <div class="modal-title">Link to a Minleon product</div>
+    <div style="font-size:13px;margin-bottom:10px"><strong>${esc(g.name)}</strong>${v.label ? ' · ' + esc(v.label) : ''} <span class="sup-sub">(${esc(lineUnitLabel(g, v))})</span></div>
+    <div class="fg"><label>Search Minleon's catalog</label><input type="text" id="lk-q" placeholder="e.g. pebble 25, spacer 10, WEC3, power supply" oninput="linkModal.q=this.value;renderLinkResults()" autocomplete="off"></div>
+    <div id="lk-results" class="lk-results"></div>
+    <div class="form-row" style="margin-top:12px">
+      <div class="fg"><label>Rally lines per Minleon purchase</label><input type="number" id="lk-pack" min="1" step="1" value="${linkModal.pack}" oninput="linkModal.pack=parseInt(this.value)||1;renderLinkSelected()"></div>
+      <div class="fg"><label>Result</label><div id="lk-selected" style="font-size:13px;padding-top:6px"></div></div>
+    </div>
+    <div class="sup-sub">Example: a bulk case of 16 strands → 16. A bag of 100 clips → 100. A single controller → 1.</div>
+    <div class="modal-footer">
+      ${sup().map[rvid] ? '<button class="btn btn-danger" onclick="unlinkVariant()">Unlink</button>' : ''}
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveLink()">Save link</button>
+    </div>
+  `);
+  renderLinkResults();
+  renderLinkSelected();
+  const q = document.getElementById('lk-q'); if (q) q.focus();
+}
+function renderLinkResults() {
+  const el = document.getElementById('lk-results'); if (!el || !linkModal) return;
+  if (!minleonCatalog) { el.innerHTML = '<div class="lk-row sup-sub">Catalog not loaded yet.</div>'; return; }
+  const terms = linkModal.q.toLowerCase().split(/\s+/).filter(Boolean);
+  const out = [];
+  for (const [vid, { p, v }] of minleonIndex) {
+    const hay = (p.title + ' ' + v.title + ' ' + (v.sku || '')).toLowerCase();
+    if (terms.length && !terms.every(t => hay.includes(t))) continue;
+    if (!terms.length && vid !== linkModal.vid) continue; // show only the current pick until the user types
+    out.push({ vid, p, v });
+    if (out.length >= 60) break;
+  }
+  if (!out.length) { el.innerHTML = `<div class="lk-row sup-sub">${terms.length ? 'No matches.' : 'Type to search — product name, size, color or SKU.'}</div>`; return; }
+  el.innerHTML = out.map(r => `<div class="lk-row ${r.vid === linkModal.vid ? 'sel' : ''}" onclick="pickLink(${r.vid})">
+      <span><strong>${esc(r.p.title)}</strong> <span class="sup-sub">${esc(r.v.title)}</span></span>
+      <span style="white-space:nowrap">${money(r.v.price)}${r.v.available ? '' : ' <span style="color:#b91c1c">out</span>'}</span></div>`).join('');
+}
+function pickLink(vid) {
+  if (!linkModal) return;
+  linkModal.vid = vid;
+  const hit = minleonIndex.get(vid);
+  if (hit) { linkModal.pack = guessPack(hit.v.title); const pk = document.getElementById('lk-pack'); if (pk) pk.value = linkModal.pack; }
+  renderLinkResults(); renderLinkSelected();
+}
+function renderLinkSelected() {
+  const el = document.getElementById('lk-selected'); if (!el || !linkModal) return;
+  const hit = linkModal.vid ? minleonIndex.get(linkModal.vid) : null;
+  if (!hit) { el.innerHTML = '<span class="sup-sub">Nothing selected</span>'; return; }
+  const g = state.inventory.find(x => x.id === linkModal.gid);
+  const v = g && g.variants.find(x => x.id === linkModal.rvid);
+  const d = sup().dealer; const row = d && d.prices ? d.prices[linkModal.vid] : null;
+  const price = row ? row[0] : hit.v.price;
+  el.innerHTML = `${money(price / (linkModal.pack || 1))} <span class="sup-sub">${v ? esc(lineUnitLabel(g, v)) : ''} · ${row ? 'your price' : 'retail'} ${money(price)} ÷ ${linkModal.pack || 1}</span>`;
+}
+function saveLink() {
+  if (!linkModal || !linkModal.vid) { alert('Pick a Minleon product first.'); return; }
+  sup().map[linkModal.rvid] = { vid: linkModal.vid, pack: Math.max(1, parseInt(linkModal.pack, 10) || 1) };
+  linkModal = null; save(); closeModal(); render();
+}
+function unlinkVariant() {
+  if (!linkModal) return;
+  delete sup().map[linkModal.rvid];
+  linkModal = null; save(); closeModal(); render();
+}
+
+/* ── Apply prices ── */
+function applyLive(gid, rvid) {
+  const g = state.inventory.find(x => x.id === gid); if (!g) return;
+  const v = g.variants.find(x => x.id === rvid); if (!v) return;
+  const li = liveInfo(g, v);
+  if (!li || li.perLine == null) return;
+  setRallyLinePrice(v, li.perLine);
+  save(); render();
+}
+function applyAllLive() {
+  const todo = [];
+  state.inventory.forEach(g => g.variants.forEach(v => { const li = liveInfo(g, v); if (li && li.link.ok && li.changed && li.perLine != null) todo.push({ v, li }); }));
+  if (!todo.length) { alert('Nothing to update — every linked item already matches Minleon.'); return; }
+  const usingRetail = todo.some(t => t.li.yours == null);
+  const ok = confirm(`Update ${todo.length} stored cost${todo.length > 1 ? 's' : ''} to the current Minleon price${usingRetail ? '?\n\nNote: some or all of these are PUBLIC RETAIL prices (your account prices have not been synced for them).' : 's from your account?'}`);
+  if (!ok) return;
+  todo.forEach(t => setRallyLinePrice(t.v, t.li.perLine));
+  save(); render();
+}
+
+/* ── Capturing YOUR prices: the bookmarklet ── */
+/* This function is stringified into a javascript: bookmark. It runs on the
+   Minleon tab (same origin as their store, with Jason's login cookies), reads
+   the prices the store shows him, and posts them to the inventory tab. */
+function rallyMinleonCollector(RALLY) {
+  var H = location.hostname;
+  if (!/minleonpermanentlighting\.com$|permanent-lighting\.myshopify\.com$/.test(H)) {
+    alert('Open minleonpermanentlighting.com, log in, then click this bookmark there.');
+    return;
+  }
+  var w = null;
+  try { w = window.open(RALLY + '/inventory#minleon-import', 'rally-inventory'); } catch (_) {}
+  var box = document.createElement('div');
+  box.style.cssText = 'position:fixed;top:16px;right:16px;z-index:2147483647;background:#1a1a1a;color:#fff;font:13px/1.45 -apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;padding:14px 16px;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.35);max-width:340px';
+  document.body.appendChild(box);
+  var msg = document.createElement('div');
+  box.innerHTML = '<div style="font-weight:700;margin-bottom:6px">Rally · Minleon price sync</div>';
+  box.appendChild(msg);
+  var log = function (t) { msg.textContent = t; };
+  var cid = (window.__st && window.__st.cid) || (window.ShopifyAnalytics && ShopifyAnalytics.meta && ShopifyAnalytics.meta.page && ShopifyAnalytics.meta.page.customerId) || null;
+  var wanted = null, acked = false;
+  window.addEventListener('message', function (e) {
+    if (e.origin !== RALLY) return;
+    var m = e.data || {};
+    if (m.type === 'rally-ready') wanted = m.handles || [];
+    if (m.type === 'rally-received') {
+      acked = true;
+      log('Done — ' + m.n + ' prices sent to the inventory app.');
+      setTimeout(function () { box.remove(); }, 6000);
+      try { w && w.focus(); } catch (_) {}
+    }
+  });
+  log(cid ? 'Logged in (account #' + cid + '). Reading prices…' : 'Not logged in — reading public prices. Log in and run again for your account pricing.');
+  (async function () {
+    var products = [];
+    for (var pg = 1; pg <= 8; pg++) {
+      var r0 = await fetch('/products.json?limit=250&page=' + pg, { credentials: 'same-origin' });
+      var j0 = await r0.json();
+      var b0 = j0.products || [];
+      products = products.concat(b0);
+      if (b0.length < 250) break;
+    }
+    var retail = {};
+    products.forEach(function (p) { (p.variants || []).forEach(function (v) { retail[v.id] = +v.price; }); });
+    var prices = {}, jsOK = 0, htmlOK = 0;
+    // 1) Ajax product endpoint — contextual to the logged-in buyer on Shopify B2B stores.
+    var handles = products.map(function (p) { return p.handle; });
+    var i = 0;
+    async function jsWorker() {
+      while (i < handles.length) {
+        var h = handles[i++];
+        try {
+          var r = await fetch('/products/' + h + '.js', { credentials: 'same-origin' });
+          if (!r.ok) continue;
+          var pj = await r.json();
+          (pj.variants || []).forEach(function (v) { prices[v.id] = [Math.round(v.price) / 100, v.available ? 1 : 0, 1]; });
+          jsOK++;
+          log('Reading prices… ' + jsOK + ' / ' + handles.length);
+        } catch (_) {}
+      }
+    }
+    await Promise.all([jsWorker(), jsWorker(), jsWorker(), jsWorker()]);
+    // 2) The rendered product pages for the items Rally stocks — exactly what the store shows you.
+    for (var t = 0; t < 10 && wanted === null; t++) await new Promise(function (res) { setTimeout(res, 500); });
+    var pages = (wanted || []).filter(function (h, idx, arr) { return h && arr.indexOf(h) === idx; });
+    var k = 0;
+    async function pageWorker() {
+      while (k < pages.length) {
+        var h = pages[k++];
+        try {
+          var r = await fetch('/products/' + h, { credentials: 'same-origin', headers: { accept: 'text/html' } });
+          if (!r.ok) continue;
+          var html = await r.text();
+          var re = /<script[^>]*type="application\/json"[^>]*>([\s\S]*?)<\/script>/g, m;
+          while ((m = re.exec(html))) {
+            var body = m[1].trim();
+            if (body[0] !== '[') continue;
+            try {
+              var arr = JSON.parse(body);
+              if (Array.isArray(arr) && arr.length && arr[0] && typeof arr[0].price === 'number' && arr[0].id) {
+                arr.forEach(function (v) { prices[v.id] = [Math.round(v.price) / 100, v.available ? 1 : 0, 2]; });
+                htmlOK++;
+                break;
+              }
+            } catch (_) {}
+          }
+          log('Checking product pages… ' + htmlOK + ' / ' + pages.length);
+        } catch (_) {}
+      }
+    }
+    await Promise.all([pageWorker(), pageWorker(), pageWorker()]);
+    var total = 0, diff = 0;
+    Object.keys(prices).forEach(function (id) { total++; if (retail[id] != null && Math.abs(retail[id] - prices[id][0]) >= 0.005) diff++; });
+    var payload = { type: 'rally-minleon-prices', v: 1, at: Date.now(), cid: cid ? String(cid) : null, loggedIn: !!cid, host: H, n: total, diffFromRetail: diff, jsPages: jsOK, htmlPages: htmlOK, prices: prices };
+    log('Read ' + total + ' prices (' + diff + ' differ from the public list). Sending to the inventory app…');
+    var tries = 0;
+    var fallback = function () {
+      if (acked) return;
+      log('Could not reach the inventory tab. Copy this text, then use “Paste captured prices” in the inventory app:');
+      var ta = document.createElement('textarea');
+      ta.value = JSON.stringify(payload);
+      ta.style.cssText = 'display:block;width:100%;height:56px;margin-top:8px;font-size:10px;color:#111';
+      box.appendChild(ta);
+      var b = document.createElement('button');
+      b.textContent = 'Copy';
+      b.style.cssText = 'margin-top:8px;padding:6px 12px;border-radius:6px;border:0;background:#fff;color:#111;font-weight:600;cursor:pointer';
+      b.onclick = function () { ta.select(); try { document.execCommand('copy'); } catch (_) {} if (navigator.clipboard) navigator.clipboard.writeText(ta.value); b.textContent = 'Copied'; };
+      box.appendChild(b);
+    };
+    var send = function () {
+      if (acked) return;
+      tries++;
+      try { if (w && !w.closed) w.postMessage(payload, RALLY); } catch (_) {}
+      if (tries < 20) setTimeout(send, 1500); else fallback();
+    };
+    if (!w) fallback(); else send();
+  })().catch(function (e) { log('Failed: ' + ((e && e.message) || e)); });
+}
+function bookmarkletHref() {
+  const code = '(' + rallyMinleonCollector.toString() + ')(' + JSON.stringify(location.origin) + ')';
+  return 'javascript:' + encodeURIComponent(code);
+}
+function openSyncHelp() {
+  showModal(`
+    <div class="modal-title">Sync your Minleon account prices</div>
+    <div class="sup-sub" style="margin:-10px 0 14px">Minleon shows your exclusive pricing only while you're logged in, and their login uses one-time email codes — so no server can fetch it for you. This one-click bookmark does it from your own browser in about ten seconds. No password is saved anywhere.</div>
+    <div class="howto" style="margin-bottom:12px">
+      <div style="font-weight:600;font-size:13px;margin-bottom:8px">Step 1 · Add the Rally bookmark (once per device)</div>
+      <div style="font-size:13px;margin-bottom:8px"><strong>Computer:</strong> drag this button to your bookmarks bar →&nbsp; <a class="bm-link" href="${bookmarkletHref()}" onclick="if(!/minleon/.test(location.hostname)){event.preventDefault();alert('Drag this to your bookmarks bar instead of clicking it. Then click the bookmark while you are on minleonpermanentlighting.com.');}" title="Drag me to the bookmarks bar">☁ Rally · Sync Minleon prices</a></div>
+      <div style="font-size:13px"><strong>iPhone / iPad:</strong> tap <button class="btn btn-xs" onclick="copyBookmarklet(this)">Copy bookmark code</button>, then in Safari bookmark any page, open Bookmarks → Edit, and paste the code in place of the bookmark's address.</div>
+    </div>
+    <div class="howto" style="margin-bottom:12px">
+      <div style="font-weight:600;font-size:13px;margin-bottom:8px">Step 2 · Open Minleon, log in, tap the bookmark</div>
+      <div style="font-size:13px"><a class="btn btn-sm" href="${MINLEON_ORIGIN}/account/login" target="_blank" rel="noopener">Open minleonpermanentlighting.com ↗</a> &nbsp;Log in, then tap <strong>☁ Rally · Sync Minleon prices</strong> in your bookmarks. It reads the prices the store shows you and sends them back to this app (a tab of the inventory opens by itself).</div>
+    </div>
+    <div class="sup-sub">If the inventory tab can't be reached (pop-up blocked), the bookmark shows a Copy button — paste that text with <strong>Paste captured prices</strong> below.</div>
+    <div class="modal-footer">
+      <button class="btn" onclick="openPasteModal()">Paste captured prices</button>
+      <button class="btn btn-primary" onclick="closeModal()">Done</button>
+    </div>
+  `);
+}
+function copyBookmarklet(btn) {
+  const href = bookmarkletHref();
+  const done = () => { btn.textContent = 'Copied ✓'; setTimeout(() => { btn.textContent = 'Copy bookmark code'; }, 2500); };
+  if (navigator.clipboard) navigator.clipboard.writeText(href).then(done, () => prompt('Copy this bookmark code:', href));
+  else prompt('Copy this bookmark code:', href);
+}
+function openPasteModal() {
+  showModal(`
+    <div class="modal-title">Paste captured prices</div>
+    <div class="sup-sub" style="margin:-10px 0 10px">Only needed if the bookmark could not open the inventory tab. Paste the text it gave you.</div>
+    <textarea id="paste-prices" style="width:100%;height:120px;font-family:monospace;font-size:11px" placeholder='{"type":"rally-minleon-prices", …}'></textarea>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="ingestPasted()">Import</button>
+    </div>
+  `);
+}
+function ingestPasted() {
+  let m;
+  try { m = JSON.parse(document.getElementById('paste-prices').value.trim()); } catch (e) { alert('That text is not a price capture. Copy it again from the Rally bookmark.'); return; }
+  const n = ingestDealerPrices(m);
+  if (!n) { alert('No prices found in that text.'); return; }
+  closeModal();
+}
+
+/* Store a capture in the synced state (compact: vid → [price, inStock, source]). */
+function ingestDealerPrices(m) {
+  if (!m || m.type !== 'rally-minleon-prices' || !m.prices || typeof m.prices !== 'object') return 0;
+  const prices = {}; let n = 0;
+  Object.keys(m.prices).forEach(k => {
+    const row = m.prices[k]; const id = Number(k); const p = Number(row && row[0]);
+    if (!Number.isFinite(id) || !Number.isFinite(p) || p < 0) return;
+    prices[id] = [+p.toFixed(2), row[1] ? 1 : 0, row[2] | 0]; n++;
+  });
+  if (!n) return 0;
+  sup().dealer = {
+    at: Number(m.at) || Date.now(),
+    cid: m.cid ? String(m.cid).slice(0, 32) : null,
+    loggedIn: !!m.loggedIn,
+    n,
+    diffFromRetail: Number(m.diffFromRetail) || 0,
+    jsPages: m.jsPages | 0,
+    htmlPages: m.htmlPages | 0,
+    prices,
+  };
+  minleonAwaiting = false;
+  save(); render(); showSupplierTab();
+  return n;
+}
+
+function linkedHandles() {
+  const out = [];
+  state.inventory.forEach(g => g.variants.forEach(v => { const l = getLink(v); const hit = l && minleonIndex.get(l.vid); if (hit && !out.includes(hit.p.handle)) out.push(hit.p.handle); }));
+  return out;
+}
+function onMinleonMessage(e) {
+  if (e.origin !== MINLEON_ORIGIN) return;
+  const m = e.data;
+  if (!m || m.type !== 'rally-minleon-prices') return;
+  const n = ingestDealerPrices(m);
+  try { e.source.postMessage({ type: 'rally-received', n }, e.origin); } catch (_) {}
+}
+function initMinleon() {
+  window.addEventListener('message', onMinleonMessage);
+  const opened = location.hash === '#minleon-import';
+  const boot = () => {
+    if (!opened) return;
+    minleonAwaiting = true;
+    showSupplierTab();
+    const say = () => { try { if (window.opener && !window.opener.closed) window.opener.postMessage({ type: 'rally-ready', handles: linkedHandles() }, MINLEON_ORIGIN); } catch (_) {} };
+    say();
+    const t = setInterval(() => { if (!minleonAwaiting) return clearInterval(t); say(); }, 1000);
+    setTimeout(() => clearInterval(t), 45000);
+    setTimeout(() => { if (minleonAwaiting) { minleonAwaiting = false; renderSupplier(); } }, 120000);
+  };
+  loadMinleonCatalog(false).then(boot, boot);
+}
+
 /* ── BOOT ────────────────────────────────────────────────── */
 render();
 pullFromCloud('boot');
+initMinleon();
 setInterval(() => { if (document.visibilityState === 'visible') pullFromCloud('interval'); }, 45000);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pullFromCloud('focus'); });
 window.addEventListener('online', () => pullFromCloud('online'));
