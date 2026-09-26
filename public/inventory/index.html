@@ -2221,63 +2221,115 @@ function applyRemote(remote) {
 
 /* ── MINLEON LIVE PRICING ────────────────────────────────── */
 /* Rally buys from minleonpermanentlighting.com (Shopify). Two price layers:
-   1. RETAIL — the public catalog, pulled by the website server once a day
+   1. LIST — the public catalog, pulled by the website server once a day
       (/inventory/api/minleon, Vercel cron) with prices + availability.
    2. YOUR ACCOUNT PRICES — Minleon's login is Shopify's email-code system, so
       no server can log in for you. The "Sync my prices" bookmark runs on the
       Minleon site while you are logged in, reads the prices the store shows
       YOU, and hands them to this app (window.postMessage). They live in the
       synced state (state.supplier.dealer) so every device sees them.
-   Nothing changes a stored cost by itself — you review and click Apply. */
+   Units: a link's `pack` = how many of YOUR units (the unit `unitCost` is
+   priced in — a 3ft section, a strand, a cable…) come in ONE Minleon
+   purchase. Everything is compared per unit; bundled items also show the
+   bundle. Nothing changes a stored cost by itself — you click Apply. */
 const MINLEON_ORIGIN = 'https://minleonpermanentlighting.com';
 const MINLEON_API = '/inventory/api/minleon';
 const MINLEON_CACHE_KEY = 'rally_minleon_catalog';
 
-/* Suggested links for the stock items: Rally variant id → Minleon variant id
-   + "pack" = how many Rally units/bundles one Minleon purchase contains.
-   Shown as SUGGESTED until confirmed; a suggestion never changes a cost. */
+/* Suggested links, keyed by "item name|variant label" (lower-case). The pack
+   is worked out from the item's own cost structure (see bestPack). Shown as
+   SUGGESTED until confirmed; a suggestion never changes a cost. */
 const MINLEON_SUGGESTED = {
-  g1v1:  { vid: 46661605687463, pack: 100,  note: 'Base Bracket, white, box of 100 (3 ft each). Confirm color.' },
-  g2v1:  { vid: 46634368696487, pack: 100,  note: 'Pebble Track Channel, white, 100 pieces. Other colors are priced differently — confirm.' },
-  g3v1:  { vid: 46634323116199, pack: 1000, note: '12" spacing cover (9¾"), white, box of 1000. Confirm color.' },
-  g4v1:  { vid: 49093289902247, pack: 100,  note: 'P50H deep-pebble clip, tape on bottom, bag of 100. Confirm clip type (P50T traditional is a different price).' },
-  g5v1:  { vid: 47351560339623, pack: 1,    note: 'Individual roll. A 15-roll bulk variant also exists.' },
-  g7v1:  { vid: 47398650478759, pack: 16,   note: 'Bulk case = 16 strands of 25 pebbles, 12" spacing, black.' },
-  g7v2:  { vid: 47398650544295, pack: 20,   note: 'Bulk case = 20 strands of 10 pebbles.' },
-  g7v3:  { vid: 47398650609831, pack: 30,   note: 'Bulk case = 30 strands of 5 pebbles.' },
-  g7v4:  { vid: 47398650675367, pack: 30,   note: 'Bulk case = 30 strands of 2 pebbles.' },
-  g7v5:  { vid: 47398650740903, pack: 30,   note: 'Bulk case = 30 single pebbles.' },
-  g8v1:  { vid: 46626311045287, pack: 1 },
-  g8v2:  { vid: 46626311078055, pack: 1 },
-  g8v3:  { vid: 46626311110823, pack: 1 },
-  g8v4:  { vid: 46626311143591, pack: 1 },
-  g9v1:  { vid: 46626329591975, pack: 1 },
-  g9v2:  { vid: 46626329624743, pack: 1 },
-  g9v3:  { vid: 46626329657511, pack: 1 },
-  g9v4:  { vid: 46626329690279, pack: 1 },
-  g9v5:  { vid: 46626329723047, pack: 1 },
-  g10v1: { vid: 46626317631655, pack: 1,    note: 'Black. Confirm color.' },
-  g10v2: { vid: 47381962588327, pack: 20,   note: '25 ft is only sold as a bulk case of 20 (black).' },
-  g10v3: { vid: 46626317828263, pack: 1 },
-  g10v4: { vid: 46626317926567, pack: 1 },
-  g10v5: { vid: 46626318024871, pack: 1 },
-  g10v6: { vid: 46626318123175, pack: 1 },
-  g10v7: { vid: 46626318221479, pack: 1 },
-  g11v1: { vid: 46626313765031, pack: 1,    note: 'Single unit. A 15-count bulk variant also exists.' },
-  g11v2: { vid: 46626313797799, pack: 1,    note: 'Single unit. A 15-count bulk variant also exists.' },
-  g12v1: { vid: 47351142383783, pack: 1,    note: 'Single controller. A 20-count bulk variant also exists.' },
-  g12v2: { vid: 47351188914343, pack: 1,    note: 'Single controller. A 10-count bulk variant also exists.' },
-  g12v3: { vid: 47351182295207, pack: 1,    note: 'Single controller. A 10-count bulk variant also exists.' },
-  g13v1: { vid: 46626318647463, pack: 1,    note: 'White. Confirm color.' },
-  g13v2: { vid: 46626313961639, pack: 1 },
-  g14v1: { vid: 46714735526055, pack: 1,    note: 'White. Confirm color.' },
-  g15v1: { vid: 46626327527591, pack: 1,    note: 'White. Confirm color.' },
-  g16v1: { vid: 46626319663271, pack: 1 },
-  g16v2: { vid: 46637066027175, pack: 1,    note: 'Black (white is out of stock).' },
-  g17v1: { vid: 46626319499431, pack: 1 },
+  // Track & mounting
+  'base track|': { vid: 46661605687463, note: 'Base Bracket, white, box of 100. Confirm color.' },
+  'base track (3m)|white': { vid: 46661605687463 },
+  'base track (3m)|black': { vid: 46661606211751 },
+  'base track (3m)|sand': { vid: 46661605818535 },
+  'base track (3m)|brown': { vid: 46661606080679 },
+  'base track (3m)|light brown': { vid: 48084629094567 },
+  'base track (3m)|gray': { vid: 46661605949607 },
+  'mounting channel|': { vid: 46634368696487, note: 'Pebble Track Channel, white, 100 pieces. Confirm color.' },
+  'pebble track channel|white': { vid: 46634368696487 },
+  'pebble track channel|black': { vid: 46634369089703 },
+  'pebble track channel|sand': { vid: 46634368794791 },
+  'pebble track channel|brown': { vid: 46634368991399 },
+  'pebble track channel|light brown': { vid: 48084644921511 },
+  'pebble track channel|gray': { vid: 46634368893095 },
+  'track covers|': { vid: 46634323116199, note: '12" spacing cover, white, box of 1000. Confirm color.' },
+  'track covers|white': { vid: 46634323116199 },
+  'track covers|black': { vid: 46634323509415 },
+  'track covers|sand': { vid: 46634323214503 },
+  'track covers|brown': { vid: 46634323411111 },
+  'track covers|light brown': { vid: 48084639809703 },
+  'track covers|gray': { vid: 46634323312807 },
+  'aluminum track & covers|white': { vid: 51273798156455 },
+  'pebble clips|': { vid: 49093289902247, note: 'P50H deep-pebble clip, tape on bottom, bag of 100. Confirm clip type.' },
+  '3m vhb tape|': { vid: 47351560339623 },
+  // Lights
+  'rgbw pebbles|25ft (×16)': { vid: 47398650478759, note: 'Bulk case of 16 strands, 12" spacing, black. Confirm spacing/color.' },
+  'rgbw pebbles|10ft (×20)': { vid: 47398650544295 },
+  'rgbw pebbles|5ft (×30)': { vid: 47398650609831 },
+  'rgbw pebbles|2ft (×30)': { vid: 47398650675367 },
+  'rgbw pebbles|1ft (×30)': { vid: 47398650740903 },
+  'rgbw pearls|25ft': { vid: 46626311045287 },
+  'rgbw pearls|10ft': { vid: 46626311078055 },
+  'rgbw pearls|5ft': { vid: 46626311110823 },
+  'rgbw pearls|2ft': { vid: 46626311143591 },
+  'rgbw c9|30ft (25 bulbs)': { vid: 46626329591975 },
+  'rgbw c9|12.5ft (10 bulbs)': { vid: 46626329624743 },
+  'rgbw c9|6.25ft (5 bulbs)': { vid: 46626329657511 },
+  'rgbw c9|2.5ft (2 bulbs)': { vid: 46626329690279 },
+  'rgbw c9|1.25ft (1 bulb)': { vid: 46626329723047 },
+  'bistro lights|50ft (25 bulbs)': { vid: 46636998066343 },
+  'bistro lights|40ft (20 bulbs)': { vid: 46636998099111 },
+  'bistro lights|20ft (10 bulbs)': { vid: 46636998131879 },
+  'bistro lights|10ft (5 bulbs)': { vid: 46636998164647 },
+  'bistro lights|4ft (2 bulbs)': { vid: 46636998197415 },
+  'bistro lights|2ft (1 bulb)': { vid: 46636998230183 },
+  // Extension wire — singles (black) and bulk cases of 20 per color
+  'extension wire|50ft': { vid: 46626317631655, note: 'Single cable, black. Confirm color.' },
+  'extension wire|25ft': { vid: 47381962588327, note: '25 ft is only sold as a bulk case of 20 (black).' },
+  'extension wire|20ft': { vid: 46626317828263 },
+  'extension wire|10ft': { vid: 46626317926567 },
+  'extension wire|5ft': { vid: 46626318024871 },
+  'extension wire|2ft': { vid: 46626318123175 },
+  'extension wire|1ft': { vid: 46626318221479 },
+  'extension wire|20ft white': { vid: 47381962719399 },
+  'extension wire|20ft black': { vid: 47381962686631 },
+  'extension wire|20ft sand': { vid: 47381962752167 },
+  'extension wire|10ft white': { vid: 47381962817703 },
+  'extension wire|10ft black': { vid: 47381962784935 },
+  'extension wire|10ft sand': { vid: 47381962850471 },
+  'extension wire|5ft white': { vid: 47381962916007 },
+  'extension wire|5ft black': { vid: 47381962883239 },
+  'extension wire|5ft sand': { vid: 47381962948775 },
+  'extension wire|2ft white': { vid: 47381963014311 },
+  'extension wire|2ft black': { vid: 47381962981543 },
+  'extension wire|2ft sand': { vid: 47381963047079 },
+  'extension wire|1ft white': { vid: 47381963112615 },
+  'extension wire|1ft black': { vid: 47381963079847 },
+  'extension wire|1ft sand': { vid: 47381963145383 },
+  // Power & control
+  'power supply|4.17a (100w)': { vid: 47398897352871, note: 'Bulk 15-pack. The single unit is a separate variant.' },
+  'power supply|5.0a': { vid: 47398897385639, note: 'Bulk 15-pack. The single unit is a separate variant.' },
+  'wec controller|mini (wec3)': { vid: 47351142416551, note: 'Bulk buy of 20. The single controller is a separate variant.' },
+  'wec controller|boss (wec3)': { vid: 47351188914343 },
+  'wec controller|dual port (wec3)': { vid: 47351182295207 },
+  // Connectors
+  't connectors|power tee': { vid: 46626318647463, note: 'White. Confirm color.' },
+  't connectors|power tee (white)': { vid: 46626318647463 },
+  't connectors|power tee (black)': { vid: 46626318614695 },
+  't connectors|basic 4-pin (white)': { vid: 46626313961639 },
+  't connectors|mini tee (white)': { vid: 47454744215719, note: 'Bulk Mini-T, bag of 20.' },
+  't connectors|mini tee (black)': { vid: 47454744182951, note: 'Bulk Mini-T, bag of 20.' },
+  'smart-t connector|': { vid: 46714735526055, note: 'White. Confirm color.' },
+  'signal booster|': { vid: 46626328084647, note: 'Single part. The 2-piece set is a separate product.' },
+  'conversion cable|2-to-4 pin': { vid: 46626319663271 },
+  'conversion cable|3-to-4 pin': { vid: 46637066027175, note: 'Black (white is out of stock).' },
+  'meshtek repeater|': { vid: 46626319499431 },
 };
 
-let minleonCatalog = null;          // newest server snapshot
+let minleonCatalog = null;          // newest server snapshot (public list prices)
 let minleonIndex = new Map();       // Minleon variant id → { p, v }
 let minleonStatus = '';             // human-readable status line
 let minleonAwaiting = false;        // true while this tab was opened by the bookmark and waits for prices
@@ -2287,13 +2339,52 @@ function sup() {
   if (!state.supplier.map || typeof state.supplier.map !== 'object') state.supplier.map = {};
   return state.supplier;
 }
+function suggestionKey(g, v) {
+  return (g.name + '|' + (v.label || '')).toLowerCase().replace(/\s+/g, ' ').trim();
+}
+/* Your account price for a Minleon variant (if captured), else null. */
+function dealerPrice(vid) {
+  const d = sup().dealer;
+  const row = d && d.prices ? d.prices[vid] : null;
+  return row ? Number(row[0]) : null;
+}
+function dealerAvailable(vid) {
+  const d = sup().dealer;
+  const row = d && d.prices ? d.prices[vid] : null;
+  return row ? !!row[1] : null;
+}
 
-function getLink(v) {
+/* How many of the Rally unit are in one Minleon purchase. Candidates come
+   from the Minleon title (100 Pieces, Bag of 100, (16ct), Bulk Buy (10 …)),
+   the item's own bundle size, and 1; we pick the one whose per-unit price is
+   closest to what the app already stores. With no stored cost, the title wins. */
+function titleCount(title) {
+  const t = String(title || '');
+  const pats = [/\((\d+)\s*ct\)/i, /bag of (\d+)/i, /case of (\d+)/i, /(\d+) pieces/i, /bulk buy \((\d+)/i, /\((\d+) rolls\)/i, /\((\d+)\)\s*\d+ft/i, /mini-t \((\d+)\)/i, /basic-t \((\d+)\)/i, /\/\s*(\d{2,4})\s*$/];
+  for (const re of pats) { const m = t.match(re); if (m) return parseInt(m[1], 10) || 1; }
+  const m2 = t.match(/^(\d+) (pebbles?|bulbs?|lights?)\b/i);
+  if (m2) return parseInt(m2[1], 10) || 1;
+  return 1;
+}
+function bestPack(v, hit, price) {
+  const n = hit ? titleCount(hit.v.title) : 1;
+  const stored = effectiveCost(v);
+  if (!(stored > 0) || !(price > 0)) return n;
+  const cands = [1, n];
+  if (v.bundleQty > 0) { cands.push(v.bundleQty); cands.push(n * v.bundleQty); }
+  let best = n, bestErr = Infinity;
+  cands.forEach(c => { const err = Math.abs(Math.log((price / c) / stored)); if (err < bestErr - 1e-9) { bestErr = err; best = c; } });
+  return best;
+}
+
+function getLink(g, v) {
   const m = sup().map[v.id];
-  if (m && m.vid) return { vid: Number(m.vid), pack: Number(m.pack) || 1, ok: true };
-  const s = MINLEON_SUGGESTED[v.id];
-  if (s) return { vid: s.vid, pack: s.pack, ok: false, note: s.note || '' };
-  return null;
+  if (m && m.vid) return { vid: Number(m.vid), pack: Math.max(1, Number(m.pack) || 1), ok: true };
+  const s = MINLEON_SUGGESTED[suggestionKey(g, v)];
+  if (!s) return null;
+  const hit = minleonIndex.get(s.vid) || null;
+  const price = dealerPrice(s.vid) != null ? dealerPrice(s.vid) : (hit ? hit.v.price : null);
+  return { vid: s.vid, pack: bestPack(v, hit, price), ok: false, note: s.note || '' };
 }
 
 function indexCatalog(snap) {
@@ -2311,7 +2402,7 @@ async function loadMinleonCatalog(force) {
     const res = force
       ? await fetch(MINLEON_API, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'refresh' }) })
       : await fetch(MINLEON_API + '?t=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' });
-    if (res.status === 503) { minleonStatus = 'Cloud storage is not set up — retail prices unavailable.'; renderSupplier(); return; }
+    if (res.status === 503) { minleonStatus = 'Cloud storage is not set up — list prices unavailable.'; renderSupplier(); return; }
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const snap = await res.json();
     if (!snap || !snap.ok || !Array.isArray(snap.products)) throw new Error('bad payload');
@@ -2326,50 +2417,42 @@ async function loadMinleonCatalog(force) {
   renderInventory();
 }
 
-/* Price that this app stores for one Rally "line": the bundle price when the
-   variant is bundled (e.g. one 25-pebble strand), otherwise the unit cost. */
-function rallyLinePrice(v) {
-  return (v.bundleQty && v.bundleCost) ? v.bundleCost : (v.unitCost || 0);
-}
-function setRallyLinePrice(v, price) {
-  const p = +Number(price).toFixed(2);
-  if (v.bundleQty) { v.bundleCost = p; v.unitCost = +(p / v.bundleQty).toFixed(4); }
-  else { v.unitCost = p; }
-}
-function lineUnitLabel(g, v) {
-  return (v.bundleQty && v.bundleCost) ? 'per ' + v.bundleQty + ' (' + g.unit + ')' : 'per ' + g.unit;
+/* Write a per-unit price into a variant the same way the edit form would. */
+function setRallyUnitPrice(v, perUnit) {
+  v.unitCost = +Number(perUnit).toFixed(4);
+  if (v.bundleQty > 0) v.bundleCost = +(v.unitCost * v.bundleQty).toFixed(2);
 }
 
-/* Everything the UI needs to know about one Rally variant's Minleon link. */
+/* Everything the UI needs to know about one Rally variant's Minleon link.
+   All "per unit" numbers are per Rally unit (g.unit). */
 function liveInfo(g, v) {
-  const link = getLink(v);
+  const link = getLink(g, v);
   if (!link) return null;
   const hit = minleonIndex.get(link.vid) || null;
-  const d = sup().dealer;
-  const row = d && d.prices ? d.prices[link.vid] : null;
-  const retail = hit ? Number(hit.v.price) : null;
-  const yours = row ? Number(row[0]) : null;
-  const available = row ? !!row[1] : (hit ? !!hit.v.available : null);
-  const price = yours != null ? yours : retail;
-  const stored = rallyLinePrice(v);
-  const info = { link, hit, retail, yours, available, price, stored, perLine: null, delta: 0, pct: 0, changed: false, missing: !hit && yours == null };
+  const list = hit ? Number(hit.v.price) : null;          // per Minleon purchase
+  const yours = dealerPrice(link.vid);                      // per Minleon purchase
+  const dAvail = dealerAvailable(link.vid);
+  const available = dAvail != null ? dAvail : (hit ? !!hit.v.available : null);
+  const price = yours != null ? yours : list;
+  const stored = effectiveCost(v);                          // per Rally unit
+  const info = { link, hit, list, yours, available, price, stored, perUnit: null, delta: 0, pct: 0, changed: false, missing: !hit && yours == null,
+    bundleQty: v.bundleQty > 0 ? v.bundleQty : null, storedBundle: v.bundleQty > 0 && v.bundleCost ? v.bundleCost : null, perBundle: null };
   if (price != null) {
-    info.perLine = +(price / link.pack).toFixed(2);
-    info.delta = +(info.perLine - stored).toFixed(2);
+    info.perUnit = price / link.pack;
+    info.delta = info.perUnit - stored;
     info.pct = stored ? (info.delta / stored) * 100 : 0;
-    info.changed = Math.abs(info.delta) >= 0.01;
+    info.changed = Math.abs(info.delta) >= 0.005;
+    if (info.bundleQty) info.perBundle = info.perUnit * info.bundleQty;
   }
   return info;
 }
 
 function liveChip(g, v) {
   const li = liveInfo(g, v);
-  if (!li || !li.link.ok || !li.changed || li.perLine == null) return '';
+  if (!li || !li.link.ok || !li.changed || li.perUnit == null) return '';
   const up = li.delta > 0;
-  const src = li.yours != null ? 'your Minleon price' : 'Minleon retail';
-  // The chip sits in the Unit cost column, so show the per-unit equivalent for bundled variants.
-  const perUnit = v.bundleQty ? li.perLine / v.bundleQty : li.perLine;
-  return `<span class="live-chip ${up ? 'up' : 'down'}" title="${src}: $${li.perLine.toFixed(2)} ${esc(lineUnitLabel(g, v))} (stored $${li.stored.toFixed(2)})">${up ? '↑' : '↓'} $${perUnit.toFixed(2)}</span>`;
+  const src = li.yours != null ? 'your Minleon price' : 'Minleon list price';
+  return `<span class="live-chip ${up ? 'up' : 'down'}" title="${src}: ${money(li.perUnit)} per ${esc(g.unit)} (stored ${money(li.stored)})">${up ? '↑' : '↓'} ${money(li.perUnit)}</span>`;
 }
 
 function liveSummary() {
@@ -2383,6 +2466,22 @@ function liveSummary() {
     if (li.link.ok && li.changed) changed++;
   }));
   return { changed, suggested, confirmed, total, missing };
+}
+
+/* Your captured prices compared with the PUBLIC list held by the server. */
+function dealerStats() {
+  const d = sup().dealer;
+  if (!d || !d.prices) return null;
+  let n = 0, below = 0, above = 0, same = 0; const pcts = [];
+  Object.keys(d.prices).forEach(k => {
+    const hit = minleonIndex.get(Number(k)); if (!hit || !(hit.v.price > 0)) return;
+    const y = Number(d.prices[k][0]); n++;
+    if (Math.abs(y - hit.v.price) < 0.005) same++;
+    else { if (y < hit.v.price) below++; else above++; pcts.push((1 - y / hit.v.price) * 100); }
+  });
+  pcts.sort((a, b) => a - b);
+  const median = pcts.length ? pcts[Math.floor(pcts.length / 2)] : 0;
+  return { n, below, above, same, median };
 }
 
 function minleonAlertHtml() {
@@ -2405,6 +2504,7 @@ function whenLabel(ts) {
 }
 
 function money(n) { return '$' + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function signed(n) { return (n < 0 ? '−' : '+') + money(Math.abs(n)); }
 
 /* ── Rendering ── */
 function renderSupplier() {
@@ -2413,9 +2513,10 @@ function renderSupplier() {
   const s = liveSummary();
   const d = sup().dealer;
   const cat = minleonCatalog;
+  const ds = dealerStats();
 
   document.getElementById('sup-cards').innerHTML = `
-    <div class="card"><div class="label">Minleon catalog</div><div class="value" style="font-size:16px">${cat ? whenLabel(cat.fetchedAt) : '…'}</div><div class="sub">${cat ? cat.productCount + ' products · refreshes daily' : 'loading'}</div></div>
+    <div class="card"><div class="label">Minleon list prices</div><div class="value" style="font-size:16px">${cat ? whenLabel(cat.fetchedAt) : '…'}</div><div class="sub">${cat ? cat.productCount + ' products · refreshes daily' : 'loading'}</div></div>
     <div class="card ${d && !d.loggedIn ? 'warn' : ''}"><div class="label">Your account prices</div><div class="value" style="font-size:16px">${d ? whenLabel(d.at) : 'Not synced yet'}</div><div class="sub">${d ? (d.loggedIn ? 'account #' + esc(d.cid || '?') + ' · ' : '⚠ not logged in · ') + d.n + ' prices' : 'use “Sync my prices”'}</div></div>
     <div class="card"><div class="label">Linked items</div><div class="value">${s.confirmed}<span style="font-size:13px;color:#aaa;font-weight:400"> / ${s.total}</span></div><div class="sub">${s.suggested ? s.suggested + ' suggested — confirm below' : (s.total - s.confirmed) + ' not linked'}</div></div>
     <div class="card ${s.changed ? 'warn' : ''}"><div class="label">Cost changes</div><div class="value">${s.changed}</div><div class="sub">vs stored costs</div></div>
@@ -2424,10 +2525,11 @@ function renderSupplier() {
   let alerts = '';
   if (minleonAwaiting) alerts += `<div class="alert alert-info">☁ Waiting for prices from the Minleon tab… keep this tab open.</div>`;
   if (minleonStatus) alerts += `<div class="alert alert-warn">${esc(minleonStatus)}</div>`;
-  if (!d) alerts += `<div class="alert alert-info">Showing Minleon's <strong>public retail</strong> prices. To load your account pricing, click <strong>Sync my prices</strong> and follow the two steps.</div>`;
-  else if (!d.loggedIn) alerts += `<div class="alert alert-warn">⚠ The last sync ran while <strong>not logged in</strong>, so it captured public retail prices. Log into minleonpermanentlighting.com and run the Rally bookmark again.</div>`;
-  else if (d.diffFromRetail === 0) alerts += `<div class="alert alert-warn">Your logged-in prices matched the public list on every product page. If Minleon applies your discount in the cart instead, the numbers here are list prices — tell Jason's assistant and we'll add a discount setting.</div>`;
-  if (s.suggested) alerts += `<div class="alert alert-info">${s.suggested} suggested link${s.suggested > 1 ? 's' : ''} need a quick look — check the product/variant/color, then <a href="#" onclick="event.preventDefault();confirmAllSuggestions()">confirm all</a> or confirm one at a time.</div>`;
+  if (!d) alerts += `<div class="alert alert-info">Showing Minleon's <strong>public list</strong> prices. To load your account pricing, click <strong>Sync my prices</strong> and follow the two steps.</div>`;
+  else if (!d.loggedIn) alerts += `<div class="alert alert-warn">⚠ The last sync ran while <strong>not logged in</strong>, so it captured public list prices. Log into minleonpermanentlighting.com and run the Rally bookmark again.</div>`;
+  else if (ds && ds.n && ds.below + ds.above === 0) alerts += `<div class="alert alert-warn">Your logged-in prices matched the public list on every product. If Minleon applies your discount in the cart instead, the numbers here are list prices — say so and a discount setting can be added.</div>`;
+  else if (ds && ds.n) alerts += `<div class="alert alert-success">✓ Your account pricing is loaded: ${ds.below} of ${ds.n} prices are below Minleon's public list (typically ${ds.median.toFixed(0)}% off)${ds.above ? `, ${ds.above} above` : ''}.</div>`;
+  if (s.suggested) alerts += `<div class="alert alert-info">${s.suggested} suggested link${s.suggested > 1 ? 's' : ''} need a quick look — check the product, variant and pack size, then <a href="#" onclick="event.preventDefault();confirmAllSuggestions()">confirm all</a> or confirm one at a time.</div>`;
   document.getElementById('sup-alerts').innerHTML = alerts;
 
   // Table, grouped by category
@@ -2439,7 +2541,7 @@ function renderSupplier() {
     groups.forEach(g => g.variants.forEach(v => rows.push(supRow(g, v))));
     parts.push(`<div class="sec-label">${c.name}</div>
       <div class="tbl-wrap" style="overflow-x:auto;margin-bottom:18px"><table class="sup-table">
-        <thead><tr><th>Rally item</th><th>Minleon product</th><th class="num">Pack</th><th class="num">Retail</th><th class="num">Your price</th><th class="num">In app</th><th class="num">Change</th><th></th></tr></thead>
+        <thead><tr><th>Rally item</th><th>Minleon product</th><th class="num">Pack</th><th class="num">List price</th><th class="num">Your price</th><th class="num">In app</th><th class="num">Change</th><th></th></tr></thead>
         <tbody>${rows.join('')}</tbody></table></div>`);
   });
   body.innerHTML = parts.join('');
@@ -2448,15 +2550,15 @@ function renderSupplier() {
   const chEl = document.getElementById('sup-changes');
   if (cat && Array.isArray(cat.changes) && cat.changes.length) {
     const linkedVids = new Set();
-    state.inventory.forEach(g => g.variants.forEach(v => { const l = getLink(v); if (l) linkedVids.add(l.vid); }));
+    state.inventory.forEach(g => g.variants.forEach(v => { const l = getLink(g, v); if (l) linkedVids.add(l.vid); }));
     const mine = cat.changes.filter(ch => linkedVids.has(Number(ch.vid)));
     const li = mine.map(ch => {
       const what = ch.from == null ? 'new variant · ' + money(ch.to) : ch.to == null ? 'removed (was ' + money(ch.from) + ')' : ch.from !== ch.to ? money(ch.from) + ' → ' + money(ch.to) : (ch.availableTo ? 'back in stock' : 'out of stock');
       return `<li><strong>${esc(ch.product)}</strong> <span class="sup-sub">${esc(ch.variant)}</span> — ${what}</li>`;
     });
-    chEl.innerHTML = `<div class="sec-label">Catalog changes ${cat.previousFetchedAt ? 'since ' + whenLabel(cat.previousFetchedAt) : ''}</div>
+    chEl.innerHTML = `<div class="sec-label">List-price changes ${cat.previousFetchedAt ? 'since ' + whenLabel(cat.previousFetchedAt) : ''}</div>
       <div class="howto">${mine.length ? `<ul style="margin:0 0 0 18px;font-size:13px">${li.join('')}</ul>` : '<span class="sup-sub">No changes to your linked items.</span>'}
-      <div class="sup-sub" style="margin-top:8px">${cat.changes.length} change${cat.changes.length > 1 ? 's' : ''} across the whole Minleon catalog.</div></div>`;
+      <div class="sup-sub" style="margin-top:8px">${cat.changes.length} change${cat.changes.length > 1 ? 's' : ''} across the whole Minleon catalog. Your account prices update when you run the Rally bookmark again.</div></div>`;
   } else {
     chEl.innerHTML = '';
   }
@@ -2464,7 +2566,8 @@ function renderSupplier() {
 
 function supRow(g, v) {
   const li = liveInfo(g, v);
-  const name = `<div style="font-weight:500">${esc(g.name)}${v.label ? ` <span class="sup-sub">${esc(v.label)}</span>` : ''}</div><div class="sup-sub">${esc(lineUnitLabel(g, v))}</div>`;
+  const bundled = v.bundleQty > 0;
+  const name = `<div style="font-weight:500">${esc(g.name)}${v.label ? ` <span class="sup-sub">${esc(v.label)}</span>` : ''}</div><div class="sup-sub">per ${esc(g.unit)}${bundled ? ` · bundle of ${v.bundleQty}` : ''}</div>`;
   const linkBtn = (txt) => `<button class="btn btn-xs" onclick="openLinkModal('${g.id}','${v.id}')">${txt}</button>`;
   if (!li) {
     return `<tr><td>${name}</td><td colspan="6" class="sup-sub">Not linked to a Minleon product</td><td style="white-space:nowrap">${linkBtn('Link…')}</td></tr>`;
@@ -2473,62 +2576,60 @@ function supRow(g, v) {
   const mlTitle = hit ? `<a class="sup-link" href="${MINLEON_ORIGIN}/products/${esc(hit.p.handle)}?variant=${link.vid}" target="_blank" rel="noopener">${esc(hit.p.title)}</a>` : `<span class="sup-sub">Variant ${link.vid} not in the current catalog</span>`;
   const mlSub = hit ? `${esc(hit.v.title)}${li.available === false ? ' · <span style="color:#b91c1c">out of stock</span>' : ''}` : '';
   const sug = link.ok ? '' : ` <span class="badge sug">suggested</span>${link.note ? `<div class="sup-sub" style="margin-top:2px">${esc(link.note)}</div>` : ''}`;
-  const packTxt = link.pack > 1 ? `÷ ${link.pack}` : '1';
-  const retail = li.retail != null ? `${money(li.retail / link.pack)}<div class="sup-sub">${money(li.retail)} list</div>` : '<span class="sup-sub">—</span>';
-  const yours = li.yours != null ? `<strong>${money(li.yours / link.pack)}</strong>${link.pack > 1 ? `<div class="sup-sub">${money(li.yours)} each</div>` : ''}` : '<span class="sup-sub">—</span>';
-  const inApp = li.stored ? money(li.stored) : '<span class="sup-sub">—</span>';
+  const packTxt = `${link.pack}<div class="sup-sub">${esc(g.unit)}${link.pack === 1 ? '' : 's'} / purchase</div>`;
+  const perPurchase = (p) => `<div class="sup-sub">${money(p)} / purchase${bundled && link.pack !== v.bundleQty ? ` · ${money(p / link.pack * v.bundleQty)} per ${v.bundleQty}` : ''}</div>`;
+  const list = li.list != null ? `${money(li.list / link.pack)}${perPurchase(li.list)}` : '<span class="sup-sub">—</span>';
+  const yours = li.yours != null ? `<strong>${money(li.yours / link.pack)}</strong>${perPurchase(li.yours)}` : '<span class="sup-sub">—</span>';
+  const inApp = li.stored ? `${money(li.stored)}${bundled && li.storedBundle ? `<div class="sup-sub">${v.bundleQty} for ${money(li.storedBundle)}</div>` : ''}` : '<span class="sup-sub">—</span>';
   let change = '<span class="delta-zero">—</span>';
-  if (li.perLine != null && li.stored) {
-    change = li.changed ? `<span class="${li.delta > 0 ? 'delta-up' : 'delta-down'}">${li.delta > 0 ? '+' : '−'}$${Math.abs(li.delta).toFixed(2)}<div class="sup-sub">${li.pct > 0 ? '+' : ''}${li.pct.toFixed(1)}%</div></span>` : '<span class="delta-zero">same</span>';
-  } else if (li.perLine != null && !li.stored) {
+  if (li.perUnit != null && li.stored) {
+    change = li.changed
+      ? `<span class="${li.delta > 0 ? 'delta-up' : 'delta-down'}">${signed(li.delta)}<div class="sup-sub">${li.pct > 0 ? '+' : ''}${li.pct.toFixed(1)}%${bundled && li.storedBundle ? ` · ${signed(li.perBundle - li.storedBundle)} per ${v.bundleQty}` : ''}</div></span>`
+      : '<span class="delta-zero">same</span>';
+  } else if (li.perUnit != null && !li.stored) {
     change = '<span class="sup-sub">no cost yet</span>';
   }
   const actions = [];
-  if (!link.ok) actions.push(`<button class="btn btn-xs" style="border-color:#1a1a1a" onclick="confirmLink('${v.id}')">✓ Confirm</button>`);
+  if (!link.ok) actions.push(`<button class="btn btn-xs" style="border-color:#1a1a1a" onclick="confirmLink('${g.id}','${v.id}')">✓ Confirm</button>`);
   if (link.ok && li.changed) actions.push(`<button class="btn btn-xs btn-primary" onclick="applyLive('${g.id}','${v.id}')">Apply</button>`);
   actions.push(linkBtn(link.ok ? 'Change' : 'Pick other…'));
-  return `<tr><td>${name}</td><td>${mlTitle}${sug}<div class="sup-sub">${mlSub}</div></td><td class="num">${packTxt}</td><td class="num">${retail}</td><td class="num">${yours}</td><td class="num">${inApp}</td><td class="num">${change}</td><td style="white-space:nowrap">${actions.join(' ')}</td></tr>`;
+  return `<tr><td>${name}</td><td>${mlTitle}${sug}<div class="sup-sub">${mlSub}</div></td><td class="num">${packTxt}</td><td class="num">${list}</td><td class="num">${yours}</td><td class="num">${inApp}</td><td class="num">${change}</td><td style="white-space:nowrap">${actions.join(' ')}</td></tr>`;
 }
 
 /* ── Links (confirm / pick) ── */
-function confirmLink(rvid) {
-  const s = MINLEON_SUGGESTED[rvid];
-  const existing = sup().map[rvid];
-  if (!s && !existing) return;
-  if (!existing) sup().map[rvid] = { vid: s.vid, pack: s.pack };
+function confirmLink(gid, rvid) {
+  const g = state.inventory.find(x => x.id === gid); if (!g) return;
+  const v = g.variants.find(x => x.id === rvid); if (!v) return;
+  const l = getLink(g, v);
+  if (!l || l.ok) return;
+  sup().map[v.id] = { vid: l.vid, pack: l.pack };
   save(); render();
 }
 function confirmAllSuggestions() {
   let n = 0;
   state.inventory.forEach(g => g.variants.forEach(v => {
-    const l = getLink(v);
+    const l = getLink(g, v);
     if (l && !l.ok) { sup().map[v.id] = { vid: l.vid, pack: l.pack }; n++; }
   }));
   if (n) { save(); render(); }
 }
 
 let linkModal = null;
-function guessPack(title) {
-  const t = String(title || '');
-  const pats = [/\((\d+)\s*ct\)/i, /bag of (\d+)/i, /case of (\d+)/i, /(\d+) pieces/i, /bulk buy \((\d+)/i, /\((\d+) rolls\)/i, /\/\s*(\d{2,4})\s*$/];
-  for (const re of pats) { const m = t.match(re); if (m) return parseInt(m[1], 10) || 1; }
-  return 1;
-}
 function openLinkModal(gid, rvid) {
   const g = state.inventory.find(x => x.id === gid); if (!g) return;
   const v = g.variants.find(x => x.id === rvid); if (!v) return;
-  const cur = getLink(v);
+  const cur = getLink(g, v);
   linkModal = { gid, rvid, q: '', vid: cur ? cur.vid : null, pack: cur ? cur.pack : 1 };
   showModal(`
     <div class="modal-title">Link to a Minleon product</div>
-    <div style="font-size:13px;margin-bottom:10px"><strong>${esc(g.name)}</strong>${v.label ? ' · ' + esc(v.label) : ''} <span class="sup-sub">(${esc(lineUnitLabel(g, v))})</span></div>
+    <div style="font-size:13px;margin-bottom:10px"><strong>${esc(g.name)}</strong>${v.label ? ' · ' + esc(v.label) : ''} <span class="sup-sub">— priced per ${esc(g.unit)}${v.bundleQty > 0 ? `, bundles of ${v.bundleQty}` : ''}${effectiveCost(v) ? `, currently ${money(effectiveCost(v))} per ${esc(g.unit)}` : ''}</span></div>
     <div class="fg"><label>Search Minleon's catalog</label><input type="text" id="lk-q" placeholder="e.g. pebble 25, spacer 10, WEC3, power supply" oninput="linkModal.q=this.value;renderLinkResults()" autocomplete="off"></div>
     <div id="lk-results" class="lk-results"></div>
     <div class="form-row" style="margin-top:12px">
-      <div class="fg"><label>Rally lines per Minleon purchase</label><input type="number" id="lk-pack" min="1" step="1" value="${linkModal.pack}" oninput="linkModal.pack=parseInt(this.value)||1;renderLinkSelected()"></div>
-      <div class="fg"><label>Result</label><div id="lk-selected" style="font-size:13px;padding-top:6px"></div></div>
+      <div class="fg"><label>How many “${esc(g.unit)}” in one purchase?</label><input type="number" id="lk-pack" min="1" step="1" value="${linkModal.pack}" oninput="linkModal.pack=parseInt(this.value)||1;renderLinkSelected()"></div>
+      <div class="fg"><label>Works out to</label><div id="lk-selected" style="font-size:13px;padding-top:6px"></div></div>
     </div>
-    <div class="sup-sub">Example: a bulk case of 16 strands → 16. A bag of 100 clips → 100. A single controller → 1.</div>
+    <div class="sup-sub">Examples: a box of 100 track sections → 100. A bulk case of 16 strands, when your unit is a strand → 16. A single controller → 1.</div>
     <div class="modal-footer">
       ${sup().map[rvid] ? '<button class="btn btn-danger" onclick="unlinkVariant()">Unlink</button>' : ''}
       <button class="btn" onclick="closeModal()">Cancel</button>
@@ -2552,15 +2653,21 @@ function renderLinkResults() {
     if (out.length >= 60) break;
   }
   if (!out.length) { el.innerHTML = `<div class="lk-row sup-sub">${terms.length ? 'No matches.' : 'Type to search — product name, size, color or SKU.'}</div>`; return; }
-  el.innerHTML = out.map(r => `<div class="lk-row ${r.vid === linkModal.vid ? 'sel' : ''}" onclick="pickLink(${r.vid})">
+  el.innerHTML = out.map(r => { const y = dealerPrice(r.vid); return `<div class="lk-row ${r.vid === linkModal.vid ? 'sel' : ''}" onclick="pickLink(${r.vid})">
       <span><strong>${esc(r.p.title)}</strong> <span class="sup-sub">${esc(r.v.title)}</span></span>
-      <span style="white-space:nowrap">${money(r.v.price)}${r.v.available ? '' : ' <span style="color:#b91c1c">out</span>'}</span></div>`).join('');
+      <span style="white-space:nowrap">${y != null ? `<strong>${money(y)}</strong> <span class="sup-sub">list ${money(r.v.price)}</span>` : money(r.v.price)}${r.v.available ? '' : ' <span style="color:#b91c1c">out</span>'}</span></div>`; }).join('');
 }
 function pickLink(vid) {
   if (!linkModal) return;
   linkModal.vid = vid;
   const hit = minleonIndex.get(vid);
-  if (hit) { linkModal.pack = guessPack(hit.v.title); const pk = document.getElementById('lk-pack'); if (pk) pk.value = linkModal.pack; }
+  const g = state.inventory.find(x => x.id === linkModal.gid);
+  const v = g && g.variants.find(x => x.id === linkModal.rvid);
+  if (hit && v) {
+    const price = dealerPrice(vid) != null ? dealerPrice(vid) : hit.v.price;
+    linkModal.pack = bestPack(v, hit, price);
+    const pk = document.getElementById('lk-pack'); if (pk) pk.value = linkModal.pack;
+  }
   renderLinkResults(); renderLinkSelected();
 }
 function renderLinkSelected() {
@@ -2569,9 +2676,11 @@ function renderLinkSelected() {
   if (!hit) { el.innerHTML = '<span class="sup-sub">Nothing selected</span>'; return; }
   const g = state.inventory.find(x => x.id === linkModal.gid);
   const v = g && g.variants.find(x => x.id === linkModal.rvid);
-  const d = sup().dealer; const row = d && d.prices ? d.prices[linkModal.vid] : null;
-  const price = row ? row[0] : hit.v.price;
-  el.innerHTML = `${money(price / (linkModal.pack || 1))} <span class="sup-sub">${v ? esc(lineUnitLabel(g, v)) : ''} · ${row ? 'your price' : 'retail'} ${money(price)} ÷ ${linkModal.pack || 1}</span>`;
+  const y = dealerPrice(linkModal.vid);
+  const price = y != null ? y : hit.v.price;
+  const pack = linkModal.pack || 1;
+  const perUnit = price / pack;
+  el.innerHTML = `<strong>${money(perUnit)}</strong> per ${g ? esc(g.unit) : 'unit'}${v && v.bundleQty > 0 ? ` · ${money(perUnit * v.bundleQty)} per ${v.bundleQty}` : ''}<div class="sup-sub">${y != null ? 'your price' : 'list price'} ${money(price)} ÷ ${pack}</div>`;
 }
 function saveLink() {
   if (!linkModal || !linkModal.vid) { alert('Pick a Minleon product first.'); return; }
@@ -2589,18 +2698,18 @@ function applyLive(gid, rvid) {
   const g = state.inventory.find(x => x.id === gid); if (!g) return;
   const v = g.variants.find(x => x.id === rvid); if (!v) return;
   const li = liveInfo(g, v);
-  if (!li || li.perLine == null) return;
-  setRallyLinePrice(v, li.perLine);
+  if (!li || li.perUnit == null) return;
+  setRallyUnitPrice(v, li.perUnit);
   save(); render();
 }
 function applyAllLive() {
   const todo = [];
-  state.inventory.forEach(g => g.variants.forEach(v => { const li = liveInfo(g, v); if (li && li.link.ok && li.changed && li.perLine != null) todo.push({ v, li }); }));
+  state.inventory.forEach(g => g.variants.forEach(v => { const li = liveInfo(g, v); if (li && li.link.ok && li.changed && li.perUnit != null) todo.push({ v, li }); }));
   if (!todo.length) { alert('Nothing to update — every linked item already matches Minleon.'); return; }
-  const usingRetail = todo.some(t => t.li.yours == null);
-  const ok = confirm(`Update ${todo.length} stored cost${todo.length > 1 ? 's' : ''} to the current Minleon price${usingRetail ? '?\n\nNote: some or all of these are PUBLIC RETAIL prices (your account prices have not been synced for them).' : 's from your account?'}`);
+  const usingList = todo.some(t => t.li.yours == null);
+  const ok = confirm(`Update ${todo.length} stored cost${todo.length > 1 ? 's' : ''} to the current Minleon price${usingList ? '?\n\nNote: some or all of these are PUBLIC LIST prices (your account prices have not been synced for them).' : 's from your account?'}`);
   if (!ok) return;
-  todo.forEach(t => setRallyLinePrice(t.v, t.li.perLine));
+  todo.forEach(t => setRallyUnitPrice(t.v, t.li.perUnit));
   save(); render();
 }
 
@@ -2646,10 +2755,8 @@ function rallyMinleonCollector(RALLY) {
       products = products.concat(b0);
       if (b0.length < 250) break;
     }
-    var retail = {};
-    products.forEach(function (p) { (p.variants || []).forEach(function (v) { retail[v.id] = +v.price; }); });
     var prices = {}, jsOK = 0, htmlOK = 0;
-    // 1) Ajax product endpoint — contextual to the logged-in buyer on Shopify B2B stores.
+    // 1) Product endpoints — contextual to the logged-in buyer.
     var handles = products.map(function (p) { return p.handle; });
     var i = 0;
     async function jsWorker() {
@@ -2695,10 +2802,9 @@ function rallyMinleonCollector(RALLY) {
       }
     }
     await Promise.all([pageWorker(), pageWorker(), pageWorker()]);
-    var total = 0, diff = 0;
-    Object.keys(prices).forEach(function (id) { total++; if (retail[id] != null && Math.abs(retail[id] - prices[id][0]) >= 0.005) diff++; });
-    var payload = { type: 'rally-minleon-prices', v: 1, at: Date.now(), cid: cid ? String(cid) : null, loggedIn: !!cid, host: H, n: total, diffFromRetail: diff, jsPages: jsOK, htmlPages: htmlOK, prices: prices };
-    log('Read ' + total + ' prices (' + diff + ' differ from the public list). Sending to the inventory app…');
+    var total = Object.keys(prices).length;
+    var payload = { type: 'rally-minleon-prices', v: 2, at: Date.now(), cid: cid ? String(cid) : null, loggedIn: !!cid, host: H, n: total, jsPages: jsOK, htmlPages: htmlOK, prices: prices };
+    log('Read ' + total + ' prices. Sending to the inventory app…');
     var tries = 0;
     var fallback = function () {
       if (acked) return;
@@ -2786,7 +2892,6 @@ function ingestDealerPrices(m) {
     cid: m.cid ? String(m.cid).slice(0, 32) : null,
     loggedIn: !!m.loggedIn,
     n,
-    diffFromRetail: Number(m.diffFromRetail) || 0,
     jsPages: m.jsPages | 0,
     htmlPages: m.htmlPages | 0,
     prices,
@@ -2798,7 +2903,7 @@ function ingestDealerPrices(m) {
 
 function linkedHandles() {
   const out = [];
-  state.inventory.forEach(g => g.variants.forEach(v => { const l = getLink(v); const hit = l && minleonIndex.get(l.vid); if (hit && !out.includes(hit.p.handle)) out.push(hit.p.handle); }));
+  state.inventory.forEach(g => g.variants.forEach(v => { const l = getLink(g, v); const hit = l && minleonIndex.get(l.vid); if (hit && !out.includes(hit.p.handle)) out.push(hit.p.handle); }));
   return out;
 }
 function onMinleonMessage(e) {
