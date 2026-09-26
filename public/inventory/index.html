@@ -2367,7 +2367,9 @@ function liveChip(g, v) {
   if (!li || !li.link.ok || !li.changed || li.perLine == null) return '';
   const up = li.delta > 0;
   const src = li.yours != null ? 'your Minleon price' : 'Minleon retail';
-  return `<span class="live-chip ${up ? 'up' : 'down'}" title="${src}: $${li.perLine.toFixed(2)} ${esc(lineUnitLabel(g, v))} (stored $${li.stored.toFixed(2)})">${up ? '↑' : '↓'} $${li.perLine.toFixed(2)}</span>`;
+  // The chip sits in the Unit cost column, so show the per-unit equivalent for bundled variants.
+  const perUnit = v.bundleQty ? li.perLine / v.bundleQty : li.perLine;
+  return `<span class="live-chip ${up ? 'up' : 'down'}" title="${src}: $${li.perLine.toFixed(2)} ${esc(lineUnitLabel(g, v))} (stored $${li.stored.toFixed(2)})">${up ? '↑' : '↓'} $${perUnit.toFixed(2)}</span>`;
 }
 
 function liveSummary() {
