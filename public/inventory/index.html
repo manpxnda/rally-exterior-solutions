@@ -2655,6 +2655,10 @@ function bestPack(v, hit, price) {
 function getLink(g, v, divId) {
   const s = supOf(divId);
   const m = s.map[v.id];
+  if (m && m.manual) {
+    // One-off source (Amazon, Home Depot, a local supplier…): the price Jason noted is the price.
+    return { manual: true, ok: true, source: m.source || 'Other', name: m.name || '', url: m.url || '', price: Number(m.price) || 0, pack: Math.max(1, Number(m.pack) || 1), at: Number(m.at) || 0, host: null, vid: null };
+  }
   if (m && m.vid) return { vid: Number(m.vid), pack: Math.max(1, Number(m.pack) || 1), host: m.host ? bareHost(m.host) : findHostFor(m.vid, s), ok: true };
   if (!s.stores.some(o => hostKey(o) === MINLEON_HOST)) return null;
   const sg = MINLEON_SUGGESTED[suggestionKey(g, v)];
@@ -2771,8 +2775,8 @@ function openStoreModal() {
 function removeStore(origin) {
   const key = hostKey(origin);
   const s = sup();
-  const linked = Object.keys(s.map).filter(id => { const m = s.map[id]; return (m.host ? bareHost(m.host) : findHostFor(m.vid, s)) === key; });
-  if (!confirm('Remove ' + storeName(origin) + ' from the ' + divName() + ' inventory? ' + (linked.length ? linked.length + ' item link' + (linked.length > 1 ? 's' : '') + ' and ' : '') + 'any captured account prices for this store will be cleared. Stored costs are not affected.')) return;
+  const linked = Object.keys(s.map).filter(id => { const m = s.map[id]; if (!m || m.manual) return false; return (m.host ? bareHost(m.host) : findHostFor(m.vid, s)) === key; });
+  if (!confirm('Remove ' + storeName(origin) + ' from the ' + divName() + ' inventory? ' + (linked.length ? linked.length + ' item link' + (linked.length > 1 ? 's' : '') + ' and ' : '') + 'any captured account prices for this store will be cleared. Stored costs and one-off links are not affected.')) return;
   s.stores = s.stores.filter(o => hostKey(o) !== key);
   linked.forEach(id => { delete s.map[id]; });
   delete s.dealers[key];
@@ -2791,14 +2795,14 @@ function liveInfo(g, v) {
   const link = getLink(g, v);
   if (!link) return null;
   const s = sup();
-  const hit = link.host ? (idxFor(link.host).get(link.vid) || null) : null;
-  const list = hit ? Number(hit.v.price) : null;          // per purchase
-  const yours = dealerPriceIn(s, link.vid, link.host);      // per purchase
-  const dAvail = dealerAvailableIn(s, link.vid, link.host);
+  const hit = !link.manual && link.host ? (idxFor(link.host).get(link.vid) || null) : null;
+  const list = hit ? Number(hit.v.price) : null;                                        // per purchase
+  const yours = link.manual ? (link.price > 0 ? link.price : null) : dealerPriceIn(s, link.vid, link.host); // per purchase
+  const dAvail = link.manual ? null : dealerAvailableIn(s, link.vid, link.host);
   const available = dAvail != null ? dAvail : (hit ? !!hit.v.available : null);
   const price = yours != null ? yours : list;
   const stored = effectiveCost(v);                          // per Rally unit
-  const info = { link, hit, list, yours, available, price, stored, perUnit: null, delta: 0, pct: 0, changed: false, missing: !hit && yours == null,
+  const info = { link, hit, list, yours, available, price, stored, perUnit: null, delta: 0, pct: 0, changed: false, missing: !link.manual && !hit && yours == null,
     bundleQty: v.bundleQty > 0 ? v.bundleQty : null, storedBundle: v.bundleQty > 0 && v.bundleCost ? v.bundleCost : null, perBundle: null };
   if (price != null) {
     info.perUnit = price / link.pack;
@@ -2814,22 +2818,23 @@ function liveChip(g, v) {
   const li = liveInfo(g, v);
   if (!li || !li.link.ok || !li.changed || li.perUnit == null) return '';
   const up = li.delta > 0;
-  const name = storeName(li.link.host || '');
-  const src = li.yours != null ? 'your ' + name + ' price' : name + ' list price';
+  const name = li.link.manual ? li.link.source : storeName(li.link.host || '');
+  const src = li.link.manual ? name + ' price you noted' : (li.yours != null ? 'your ' + name + ' price' : name + ' list price');
   return `<span class="live-chip ${up ? 'up' : 'down'}" title="${esc(src)}: ${money(li.perUnit)} per ${esc(g.unit)} (stored ${money(li.stored)})">${up ? '↑' : '↓'} ${money(li.perUnit)}</span>`;
 }
 
 function liveSummary() {
-  let changed = 0, suggested = 0, confirmed = 0, total = 0, missing = 0;
+  let changed = 0, suggested = 0, confirmed = 0, total = 0, missing = 0, manual = 0;
   state.inventory.forEach(g => g.variants.forEach(v => {
     total++;
     const li = liveInfo(g, v);
     if (!li) return;
     if (li.link.ok) confirmed++; else suggested++;
+    if (li.link.manual) manual++;
     if (li.missing) missing++;
     if (li.link.ok && li.changed) changed++;
   }));
-  return { changed, suggested, confirmed, total, missing };
+  return { changed, suggested, confirmed, total, missing, manual };
 }
 
 /* Your captured prices for one store compared with its PUBLIC list held by the server. */
@@ -2935,7 +2940,7 @@ function renderSupplier() {
 
   cardsEl.innerHTML = `
     <div class="card"><div class="label">Stores</div><div class="value">${stores.length}</div><div class="sub">${stores.map(o => esc(storeName(o))).join(' · ')}</div></div>
-    <div class="card"><div class="label">Linked items</div><div class="value">${s.confirmed}<span style="font-size:13px;color:#aaa;font-weight:400"> / ${s.total}</span></div><div class="sub">${s.suggested ? s.suggested + ' suggested — confirm below' : (s.total - s.confirmed) + ' not linked'}</div></div>
+    <div class="card"><div class="label">Linked items</div><div class="value">${s.confirmed}<span style="font-size:13px;color:#aaa;font-weight:400"> / ${s.total}</span></div><div class="sub">${s.suggested ? s.suggested + ' suggested — confirm below' : (s.total - s.confirmed) + ' not linked'}${s.manual ? ' · ' + s.manual + ' one-off' : ''}</div></div>
     <div class="card ${s.changed ? 'warn' : ''}"><div class="label">Cost changes</div><div class="value">${s.changed}</div><div class="sub">vs stored costs</div></div>
   `;
 
@@ -2945,7 +2950,7 @@ function renderSupplier() {
   const notSynced = stores.filter(o => !sup().dealers[hostKey(o)]);
   if (notSynced.length === stores.length) alerts += `<div class="alert alert-info">Showing <strong>public list</strong> prices. To load your account pricing, click <strong>Sync my prices</strong> next to a store and follow the two steps.</div>`;
   if (s.suggested) alerts += `<div class="alert alert-info">${s.suggested} suggested link${s.suggested > 1 ? 's' : ''} need a quick look — check the product, variant and pack size, then <a href="#" onclick="event.preventDefault();confirmAllSuggestions()">confirm all</a> or confirm one at a time.</div>`;
-  if (!s.confirmed && !s.suggested && s.total) alerts += `<div class="alert alert-info">Nothing is linked yet. Use <strong>Link…</strong> on an item to pick the matching product from ${stores.length > 1 ? 'any connected store' : esc(storeName(stores[0]))}; the app then shows its live price next to your stored cost.</div>`;
+  if (!s.confirmed && !s.suggested && s.total) alerts += `<div class="alert alert-info">Nothing is linked yet. Use <strong>Link…</strong> on an item to pick the matching product from ${stores.length > 1 ? 'any connected store' : esc(storeName(stores[0]))}, or note a one-off purchase (Amazon, Home Depot…); the app then shows its price next to your stored cost.</div>`;
   alertsEl.innerHTML = alerts;
 
   // Table, grouped by category
@@ -2987,18 +2992,11 @@ function supRow(g, v) {
   const name = `<div style="font-weight:500">${esc(g.name)}${v.label ? ` <span class="sup-sub">${esc(v.label)}</span>` : ''}</div><div class="sup-sub">per ${esc(g.unit)}${bundled ? ` · bundle of ${v.bundleQty}` : ''}</div>`;
   const linkBtn = (txt) => `<button class="btn btn-xs" onclick="openLinkModal('${g.id}','${v.id}')">${txt}</button>`;
   if (!li) {
-    return `<tr><td>${name}</td><td colspan="6" class="sup-sub">Not linked to a supplier product</td><td style="white-space:nowrap">${linkBtn('Link…')}</td></tr>`;
+    return `<tr><td>${name}</td><td colspan="6" class="sup-sub">Not linked to a product</td><td style="white-space:nowrap">${linkBtn('Link…')}</td></tr>`;
   }
   const { link, hit } = li;
-  const origin = link.host ? storeOriginFor(link.host) : null;
-  const sname = link.host ? storeName(link.host) : '';
-  const mlTitle = hit ? `<a class="sup-link" href="${esc(origin || '')}/products/${esc(hit.p.handle)}?variant=${link.vid}" target="_blank" rel="noopener">${esc(hit.p.title)}</a>` : `<span class="sup-sub">Variant ${link.vid} not in ${sname ? esc(sname) + "'s" : 'the'} current catalog</span>`;
-  const mlSub = `${sname ? esc(sname) + (hit ? ' · ' : '') : ''}${hit ? esc(hit.v.title) : ''}${li.available === false ? ' · <span style="color:#b91c1c">out of stock</span>' : ''}`;
-  const sug = link.ok ? '' : ` <span class="badge sug">suggested</span>${link.note ? `<div class="sup-sub" style="margin-top:2px">${esc(link.note)}</div>` : ''}`;
   const packTxt = `${link.pack}<div class="sup-sub">${esc(g.unit)}${link.pack === 1 ? '' : 's'} / purchase</div>`;
   const perPurchase = (p) => `<div class="sup-sub">${money(p)} / purchase${bundled && link.pack !== v.bundleQty ? ` · ${money(p / link.pack * v.bundleQty)} per ${v.bundleQty}` : ''}</div>`;
-  const list = li.list != null ? `${money(li.list / link.pack)}${perPurchase(li.list)}` : '<span class="sup-sub">—</span>';
-  const yours = li.yours != null ? `<strong>${money(li.yours / link.pack)}</strong>${perPurchase(li.yours)}` : '<span class="sup-sub">—</span>';
   const inApp = li.stored ? `${money(li.stored)}${bundled && li.storedBundle ? `<div class="sup-sub">${v.bundleQty} for ${money(li.storedBundle)}</div>` : ''}` : '<span class="sup-sub">—</span>';
   let change = '<span class="delta-zero">—</span>';
   if (li.perUnit != null && li.stored) {
@@ -3009,10 +3007,29 @@ function supRow(g, v) {
     change = '<span class="sup-sub">no cost yet</span>';
   }
   const actions = [];
-  if (!link.ok) actions.push(`<button class="btn btn-xs" style="border-color:#1a1a1a" onclick="confirmLink('${g.id}','${v.id}')">✓ Confirm</button>`);
-  if (link.ok && (li.changed || (!li.stored && li.perUnit != null))) actions.push(`<button class="btn btn-xs btn-primary" onclick="applyLive('${g.id}','${v.id}')">Apply</button>`);
-  actions.push(linkBtn(link.ok ? 'Change' : 'Pick other…'));
-  return `<tr><td>${name}</td><td>${mlTitle}${sug}<div class="sup-sub">${mlSub}</div></td><td class="num">${packTxt}</td><td class="num">${list}</td><td class="num">${yours}</td><td class="num">${inApp}</td><td class="num">${change}</td><td style="white-space:nowrap">${actions.join(' ')}</td></tr>`;
+  let product, list, yours;
+  if (link.manual) {
+    const label = link.name || link.source;
+    product = (link.url ? `<a class="sup-link" href="${esc(link.url)}" target="_blank" rel="noopener">${esc(label)}</a>` : `<span style="font-weight:500">${esc(label)}</span>`)
+      + `<div class="sup-sub">${esc(link.source)} · one-off${link.at ? ' · price noted ' + whenLabel(link.at) : ''}</div>`;
+    list = '<span class="sup-sub">—</span>';
+    yours = link.price > 0 ? `<strong>${money(link.price / link.pack)}</strong>${perPurchase(link.price)}` : '<span class="sup-sub">—</span>';
+    if (li.changed || (!li.stored && li.perUnit != null)) actions.push(`<button class="btn btn-xs btn-primary" onclick="applyLive('${g.id}','${v.id}')">Apply</button>`);
+    actions.push(linkBtn('Update…'));
+  } else {
+    const origin = link.host ? storeOriginFor(link.host) : null;
+    const sname = link.host ? storeName(link.host) : '';
+    const mlTitle = hit ? `<a class="sup-link" href="${esc(origin || '')}/products/${esc(hit.p.handle)}?variant=${link.vid}" target="_blank" rel="noopener">${esc(hit.p.title)}</a>` : `<span class="sup-sub">Variant ${link.vid} not in ${sname ? esc(sname) + "'s" : 'the'} current catalog</span>`;
+    const mlSub = `${sname ? esc(sname) + (hit ? ' · ' : '') : ''}${hit ? esc(hit.v.title) : ''}${li.available === false ? ' · <span style="color:#b91c1c">out of stock</span>' : ''}`;
+    const sug = link.ok ? '' : ` <span class="badge sug">suggested</span>${link.note ? `<div class="sup-sub" style="margin-top:2px">${esc(link.note)}</div>` : ''}`;
+    product = `${mlTitle}${sug}<div class="sup-sub">${mlSub}</div>`;
+    list = li.list != null ? `${money(li.list / link.pack)}${perPurchase(li.list)}` : '<span class="sup-sub">—</span>';
+    yours = li.yours != null ? `<strong>${money(li.yours / link.pack)}</strong>${perPurchase(li.yours)}` : '<span class="sup-sub">—</span>';
+    if (!link.ok) actions.push(`<button class="btn btn-xs" style="border-color:#1a1a1a" onclick="confirmLink('${g.id}','${v.id}')">✓ Confirm</button>`);
+    if (link.ok && (li.changed || (!li.stored && li.perUnit != null))) actions.push(`<button class="btn btn-xs btn-primary" onclick="applyLive('${g.id}','${v.id}')">Apply</button>`);
+    actions.push(linkBtn(link.ok ? 'Change' : 'Pick other…'));
+  }
+  return `<tr><td>${name}</td><td>${product}</td><td class="num">${packTxt}</td><td class="num">${list}</td><td class="num">${yours}</td><td class="num">${inApp}</td><td class="num">${change}</td><td style="white-space:nowrap">${actions.join(' ')}</td></tr>`;
 }
 
 /* ── Links (confirm / pick) ── */
@@ -3037,33 +3054,35 @@ let linkModal = null;
 function openLinkModal(gid, rvid) {
   const g = state.inventory.find(x => x.id === gid); if (!g) return;
   const v = g.variants.find(x => x.id === rvid); if (!v) return;
-  if (!curStores().length) { openStoreModal(); return; }
   const cur = getLink(g, v);
-  linkModal = { gid, rvid, q: '', vid: cur ? cur.vid : null, host: cur ? cur.host : null, pack: cur ? cur.pack : 1 };
   const stores = curStores();
+  const manual = !!(cur && cur.manual);
+  linkModal = {
+    gid, rvid, q: '',
+    mode: manual || !stores.length ? 'manual' : 'store',
+    storeKey: !manual && cur && cur.host ? cur.host : null, // null = all stores
+    vid: !manual && cur ? cur.vid : null, host: !manual && cur ? cur.host : null, pack: !manual && cur ? cur.pack : 1,
+    m: manual ? { source: cur.source, name: cur.name, url: cur.url, price: cur.price, pack: cur.pack }
+              : { source: '', name: '', url: '', price: '', pack: v.bundleQty > 0 ? v.bundleQty : 1 },
+  };
   showModal(`
-    <div class="modal-title">Link to a supplier product</div>
-    <div style="font-size:13px;margin-bottom:10px"><strong>${esc(g.name)}</strong>${v.label ? ' · ' + esc(v.label) : ''} <span class="sup-sub">— priced per ${esc(g.unit)}${v.bundleQty > 0 ? `, bundles of ${v.bundleQty}` : ''}${effectiveCost(v) ? `, currently ${money(effectiveCost(v))} per ${esc(g.unit)}` : ''}</span></div>
-    <div class="fg"><label>Search ${stores.length > 1 ? stores.map(o => esc(storeName(o))).join(' + ') : esc(storeName(stores[0]))}</label><input type="text" id="lk-q" placeholder="e.g. C9 warm white case, socket wire 1000, wedge clip" oninput="linkModal.q=this.value;renderLinkResults()" autocomplete="off"></div>
-    <div id="lk-results" class="lk-results"></div>
-    <div class="form-row" style="margin-top:12px">
-      <div class="fg"><label>How many “${esc(g.unit)}” in one purchase?</label><input type="number" id="lk-pack" min="1" step="1" value="${linkModal.pack}" oninput="linkModal.pack=parseInt(this.value)||1;renderLinkSelected()"></div>
-      <div class="fg"><label>Works out to</label><div id="lk-selected" style="font-size:13px;padding-top:6px"></div></div>
-    </div>
-    <div class="sup-sub">Examples: a case of 500 bulbs → 500. A 1,000 ft spool of wire, when your unit is a foot → 1000. A bulk case of 16 strands → 16. A single controller → 1.</div>
+    <div class="modal-title">Link to a product</div>
+    <div style="font-size:13px;margin-bottom:12px"><strong>${esc(g.name)}</strong>${v.label ? ' · ' + esc(v.label) : ''} <span class="sup-sub">— priced per ${esc(g.unit)}${v.bundleQty > 0 ? `, bundles of ${v.bundleQty}` : ''}${effectiveCost(v) ? `, currently ${money(effectiveCost(v))} per ${esc(g.unit)}` : ''}</span></div>
+    <div class="sec-label" style="margin-top:0">Where do you buy it?</div>
+    <div id="lk-modes" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+    <div id="lk-body"></div>
     <div class="modal-footer">
       ${sup().map[rvid] ? '<button class="btn btn-danger" onclick="unlinkVariant()">Unlink</button>' : ''}
       <button class="btn" onclick="closeModal()">Cancel</button>
       <button class="btn btn-primary" onclick="saveLink()">Save link</button>
     </div>
   `);
-  renderLinkResults();
-  renderLinkSelected();
-  const q = document.getElementById('lk-q'); if (q) q.focus();
+  renderLinkModes();
+  renderLinkBody();
 }
 function renderLinkResults() {
   const el = document.getElementById('lk-results'); if (!el || !linkModal) return;
-  const stores = curStores().filter(o => catalogs[hostKey(o)]);
+  const stores = curStores().filter(o => catalogs[hostKey(o)] && (!linkModal.storeKey || hostKey(o) === linkModal.storeKey));
   if (!stores.length) { el.innerHTML = '<div class="lk-row sup-sub">Catalog not loaded yet.</div>'; return; }
   const terms = linkModal.q.toLowerCase().split(/\s+/).filter(Boolean);
   const out = [];
@@ -3078,7 +3097,7 @@ function renderLinkResults() {
     }
   }
   if (!out.length) { el.innerHTML = `<div class="lk-row sup-sub">${terms.length ? 'No matches.' : 'Type to search — product name, size, color or SKU.'}</div>`; return; }
-  const multi = stores.length > 1;
+  const multi = !linkModal.storeKey && curStores().length > 1;
   el.innerHTML = out.map(r => { const y = dealerPriceIn(sup(), r.vid, r.key); return `<div class="lk-row ${r.vid === linkModal.vid ? 'sel' : ''}" onclick="pickLink(${r.vid},'${r.key}')">
       <span>${multi ? `<span class="badge neutral" style="margin-right:6px">${esc(storeName(r.key))}</span>` : ''}<strong>${esc(r.p.title)}</strong> <span class="sup-sub">${esc(r.v.title)}</span></span>
       <span style="white-space:nowrap">${y != null ? `<strong>${money(y)}</strong> <span class="sup-sub">list ${money(r.v.price)}</span>` : money(r.v.price)}${r.v.available ? '' : ' <span style="color:#b91c1c">out</span>'}</span></div>`; }).join('');
@@ -3110,9 +3129,86 @@ function renderLinkSelected() {
   const perUnit = price / pack;
   el.innerHTML = `<strong>${money(perUnit)}</strong> per ${g ? esc(g.unit) : 'unit'}${v && v.bundleQty > 0 ? ` · ${money(perUnit * v.bundleQty)} per ${v.bundleQty}` : ''}<div class="sup-sub">${esc(storeName(linkModal.host))} ${y != null ? 'your price' : 'list price'} ${money(price)} ÷ ${pack}</div>`;
 }
+function setLinkMode(mode, key) {
+  if (!linkModal) return;
+  linkModal.mode = mode;
+  linkModal.storeKey = key || null;
+  renderLinkModes();
+  renderLinkBody();
+}
+function renderLinkModes() {
+  const el = document.getElementById('lk-modes'); if (!el || !linkModal) return;
+  const stores = curStores();
+  const pills = [];
+  if (stores.length > 1) pills.push({ label: 'All stores', mode: 'store', key: null });
+  stores.forEach(o => pills.push({ label: storeName(o), mode: 'store', key: hostKey(o) }));
+  pills.push({ label: 'Somewhere else (Amazon, Home Depot…)', mode: 'manual', key: null });
+  el.innerHTML = pills.map(p => {
+    const active = linkModal.mode === p.mode && (p.mode === 'manual' || (linkModal.storeKey || null) === p.key);
+    return `<button class="pill ${active ? 'active' : ''}" onclick="setLinkMode('${p.mode}',${p.key ? `'${p.key}'` : 'null'})">${esc(p.label)}</button>`;
+  }).join('');
+}
+function renderLinkBody() {
+  const el = document.getElementById('lk-body'); if (!el || !linkModal) return;
+  const g = state.inventory.find(x => x.id === linkModal.gid); if (!g) return;
+  if (linkModal.mode === 'manual') {
+    const m = linkModal.m;
+    el.innerHTML = `
+      <div class="form-row">
+        <div class="fg"><label>Where from</label><input type="text" id="lk-src" value="${esc(m.source)}" placeholder="Amazon, Home Depot, local supplier…" oninput="linkModal.m.source=this.value"></div>
+        <div class="fg"><label>Product</label><input type="text" id="lk-name" value="${esc(m.name)}" placeholder="e.g. 7.5 ft pre-lit Christmas tree" oninput="linkModal.m.name=this.value"></div>
+      </div>
+      <div class="fg"><label>Link <span style="color:#aaa;font-weight:400;text-transform:none">(optional — opens from the price table)</span></label><input type="text" id="lk-url" value="${esc(m.url)}" placeholder="https://www.amazon.com/…" oninput="linkModal.m.url=this.value"></div>
+      <div class="form-row" style="margin-top:10px">
+        <div class="fg"><label>Price paid $ <span style="color:#aaa;font-weight:400;text-transform:none">(one purchase)</span></label><input type="number" id="lk-price" value="${esc(m.price)}" step="0.01" min="0" placeholder="0.00" oninput="linkModal.m.price=this.value;renderManualSelected()"></div>
+        <div class="fg"><label>How many “${esc(g.unit)}” in one purchase?</label><input type="number" id="lk-mpack" value="${esc(m.pack)}" min="1" step="1" oninput="linkModal.m.pack=this.value;renderManualSelected()"></div>
+        <div class="fg"><label>Works out to</label><div id="lk-selected" style="font-size:13px;padding-top:6px"></div></div>
+      </div>
+      <div class="sup-sub">One-off sources can't be checked automatically — the price you enter here is what the app compares your stored cost against. After your next purchase, use <strong>Update…</strong> on the row to note the new price.</div>`;
+    renderManualSelected();
+    const f = document.getElementById(m.source ? 'lk-price' : 'lk-src'); if (f) f.focus();
+    return;
+  }
+  const stores = curStores();
+  const scope = linkModal.storeKey ? storeName(linkModal.storeKey) : (stores.length > 1 ? stores.map(o => storeName(o)).join(' + ') : storeName(stores[0]));
+  el.innerHTML = `
+    <div class="fg"><label>Search ${esc(scope)}</label><input type="text" id="lk-q" value="${esc(linkModal.q)}" placeholder="e.g. C9 warm white case, socket wire 1000, wedge clip" oninput="linkModal.q=this.value;renderLinkResults()" autocomplete="off"></div>
+    <div id="lk-results" class="lk-results"></div>
+    <div class="form-row" style="margin-top:12px">
+      <div class="fg"><label>How many “${esc(g.unit)}” in one purchase?</label><input type="number" id="lk-pack" min="1" step="1" value="${linkModal.pack}" oninput="linkModal.pack=parseInt(this.value)||1;renderLinkSelected()"></div>
+      <div class="fg"><label>Works out to</label><div id="lk-selected" style="font-size:13px;padding-top:6px"></div></div>
+    </div>
+    <div class="sup-sub">Examples: a case of 500 bulbs → 500. A 1,000 ft spool of wire, when your unit is a foot → 1000. A bulk case of 16 strands → 16. A single controller → 1.</div>`;
+  renderLinkResults();
+  renderLinkSelected();
+  const q = document.getElementById('lk-q'); if (q) q.focus();
+}
+function renderManualSelected() {
+  const el = document.getElementById('lk-selected'); if (!el || !linkModal) return;
+  const price = parseFloat(linkModal.m.price);
+  const pack = Math.max(1, parseInt(linkModal.m.pack, 10) || 1);
+  const g = state.inventory.find(x => x.id === linkModal.gid);
+  const v = g && g.variants.find(x => x.id === linkModal.rvid);
+  if (!(price > 0)) { el.innerHTML = '<span class="sup-sub">Enter the price paid</span>'; return; }
+  const perUnit = price / pack;
+  el.innerHTML = `<strong>${money(perUnit)}</strong> per ${g ? esc(g.unit) : 'unit'}${v && v.bundleQty > 0 ? ` · ${money(perUnit * v.bundleQty)} per ${v.bundleQty}` : ''}<div class="sup-sub">${money(price)} ÷ ${pack}</div>`;
+}
 function saveLink() {
-  if (!linkModal || !linkModal.vid) { alert('Pick a product first.'); return; }
-  sup().map[linkModal.rvid] = { vid: linkModal.vid, pack: Math.max(1, parseInt(linkModal.pack, 10) || 1), host: linkModal.host || findHostFor(linkModal.vid, sup()) };
+  if (!linkModal) return;
+  if (linkModal.mode === 'manual') {
+    const m = linkModal.m;
+    const price = parseFloat(m.price);
+    const pack = Math.max(1, parseInt(m.pack, 10) || 1);
+    const source = String(m.source || '').trim(), name = String(m.name || '').trim();
+    if (!source && !name) { alert('Enter where you buy it (e.g. Amazon) or the product name.'); return; }
+    if (!(price > 0)) { alert('Enter the price paid.'); return; }
+    let url = String(m.url || '').trim();
+    if (url && !/^https?:\/\//i.test(url)) url = 'https://' + url;
+    sup().map[linkModal.rvid] = { manual: true, source: source || 'Other', name, url, price: +price.toFixed(2), pack, at: Date.now() };
+  } else {
+    if (!linkModal.vid) { alert('Pick a product first.'); return; }
+    sup().map[linkModal.rvid] = { vid: linkModal.vid, pack: Math.max(1, parseInt(linkModal.pack, 10) || 1), host: linkModal.host || findHostFor(linkModal.vid, sup()) };
+  }
   linkModal = null; save(); closeModal(); render();
 }
 function unlinkVariant() {
@@ -3355,7 +3451,7 @@ function linkedHandlesFor(divId, key) {
   const d = state.divisions[divId];
   const idx = idxFor(key);
   const out = [];
-  d.inventory.forEach(g => g.variants.forEach(v => { const l = getLink(g, v, divId); if (!l || l.host !== key) return; const hit = idx.get(l.vid); if (hit && !out.includes(hit.p.handle)) out.push(hit.p.handle); }));
+  d.inventory.forEach(g => g.variants.forEach(v => { const l = getLink(g, v, divId); if (!l || l.manual || l.host !== key) return; const hit = idx.get(l.vid); if (hit && !out.includes(hit.p.handle)) out.push(hit.p.handle); }));
   return out;
 }
 function onSupplierMessage(e) {
