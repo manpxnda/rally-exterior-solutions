@@ -227,6 +227,8 @@ tr.drag-over-bottom td{border-bottom:2px solid #1a1a1a!important}
 .lk-row:last-child{border-bottom:none}
 .lk-row:hover{background:#f5f5f3}
 .lk-row.sel{background:#eff6ff}
+.store-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0f0ee;flex-wrap:wrap}
+.store-row:last-child{border-bottom:none}
 
 /* Division switch (Permanent / Christmas) */
 .div-switch{display:flex;gap:6px;margin:0 0 14px;background:#fff;border:1px solid #e5e5e3;border-radius:12px;padding:5px}
@@ -384,6 +386,12 @@ const DIVISIONS = [
 ];
 const DIV_KEY = 'rally_v3_div';
 const MINLEON_ORIGIN = 'https://minleonpermanentlighting.com';
+/* Where each division buys its product (Jason, 2026-09-28). Any Shopify-based
+   store can be added or removed in the Supplier prices tab. */
+const DEFAULT_STORES = {
+  permanent: [MINLEON_ORIGIN],
+  christmas: ['https://www.christmaslightcontractorsusa.com', 'https://s4lights.com'],
+};
 
 const CATS_BY_DIV = {
   permanent: [
@@ -563,17 +571,27 @@ function defaultDivision(id) {
     settings: { taxPct: 6, shippingEst: 0 },
     inventory: id === 'christmas' ? seedChristmas() : seedPermanent(),
     projects: [], installs: [], wasteLog: [],
-    supplier: { store: id === 'permanent' ? MINLEON_ORIGIN : null, map: {}, dealer: null },
+    supplier: { stores: (DEFAULT_STORES[id] || []).slice(), map: {}, dealers: {} },
   };
 }
 function normalizeSupplier(id, s) {
-  const base = defaultDivision(id).supplier;
-  if (!s || typeof s !== 'object') return base;
-  return {
-    store: ('store' in s) ? (typeof s.store === 'string' && s.store ? s.store : null) : base.store,
-    map: s.map && typeof s.map === 'object' ? s.map : {},
-    dealer: s.dealer && typeof s.dealer === 'object' ? s.dealer : null,
-  };
+  const defaults = (DEFAULT_STORES[id] || []).slice();
+  if (!s || typeof s !== 'object') return { stores: defaults, map: {}, dealers: {} };
+  let stores;
+  if (Array.isArray(s.stores)) {
+    stores = s.stores.filter(x => typeof x === 'string' && x);
+  } else {
+    // Earlier shape: one `store` (string or null). Christmas keeps Jason's named suppliers.
+    const one = typeof s.store === 'string' && s.store ? [s.store] : [];
+    stores = id === 'christmas' ? one.concat(defaults) : (one.length ? one : ('store' in s ? [] : defaults));
+  }
+  const seen = new Set();
+  stores = stores.filter(o => { const k = hostKey(o); if (!k || seen.has(k)) return false; seen.add(k); return true; });
+  const dealers = s.dealers && typeof s.dealers === 'object' ? s.dealers : {};
+  if (!Array.isArray(s.stores) && s.dealer && typeof s.dealer === 'object' && stores[0] && !dealers[hostKey(stores[0])]) {
+    dealers[hostKey(stores[0])] = s.dealer; // the single capture belonged to the single store
+  }
+  return { stores, map: s.map && typeof s.map === 'object' ? s.map : {}, dealers };
 }
 function normalizeDivision(id, d) {
   const base = defaultDivision(id);
@@ -2341,7 +2359,7 @@ function hasData(s) {
     const inv = Array.isArray(d.inventory) ? d.inventory : [];
     const stocked = inv.some(i => Array.isArray(i.variants) && i.variants.some(v => (v.qty || 0) > 0 || (v.reserved || 0) > 0));
     return stocked || (d.projects && d.projects.length > 0) || (d.installs && d.installs.length > 0) || (d.wasteLog && d.wasteLog.length > 0)
-      || !!(d.supplier && (d.supplier.dealer || (d.supplier.map && Object.keys(d.supplier.map).length)));
+      || !!(d.supplier && ((d.supplier.dealers && Object.keys(d.supplier.dealers).length) || (d.supplier.map && Object.keys(d.supplier.map).length)));
   });
   if (!any) return false;
   // A brand-new device only carries the built-in Christmas seed — that is not
@@ -2436,25 +2454,31 @@ function applyRemote(remote) {
 }
 
 /* ── SUPPLIER LIVE PRICING ───────────────────────────────── */
-/* Each division has its own supplier store (state.supplier.store):
-     Permanent → minleonpermanentlighting.com (Shopify)
-     Christmas → whichever store Jason connects (any Shopify-based store)
-   Two price layers per store:
+/* Each division has its own supplier STORES (state.supplier.stores):
+     Permanent → minleonpermanentlighting.com
+     Christmas → christmaslightcontractorsusa.com + s4lights.com
+   (any Shopify-based store can be added). Two price layers per store:
    1. LIST — the store's public catalog, pulled by the website server once a
       day (/inventory/api/supplier, Vercel cron) with prices + availability.
    2. YOUR ACCOUNT PRICES — Shopify logins are one-time email codes, so no
-      server can log in for you. The "Sync my prices" bookmark runs on the
-      store while you are logged in, reads the prices the store shows YOU,
-      and hands them to this app (window.postMessage). They live in the synced
-      state (state.supplier.dealer) so every device sees them.
+      server can log in for you. The "Sync my prices" bookmark (one per
+      store) runs on the store while you are logged in, reads the prices the
+      store shows YOU, and hands them to this app (window.postMessage). They
+      live in the synced state (state.supplier.dealers[host]) so every device
+      sees them.
    Units: a link's `pack` = how many of YOUR units (the unit `unitCost` is
    priced in — a 3ft section, a strand, a bulb, a foot of wire…) come in ONE
    purchase from the store. Everything is compared per unit; bundled items
    also show the bundle. Nothing changes a stored cost by itself — you click
-   Apply. */
+   Apply. Store keys everywhere are the bare host (no "www."). */
 const SUPPLIER_API = '/inventory/api/supplier';
 const CATALOG_CACHE_KEY = 'rally_catalogs';
 const MINLEON_HOST = 'minleonpermanentlighting.com';
+const STORE_NAMES = {
+  'minleonpermanentlighting.com': 'Minleon',
+  'christmaslightcontractorsusa.com': 'Christmas Light Contractors USA',
+  's4lights.com': 'S4 Lights',
+};
 
 /* Suggested Minleon links for the permanent-lighting items, keyed by
    "item name|variant label" (lower-case). The pack is worked out from the
@@ -2550,61 +2574,61 @@ const MINLEON_SUGGESTED = {
   'meshtek repeater|': { vid: 46626319499431 },
 };
 
-const catalogs = {};         // host → newest server snapshot (public list prices)
-const catalogIdx = {};       // host → Map(variant id → { p, v })
-const catalogStatus = {};    // host → human-readable status line
-const catalogLoadedAt = {};  // host → when this tab last fetched it
+const catalogs = {};         // host key → newest server snapshot (public list prices)
+const catalogIdx = {};       // host key → Map(variant id → { p, v })
+const catalogStatus = {};    // host key → human-readable status line
+const catalogLoadedAt = {};  // host key → when this tab last fetched it
 let awaitingImport = false;  // true while this tab was opened by the bookmark and waits for prices
-let storeError = '';         // last "connect store" problem, shown in the setup card
+let storeError = '';         // last "connect store" problem
 
 function hostOf(origin) { return String(origin || '').replace(/^https?:\/\//i, '').replace(/\/.*$/, '').toLowerCase(); }
 function bareHost(h) { return String(h || '').toLowerCase().replace(/^www\./, ''); }
+function hostKey(origin) { return bareHost(hostOf(origin)); }
 function supOf(divId) {
   const d = state.divisions[divId || activeDiv];
-  if (!d.supplier || typeof d.supplier !== 'object') d.supplier = { store: null, map: {}, dealer: null };
+  if (!d.supplier || typeof d.supplier !== 'object') d.supplier = { stores: [], map: {}, dealers: {} };
+  if (!Array.isArray(d.supplier.stores)) d.supplier.stores = [];
   if (!d.supplier.map || typeof d.supplier.map !== 'object') d.supplier.map = {};
-  if (!('store' in d.supplier)) d.supplier.store = null;
+  if (!d.supplier.dealers || typeof d.supplier.dealers !== 'object') d.supplier.dealers = {};
   return d.supplier;
 }
 function sup() { return supOf(activeDiv); }
-function curStore() { return sup().store || null; }
-function curHost() { return curStore() ? hostOf(curStore()) : ''; }
-function isMinleon(origin) { return bareHost(hostOf(origin)) === MINLEON_HOST; }
-function storeName(origin) {
-  const h = bareHost(hostOf(origin || curStore()));
-  return h === MINLEON_HOST ? 'Minleon' : h;
-}
-function supplierTabLabel() { return curStore() ? storeName() + ' prices' : 'Supplier prices'; }
-function idxFor(host) { return catalogIdx[host] || new Map(); }
-function curIdx() { return idxFor(curHost()); }
-function curCatalog() { return catalogs[curHost()] || null; }
+function curStores() { return sup().stores; }
+function storeName(origin) { const k = hostKey(origin); return STORE_NAMES[k] || k; }
+function storeOriginFor(key, divId) { return (supOf(divId).stores || []).find(o => hostKey(o) === bareHost(key)) || null; }
+function supplierTabLabel() { const st = curStores(); return st.length === 1 ? storeName(st[0]) + ' prices' : 'Supplier prices'; }
+function idxFor(key) { return catalogIdx[bareHost(key)] || new Map(); }
 function suggestionKey(g, v) {
   return (g.name + '|' + (v.label || '')).toLowerCase().replace(/\s+/g, ' ').trim();
 }
+/* Which of a division's stores carries this variant id (Shopify ids are global). */
+function findHostFor(vid, s) {
+  const id = Number(vid);
+  for (const o of s.stores) { const k = hostKey(o); if ((catalogIdx[k] || new Map()).has(id)) return k; }
+  for (const k of Object.keys(s.dealers || {})) { const d = s.dealers[k]; if (d && d.prices && d.prices[id]) return k; }
+  return null;
+}
 /* Your account price for a store variant (if captured), else null. */
-function dealerPriceIn(s, vid) {
-  const d = s && s.dealer;
+function dealerPriceIn(s, vid, host) {
+  const k = host ? bareHost(host) : findHostFor(vid, s);
+  const d = k && s.dealers ? s.dealers[k] : null;
   const row = d && d.prices ? d.prices[vid] : null;
   return row ? Number(row[0]) : null;
 }
-function dealerPrice(vid) { return dealerPriceIn(sup(), vid); }
-function dealerAvailable(vid) {
-  const d = sup().dealer;
+function dealerAvailableIn(s, vid, host) {
+  const k = host ? bareHost(host) : findHostFor(vid, s);
+  const d = k && s.dealers ? s.dealers[k] : null;
   const row = d && d.prices ? d.prices[vid] : null;
   return row ? !!row[1] : null;
 }
 
-/* How many of the Rally unit are in one purchase. Candidates come from the
-   store's variant title (100 Pieces, Bag of 100, (16ct), Bulk Buy (10 …)),
-   the item's own bundle size, and 1; we pick the one whose per-unit price is
-   closest to what the app already stores. With no stored cost, the title wins. */
 /* Counts a store's variant title implies: the case/pack count ("(16ct)",
-   "Bag of 100", "100 Pieces", "Bulk Buy (10 …)"), the per-item count
-   ("25 Lights", "10 Pebbles"), and their product (a case of 7 strands of 25
-   lights = 175 lights). */
+   "Bag of 100", "100 Pieces", "Case of 500", "Bulk Buy (10 …)"), the per-item
+   count ("25 Lights", "10 Pebbles"), and their product (a case of 7 strands
+   of 25 lights = 175 lights). */
 function titleCounts(title) {
   const t = String(title || '');
-  const casePats = [/\((\d+)\s*ct\)/i, /bag of (\d+)/i, /case of (\d+)/i, /(\d+) pieces/i, /bulk buy \((\d+)/i, /\((\d+) rolls\)/i, /\((\d+)\)\s*\d+ft/i, /mini-t \((\d+)\)/i, /basic-t \((\d+)\)/i, /(\d+)\s*(?:pack|pk)\b/i, /\/\s*(\d{2,4})\s*$/];
+  const casePats = [/\((\d+)\s*ct\)/i, /bag of (\d+)/i, /case of (\d+)/i, /pack of (\d+)/i, /box of (\d+)/i, /(\d+) pieces/i, /bulk buy \((\d+)/i, /\((\d+) rolls\)/i, /\((\d+)\)\s*\d+ft/i, /mini-t \((\d+)\)/i, /basic-t \((\d+)\)/i, /(\d+)\s*(?:pack|pk)\b/i, /bulk (\d{2,4})\b/i, /(\d{2,4}) ct\b/i, /\/\s*(\d{2,4})\s*$/];
   let caseN = 0;
   for (const re of casePats) { const m = t.match(re); if (m) { caseN = parseInt(m[1], 10) || 0; break; } }
   const m2 = t.match(/(?:^|\/\s*)(\d+)\s*(pebbles?|bulbs?|lights?|strands?|clips?|feet|ft)\b/i);
@@ -2631,62 +2655,65 @@ function bestPack(v, hit, price) {
 function getLink(g, v, divId) {
   const s = supOf(divId);
   const m = s.map[v.id];
-  if (m && m.vid) return { vid: Number(m.vid), pack: Math.max(1, Number(m.pack) || 1), ok: true };
-  if (!isMinleon(s.store)) return null;
+  if (m && m.vid) return { vid: Number(m.vid), pack: Math.max(1, Number(m.pack) || 1), host: m.host ? bareHost(m.host) : findHostFor(m.vid, s), ok: true };
+  if (!s.stores.some(o => hostKey(o) === MINLEON_HOST)) return null;
   const sg = MINLEON_SUGGESTED[suggestionKey(g, v)];
   if (!sg) return null;
-  const hit = idxFor(hostOf(s.store)).get(sg.vid) || null;
-  const dp = dealerPriceIn(s, sg.vid);
+  const hit = idxFor(MINLEON_HOST).get(sg.vid) || null;
+  const dp = dealerPriceIn(s, sg.vid, MINLEON_HOST);
   const price = dp != null ? dp : (hit ? hit.v.price : null);
-  return { vid: sg.vid, pack: bestPack(v, hit, price), ok: false, note: sg.note || '' };
+  return { vid: sg.vid, pack: bestPack(v, hit, price), host: MINLEON_HOST, ok: false, note: sg.note || '' };
 }
 
-function indexCatalog(host, snap) {
+function indexCatalog(key, snap) {
   const idx = new Map();
   (snap.products || []).forEach(p => (p.variants || []).forEach(v => idx.set(Number(v.id), { p, v })));
-  catalogIdx[host] = idx;
+  catalogIdx[key] = idx;
 }
-function cacheCatalog(host, snap) {
+function cacheCatalog(key, snap) {
   try {
     const all = JSON.parse(localStorage.getItem(CATALOG_CACHE_KEY) || '{}');
-    all[host] = snap;
+    all[key] = snap;
     localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify(all));
   } catch (e) {}
 }
 
-/* Load (or refresh) the catalog of one division's store. */
-async function loadCatalogFor(divId, force) {
-  const s = supOf(divId);
-  const store = s.store;
-  if (!store) { if (divId === activeDiv) renderSupplier(); return; }
-  const host = hostOf(store);
-  if (!catalogs[host]) {
-    try { const all = JSON.parse(localStorage.getItem(CATALOG_CACHE_KEY) || '{}'); if (all[host] && all[host].products) { catalogs[host] = all[host]; indexCatalog(host, all[host]); } } catch (e) {}
+/* Load (or refresh) one store's catalog. */
+async function loadStoreCatalog(divId, origin, force) {
+  const key = hostKey(origin);
+  if (!catalogs[key]) {
+    try { const all = JSON.parse(localStorage.getItem(CATALOG_CACHE_KEY) || '{}'); if (all[key] && all[key].products) { catalogs[key] = all[key]; indexCatalog(key, all[key]); } } catch (e) {}
   }
-  if (!force && catalogLoadedAt[host]) { if (divId === activeDiv) renderSupplier(); return; } // already fetched by this tab
-  catalogStatus[host] = force ? 'Refreshing the catalog…' : (catalogs[host] ? '' : 'Loading the catalog…');
+  if (!force && catalogLoadedAt[key]) return; // already fetched by this tab
+  catalogStatus[key] = force ? 'Refreshing the catalog…' : (catalogs[key] ? '' : 'Loading the catalog…');
   if (divId === activeDiv) renderSupplier();
   try {
     const res = force
-      ? await fetch(SUPPLIER_API, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'refresh', store }) })
-      : await fetch(SUPPLIER_API + '?store=' + encodeURIComponent(store) + '&t=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' });
-    if (res.status === 503) { catalogStatus[host] = 'Cloud storage is not set up — list prices unavailable.'; if (divId === activeDiv) renderSupplier(); return; }
+      ? await fetch(SUPPLIER_API, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'refresh', store: origin }) })
+      : await fetch(SUPPLIER_API + '?store=' + encodeURIComponent(origin) + '&t=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' });
+    if (res.status === 503) { catalogStatus[key] = 'Cloud storage is not set up — list prices unavailable.'; return; }
     const snap = await res.json().catch(() => null);
-    if (res.status === 422 && snap && snap.notShopify) { catalogStatus[host] = snap.error || 'This store is not Shopify-based.'; if (divId === activeDiv) renderSupplier(); return; }
+    if (res.status === 422 && snap && snap.notShopify) { catalogStatus[key] = snap.error || 'This store is not Shopify-based.'; return; }
     if (!res.ok || !snap || !snap.ok || !Array.isArray(snap.products)) throw new Error('HTTP ' + res.status);
-    catalogs[host] = snap;
-    indexCatalog(host, snap);
-    catalogLoadedAt[host] = Date.now();
-    cacheCatalog(host, snap);
-    catalogStatus[host] = snap.throttled ? 'Catalog was refreshed less than 10 minutes ago — showing that copy.' : '';
+    catalogs[key] = snap;
+    indexCatalog(key, snap);
+    catalogLoadedAt[key] = Date.now();
+    cacheCatalog(key, snap);
+    catalogStatus[key] = snap.throttled ? 'Catalog was refreshed less than 10 minutes ago — showing that copy.' : '';
   } catch (e) {
-    catalogStatus[host] = catalogs[host] ? 'Could not reach the catalog service — showing the last copy.' : 'Could not load the catalog.';
+    catalogStatus[key] = catalogs[key] ? 'Could not reach the catalog service — showing the last copy.' : 'Could not load the catalog.';
+  } finally {
+    if (divId === activeDiv) { renderSupplier(); renderInventory(); }
   }
-  if (divId === activeDiv) { renderSupplier(); renderInventory(); }
+}
+function loadCatalogFor(divId, force) {
+  const s = supOf(divId);
+  if (!s.stores.length) { if (divId === activeDiv) renderSupplier(); return Promise.resolve(); }
+  return Promise.all(s.stores.map(o => loadStoreCatalog(divId, o, force)));
 }
 function loadCatalog(force) { return loadCatalogFor(activeDiv, force); }
 
-/* ── Connecting a store ── */
+/* ── Connecting / removing stores ── */
 function normalizeStoreInput(input) {
   let t = String(input || '').trim();
   if (!t) return null;
@@ -2695,54 +2722,60 @@ function normalizeStoreInput(input) {
 }
 async function connectStore(input) {
   const origin = normalizeStoreInput(input);
-  if (!origin) { storeError = 'Enter the store\'s web address, e.g. shop.example.com'; renderSupplier(); return; }
-  const host = hostOf(origin);
+  if (!origin) { storeError = 'Enter the store\'s web address, e.g. shop.example.com'; renderStoreModalError(); renderSupplier(); return; }
+  const key = hostKey(origin);
+  if (curStores().some(o => hostKey(o) === key)) { storeError = storeName(origin) + ' is already connected.'; renderStoreModalError(); renderSupplier(); return; }
   storeError = '';
-  catalogStatus[host] = 'Checking ' + host + '…';
-  renderSupplier();
+  catalogStatus[key] = 'Checking ' + key + '…';
+  renderStoreModalError(); renderSupplier();
   try {
     const res = await fetch(SUPPLIER_API + '?store=' + encodeURIComponent(origin) + '&t=' + Date.now(), { credentials: 'same-origin', cache: 'no-store' });
     const snap = await res.json().catch(() => null);
-    catalogStatus[host] = '';
+    catalogStatus[key] = '';
     if (res.status === 422 && snap && snap.notShopify) {
-      storeError = (snap.error || host + ' is not a Shopify store.') + ' Automatic price checks only work with Shopify-based stores — costs can still be entered by hand on each item.';
-      renderSupplier(); return;
+      storeError = (snap.error || key + ' is not a Shopify store.') + ' Automatic price checks only work with Shopify-based stores — costs can still be entered by hand on each item.';
+      renderStoreModalError(); renderSupplier(); return;
     }
     if (!res.ok || !snap || !snap.ok || !Array.isArray(snap.products)) {
-      storeError = (snap && snap.error) || ('Could not reach ' + host + ' (HTTP ' + res.status + ').');
-      renderSupplier(); return;
+      storeError = (snap && snap.error) || ('Could not reach ' + key + ' (HTTP ' + res.status + ').');
+      renderStoreModalError(); renderSupplier(); return;
     }
-    catalogs[host] = snap; indexCatalog(host, snap); catalogLoadedAt[host] = Date.now(); cacheCatalog(host, snap);
-    const s = sup();
-    if (bareHost(hostOf(s.store)) !== bareHost(host)) { s.map = {}; s.dealer = null; } // links and captured prices belong to the old store
-    s.store = origin;
+    catalogs[key] = snap; indexCatalog(key, snap); catalogLoadedAt[key] = Date.now(); cacheCatalog(key, snap);
+    sup().stores.push(origin);
     closeModal();
     save(); render();
   } catch (e) {
-    catalogStatus[host] = '';
-    storeError = 'Could not reach ' + host + '.';
-    renderSupplier();
+    catalogStatus[key] = '';
+    storeError = 'Could not reach ' + key + '.';
+    renderStoreModalError(); renderSupplier();
   }
 }
+function renderStoreModalError() {
+  const el = document.getElementById('store-error');
+  if (el) el.innerHTML = storeError ? `<div class="alert alert-warn" style="margin-top:10px">${esc(storeError)}</div>` : '';
+}
 function openStoreModal() {
-  const cur = curStore();
+  storeError = '';
   showModal(`
-    <div class="modal-title">${cur ? 'Change' : 'Connect'} the supplier store — ${esc(divName())}</div>
-    <p class="sup-sub" style="font-size:13px;color:#555;margin:-8px 0 12px">Enter the web address of the store Rally orders ${esc(divName().toLowerCase())} product from. Shopify-based stores get daily list prices plus the one-click sync for your account pricing.${cur ? ' Changing the store clears the links and captured prices for this inventory.' : ''}</p>
-    <div class="fg"><label>Store address</label><input type="text" id="store-input" value="${esc(cur ? hostOf(cur) : '')}" placeholder="e.g. shop.example.com" onkeydown="if(event.key==='Enter')connectStore(this.value)"></div>
-    <div id="store-error">${storeError ? `<div class="alert alert-warn" style="margin-top:10px">${esc(storeError)}</div>` : ''}</div>
+    <div class="modal-title">Connect a supplier store — ${esc(divName())}</div>
+    <p class="sup-sub" style="font-size:13px;color:#555;margin:-8px 0 12px">Enter the web address of a store Rally orders ${esc(divName().toLowerCase())} product from. Shopify-based stores get daily list prices plus the one-click sync for your account pricing.</p>
+    <div class="fg"><label>Store address</label><input type="text" id="store-input" placeholder="e.g. shop.example.com" onkeydown="if(event.key==='Enter')connectStore(this.value)"></div>
+    <div id="store-error"></div>
     <div class="modal-footer">
-      ${cur ? '<button class="btn btn-danger" onclick="disconnectStore()">Disconnect</button>' : ''}
       <button class="btn" onclick="closeModal()">Cancel</button>
       <button class="btn btn-primary" onclick="connectStore(document.getElementById('store-input').value)">Connect</button>
     </div>
   `);
   const i = document.getElementById('store-input'); if (i) i.focus();
 }
-function disconnectStore() {
-  if (!confirm('Disconnect ' + storeName() + ' from the ' + divName() + ' inventory? Links and captured prices for this inventory will be cleared. Stored costs are not affected.')) return;
+function removeStore(origin) {
+  const key = hostKey(origin);
   const s = sup();
-  s.store = null; s.map = {}; s.dealer = null;
+  const linked = Object.keys(s.map).filter(id => { const m = s.map[id]; return (m.host ? bareHost(m.host) : findHostFor(m.vid, s)) === key; });
+  if (!confirm('Remove ' + storeName(origin) + ' from the ' + divName() + ' inventory? ' + (linked.length ? linked.length + ' item link' + (linked.length > 1 ? 's' : '') + ' and ' : '') + 'any captured account prices for this store will be cleared. Stored costs are not affected.')) return;
+  s.stores = s.stores.filter(o => hostKey(o) !== key);
+  linked.forEach(id => { delete s.map[id]; });
+  delete s.dealers[key];
   closeModal(); save(); render();
 }
 
@@ -2757,10 +2790,11 @@ function setRallyUnitPrice(v, perUnit) {
 function liveInfo(g, v) {
   const link = getLink(g, v);
   if (!link) return null;
-  const hit = curIdx().get(link.vid) || null;
+  const s = sup();
+  const hit = link.host ? (idxFor(link.host).get(link.vid) || null) : null;
   const list = hit ? Number(hit.v.price) : null;          // per purchase
-  const yours = dealerPrice(link.vid);                      // per purchase
-  const dAvail = dealerAvailable(link.vid);
+  const yours = dealerPriceIn(s, link.vid, link.host);      // per purchase
+  const dAvail = dealerAvailableIn(s, link.vid, link.host);
   const available = dAvail != null ? dAvail : (hit ? !!hit.v.available : null);
   const price = yours != null ? yours : list;
   const stored = effectiveCost(v);                          // per Rally unit
@@ -2780,8 +2814,9 @@ function liveChip(g, v) {
   const li = liveInfo(g, v);
   if (!li || !li.link.ok || !li.changed || li.perUnit == null) return '';
   const up = li.delta > 0;
-  const src = li.yours != null ? 'your ' + storeName() + ' price' : storeName() + ' list price';
-  return `<span class="live-chip ${up ? 'up' : 'down'}" title="${src}: ${money(li.perUnit)} per ${esc(g.unit)} (stored ${money(li.stored)})">${up ? '↑' : '↓'} ${money(li.perUnit)}</span>`;
+  const name = storeName(li.link.host || '');
+  const src = li.yours != null ? 'your ' + name + ' price' : name + ' list price';
+  return `<span class="live-chip ${up ? 'up' : 'down'}" title="${esc(src)}: ${money(li.perUnit)} per ${esc(g.unit)} (stored ${money(li.stored)})">${up ? '↑' : '↓'} ${money(li.perUnit)}</span>`;
 }
 
 function liveSummary() {
@@ -2797,11 +2832,11 @@ function liveSummary() {
   return { changed, suggested, confirmed, total, missing };
 }
 
-/* Your captured prices compared with the PUBLIC list held by the server. */
-function dealerStats() {
-  const d = sup().dealer;
+/* Your captured prices for one store compared with its PUBLIC list held by the server. */
+function dealerStats(key) {
+  const d = sup().dealers[key];
   if (!d || !d.prices) return null;
-  const idx = curIdx();
+  const idx = idxFor(key);
   let n = 0, below = 0, above = 0, same = 0; const pcts = [];
   Object.keys(d.prices).forEach(k => {
     const hit = idx.get(Number(k)); if (!hit || !(hit.v.price > 0)) return;
@@ -2816,8 +2851,8 @@ function dealerStats() {
 
 function supplierAlertHtml() {
   const s = liveSummary();
-  if (s.changed) return `<div class="alert alert-info">🏷 ${esc(storeName())} pricing differs from your stored cost on ${s.changed} item${s.changed > 1 ? 's' : ''} — <a href="#" onclick="event.preventDefault();showSupplierTab()">review in ${esc(supplierTabLabel())}</a></div>`;
-  if (s.suggested && !s.confirmed) return `<div class="alert alert-info">🏷 ${s.suggested} items can be linked to ${esc(storeName())} products for live pricing — <a href="#" onclick="event.preventDefault();showSupplierTab()">review the suggested links</a></div>`;
+  if (s.changed) return `<div class="alert alert-info">🏷 Supplier pricing differs from your stored cost on ${s.changed} item${s.changed > 1 ? 's' : ''} — <a href="#" onclick="event.preventDefault();showSupplierTab()">review in ${esc(supplierTabLabel())}</a></div>`;
+  if (s.suggested && !s.confirmed) return `<div class="alert alert-info">🏷 ${s.suggested} items can be linked to Minleon products for live pricing — <a href="#" onclick="event.preventDefault();showSupplierTab()">review the suggested links</a></div>`;
   return '';
 }
 
@@ -2837,6 +2872,30 @@ function money(n) { return '$' + Number(n).toLocaleString(undefined, { minimumFr
 function signed(n) { return (n < 0 ? '−' : '+') + money(Math.abs(n)); }
 
 /* ── Rendering ── */
+function storeRowHtml(origin) {
+  const key = hostKey(origin);
+  const cat = catalogs[key];
+  const d = sup().dealers[key];
+  const ds = dealerStats(key);
+  let acct;
+  if (!d) acct = '<span class="sup-sub">account prices not synced</span>';
+  else if (!d.loggedIn) acct = `<span style="color:#b45309">⚠ synced while not logged in (${whenLabel(d.at)})</span>`;
+  else if (ds && ds.n && ds.below + ds.above === 0) acct = `<span style="color:#b45309">account prices ${whenLabel(d.at)} — matched the public list</span>`;
+  else acct = `<span style="color:#166534">✓ account prices ${whenLabel(d.at)}${ds && ds.n ? ` · typically ${ds.median.toFixed(0)}% off list` : ''}</span>`;
+  return `<div class="store-row">
+    <div>
+      <div style="font-weight:600;font-size:13px">${esc(storeName(origin))} <a class="sup-link sup-sub" href="${esc(origin)}" target="_blank" rel="noopener">${esc(hostOf(origin))} ↗</a></div>
+      <div class="sup-sub">${cat ? `list prices ${whenLabel(cat.fetchedAt)} · ${cat.productCount} products · refreshes daily` : (catalogStatus[key] || 'catalog not loaded')} · ${acct}</div>
+      ${cat && catalogStatus[key] ? `<div class="sup-sub" style="color:#b45309">${esc(catalogStatus[key])}</div>` : ''}
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+      <button class="btn btn-xs" onclick="openSyncHelp('${esc(origin)}')" style="border-color:#1a1a1a">☁ Sync my prices</button>
+      <button class="btn btn-xs btn-ghost" onclick="loadStoreCatalog(activeDiv,'${esc(origin)}',true)" title="Re-read the store's public catalog now (it refreshes automatically every day)">↻</button>
+      <button class="btn btn-xs btn-ghost" onclick="removeStore('${esc(origin)}')" title="Remove this store from the ${esc(divName())} inventory">✕</button>
+    </div>
+  </div>`;
+}
+
 function renderSupplier() {
   const body = document.getElementById('sup-body');
   if (!body) return;
@@ -2846,17 +2905,16 @@ function renderSupplier() {
   const cardsEl = document.getElementById('sup-cards');
   const alertsEl = document.getElementById('sup-alerts');
   const chEl = document.getElementById('sup-changes');
-  const store = curStore();
+  const stores = curStores();
 
-  if (!store) {
+  if (!stores.length) {
     if (actions) actions.innerHTML = '';
     cardsEl.innerHTML = '';
     alertsEl.innerHTML = '';
     chEl.innerHTML = '';
-    const status = Object.values(catalogStatus).find(Boolean) && !storeError ? '' : '';
     body.innerHTML = `<div class="howto" style="max-width:680px">
       <div style="font-weight:600;font-size:15px;margin-bottom:6px">Price checks for ${esc(divName())}</div>
-      <p style="font-size:13px;color:#555;margin-bottom:12px">Where does Rally buy its ${esc(divName().toLowerCase())} product? Enter the store's web address. If it runs on Shopify (most lighting suppliers do), this tab will pull its list prices every day and give you the same one-click sync for your account pricing that the permanent lighting inventory has with Minleon.</p>
+      <p style="font-size:13px;color:#555;margin-bottom:12px">Where does Rally buy its ${esc(divName().toLowerCase())} product? Enter a store's web address. If it runs on Shopify (most lighting suppliers do), this tab will pull its list prices every day and give you the one-click sync for your account pricing. You can connect more than one store.</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <input type="text" id="store-input" placeholder="e.g. shop.example.com" style="flex:1;min-width:220px" onkeydown="if(event.key==='Enter')connectStore(this.value)">
         <button class="btn btn-primary" onclick="connectStore(document.getElementById('store-input').value)">Connect</button>
@@ -2864,40 +2922,30 @@ function renderSupplier() {
       ${storeError ? `<div class="alert alert-warn" style="margin-top:10px;margin-bottom:0">${esc(storeError)}</div>` : ''}
       ${Object.keys(catalogStatus).map(h => catalogStatus[h]).filter(Boolean).map(t => `<div class="alert alert-info" style="margin-top:10px;margin-bottom:0">${esc(t)}</div>`).join('')}
       <div class="sup-sub" style="margin-top:10px">Until a store is connected, costs are whatever you enter on each item (Edit) — the reservation, install and reorder tools work either way.</div>
-    </div>${status}`;
+    </div>`;
     return;
   }
 
-  const host = hostOf(store);
   const s = liveSummary();
-  const d = sup().dealer;
-  const cat = curCatalog();
-  const ds = dealerStats();
-  const name = storeName();
 
   if (actions) actions.innerHTML = `
-      <button class="btn btn-sm btn-ghost" onclick="loadCatalog(true)" title="Re-read the store's public catalog now (it refreshes automatically every day)">↻ Refresh catalog</button>
-      <button class="btn btn-sm btn-ghost" onclick="openStoreModal()" title="Connect a different store to this inventory">Change store…</button>
+      <button class="btn btn-sm btn-ghost" onclick="openStoreModal()">+ Add store</button>
       <button class="btn btn-sm" onclick="openPasteModal()">Paste captured prices</button>
-      <button class="btn btn-sm" onclick="openSyncHelp()" style="border-color:#1a1a1a">☁ Sync my prices</button>
       <button class="btn btn-sm btn-primary" onclick="applyAllLive()">Apply all changes</button>`;
 
   cardsEl.innerHTML = `
-    <div class="card"><div class="label">${esc(name)} list prices</div><div class="value" style="font-size:16px">${cat ? whenLabel(cat.fetchedAt) : '…'}</div><div class="sub">${cat ? cat.productCount + ' products · refreshes daily' : (catalogStatus[host] || 'loading')}</div></div>
-    <div class="card ${d && !d.loggedIn ? 'warn' : ''}"><div class="label">Your account prices</div><div class="value" style="font-size:16px">${d ? whenLabel(d.at) : 'Not synced yet'}</div><div class="sub">${d ? (d.loggedIn ? 'account #' + esc(d.cid || '?') + ' · ' : '⚠ not logged in · ') + d.n + ' prices' : 'use “Sync my prices”'}</div></div>
+    <div class="card"><div class="label">Stores</div><div class="value">${stores.length}</div><div class="sub">${stores.map(o => esc(storeName(o))).join(' · ')}</div></div>
     <div class="card"><div class="label">Linked items</div><div class="value">${s.confirmed}<span style="font-size:13px;color:#aaa;font-weight:400"> / ${s.total}</span></div><div class="sub">${s.suggested ? s.suggested + ' suggested — confirm below' : (s.total - s.confirmed) + ' not linked'}</div></div>
     <div class="card ${s.changed ? 'warn' : ''}"><div class="label">Cost changes</div><div class="value">${s.changed}</div><div class="sub">vs stored costs</div></div>
   `;
 
-  let alerts = '';
-  if (awaitingImport) alerts += `<div class="alert alert-info">☁ Waiting for prices from the ${esc(name)} tab… keep this tab open.</div>`;
-  if (catalogStatus[host]) alerts += `<div class="alert alert-warn">${esc(catalogStatus[host])}</div>`;
-  if (!d) alerts += `<div class="alert alert-info">Showing ${esc(name)}'s <strong>public list</strong> prices. To load your account pricing, click <strong>Sync my prices</strong> and follow the two steps.</div>`;
-  else if (!d.loggedIn) alerts += `<div class="alert alert-warn">⚠ The last sync ran while <strong>not logged in</strong>, so it captured public list prices. Log into ${esc(host)} and run the Rally bookmark again.</div>`;
-  else if (ds && ds.n && ds.below + ds.above === 0) alerts += `<div class="alert alert-warn">Your logged-in prices matched the public list on every product. If ${esc(name)} applies your discount in the cart instead, the numbers here are list prices — say so and a discount setting can be added.</div>`;
-  else if (ds && ds.n) alerts += `<div class="alert alert-success">✓ Your account pricing is loaded: ${ds.below} of ${ds.n} prices are below ${esc(name)}'s public list (typically ${ds.median.toFixed(0)}% off)${ds.above ? `, ${ds.above} above` : ''}.</div>`;
+  let alerts = `<div class="howto" style="margin-bottom:14px;padding:4px 16px">${stores.map(storeRowHtml).join('')}</div>`;
+  if (awaitingImport) alerts += `<div class="alert alert-info">☁ Waiting for prices from the store tab… keep this tab open.</div>`;
+  if (storeError) alerts += `<div class="alert alert-warn">${esc(storeError)}</div>`;
+  const notSynced = stores.filter(o => !sup().dealers[hostKey(o)]);
+  if (notSynced.length === stores.length) alerts += `<div class="alert alert-info">Showing <strong>public list</strong> prices. To load your account pricing, click <strong>Sync my prices</strong> next to a store and follow the two steps.</div>`;
   if (s.suggested) alerts += `<div class="alert alert-info">${s.suggested} suggested link${s.suggested > 1 ? 's' : ''} need a quick look — check the product, variant and pack size, then <a href="#" onclick="event.preventDefault();confirmAllSuggestions()">confirm all</a> or confirm one at a time.</div>`;
-  if (!s.confirmed && !s.suggested && s.total) alerts += `<div class="alert alert-info">Nothing is linked yet. Use <strong>Link…</strong> on an item to pick the matching ${esc(name)} product; the app then shows its live price next to your stored cost.</div>`;
+  if (!s.confirmed && !s.suggested && s.total) alerts += `<div class="alert alert-info">Nothing is linked yet. Use <strong>Link…</strong> on an item to pick the matching product from ${stores.length > 1 ? 'any connected store' : esc(storeName(stores[0]))}; the app then shows its live price next to your stored cost.</div>`;
   alertsEl.innerHTML = alerts;
 
   // Table, grouped by category
@@ -2909,26 +2957,28 @@ function renderSupplier() {
     groups.forEach(g => g.variants.forEach(v => rows.push(supRow(g, v))));
     parts.push(`<div class="sec-label">${c.name}</div>
       <div class="tbl-wrap" style="overflow-x:auto;margin-bottom:18px"><table class="sup-table">
-        <thead><tr><th>Rally item</th><th>${esc(name)} product</th><th class="num">Pack</th><th class="num">List price</th><th class="num">Your price</th><th class="num">In app</th><th class="num">Change</th><th></th></tr></thead>
+        <thead><tr><th>Rally item</th><th>Supplier product</th><th class="num">Pack</th><th class="num">List price</th><th class="num">Your price</th><th class="num">In app</th><th class="num">Change</th><th></th></tr></thead>
         <tbody>${rows.join('')}</tbody></table></div>`);
   });
   body.innerHTML = parts.join('');
 
-  // Catalog changes since the previous snapshot, for linked items
-  if (cat && Array.isArray(cat.changes) && cat.changes.length) {
-    const linkedVids = new Set();
-    state.inventory.forEach(g => g.variants.forEach(v => { const l = getLink(g, v); if (l) linkedVids.add(l.vid); }));
-    const mine = cat.changes.filter(ch => linkedVids.has(Number(ch.vid)));
+  // Catalog changes since the previous snapshot, for linked items, per store
+  const linkedByHost = {};
+  state.inventory.forEach(g => g.variants.forEach(v => { const l = getLink(g, v); if (l && l.host) (linkedByHost[l.host] = linkedByHost[l.host] || new Set()).add(l.vid); }));
+  const sections = [];
+  stores.forEach(o => {
+    const key = hostKey(o); const cat = catalogs[key];
+    if (!cat || !Array.isArray(cat.changes) || !cat.changes.length) return;
+    const mine = cat.changes.filter(ch => (linkedByHost[key] || new Set()).has(Number(ch.vid)));
     const li = mine.map(ch => {
       const what = ch.from == null ? 'new variant · ' + money(ch.to) : ch.to == null ? 'removed (was ' + money(ch.from) + ')' : ch.from !== ch.to ? money(ch.from) + ' → ' + money(ch.to) : (ch.availableTo ? 'back in stock' : 'out of stock');
       return `<li><strong>${esc(ch.product)}</strong> <span class="sup-sub">${esc(ch.variant)}</span> — ${what}</li>`;
     });
-    chEl.innerHTML = `<div class="sec-label">List-price changes ${cat.previousFetchedAt ? 'since ' + whenLabel(cat.previousFetchedAt) : ''}</div>
+    sections.push(`<div class="sec-label">${esc(storeName(o))} list-price changes ${cat.previousFetchedAt ? 'since ' + whenLabel(cat.previousFetchedAt) : ''}</div>
       <div class="howto">${mine.length ? `<ul style="margin:0 0 0 18px;font-size:13px">${li.join('')}</ul>` : '<span class="sup-sub">No changes to your linked items.</span>'}
-      <div class="sup-sub" style="margin-top:8px">${cat.changes.length} change${cat.changes.length > 1 ? 's' : ''} across the whole ${esc(name)} catalog. Your account prices update when you run the Rally bookmark again.</div></div>`;
-  } else {
-    chEl.innerHTML = '';
-  }
+      <div class="sup-sub" style="margin-top:8px">${cat.changes.length} change${cat.changes.length > 1 ? 's' : ''} across the whole ${esc(storeName(o))} catalog. Your account prices update when you run the Rally bookmark again.</div></div>`);
+  });
+  chEl.innerHTML = sections.join('');
 }
 
 function supRow(g, v) {
@@ -2937,11 +2987,13 @@ function supRow(g, v) {
   const name = `<div style="font-weight:500">${esc(g.name)}${v.label ? ` <span class="sup-sub">${esc(v.label)}</span>` : ''}</div><div class="sup-sub">per ${esc(g.unit)}${bundled ? ` · bundle of ${v.bundleQty}` : ''}</div>`;
   const linkBtn = (txt) => `<button class="btn btn-xs" onclick="openLinkModal('${g.id}','${v.id}')">${txt}</button>`;
   if (!li) {
-    return `<tr><td>${name}</td><td colspan="6" class="sup-sub">Not linked to a ${esc(storeName())} product</td><td style="white-space:nowrap">${linkBtn('Link…')}</td></tr>`;
+    return `<tr><td>${name}</td><td colspan="6" class="sup-sub">Not linked to a supplier product</td><td style="white-space:nowrap">${linkBtn('Link…')}</td></tr>`;
   }
   const { link, hit } = li;
-  const mlTitle = hit ? `<a class="sup-link" href="${esc(curStore())}/products/${esc(hit.p.handle)}?variant=${link.vid}" target="_blank" rel="noopener">${esc(hit.p.title)}</a>` : `<span class="sup-sub">Variant ${link.vid} not in the current catalog</span>`;
-  const mlSub = hit ? `${esc(hit.v.title)}${li.available === false ? ' · <span style="color:#b91c1c">out of stock</span>' : ''}` : '';
+  const origin = link.host ? storeOriginFor(link.host) : null;
+  const sname = link.host ? storeName(link.host) : '';
+  const mlTitle = hit ? `<a class="sup-link" href="${esc(origin || '')}/products/${esc(hit.p.handle)}?variant=${link.vid}" target="_blank" rel="noopener">${esc(hit.p.title)}</a>` : `<span class="sup-sub">Variant ${link.vid} not in ${sname ? esc(sname) + "'s" : 'the'} current catalog</span>`;
+  const mlSub = `${sname ? esc(sname) + (hit ? ' · ' : '') : ''}${hit ? esc(hit.v.title) : ''}${li.available === false ? ' · <span style="color:#b91c1c">out of stock</span>' : ''}`;
   const sug = link.ok ? '' : ` <span class="badge sug">suggested</span>${link.note ? `<div class="sup-sub" style="margin-top:2px">${esc(link.note)}</div>` : ''}`;
   const packTxt = `${link.pack}<div class="sup-sub">${esc(g.unit)}${link.pack === 1 ? '' : 's'} / purchase</div>`;
   const perPurchase = (p) => `<div class="sup-sub">${money(p)} / purchase${bundled && link.pack !== v.bundleQty ? ` · ${money(p / link.pack * v.bundleQty)} per ${v.bundleQty}` : ''}</div>`;
@@ -2969,14 +3021,14 @@ function confirmLink(gid, rvid) {
   const v = g.variants.find(x => x.id === rvid); if (!v) return;
   const l = getLink(g, v);
   if (!l || l.ok) return;
-  sup().map[v.id] = { vid: l.vid, pack: l.pack };
+  sup().map[v.id] = { vid: l.vid, pack: l.pack, host: l.host };
   save(); render();
 }
 function confirmAllSuggestions() {
   let n = 0;
   state.inventory.forEach(g => g.variants.forEach(v => {
     const l = getLink(g, v);
-    if (l && !l.ok) { sup().map[v.id] = { vid: l.vid, pack: l.pack }; n++; }
+    if (l && !l.ok) { sup().map[v.id] = { vid: l.vid, pack: l.pack, host: l.host }; n++; }
   }));
   if (n) { save(); render(); }
 }
@@ -2985,13 +3037,14 @@ let linkModal = null;
 function openLinkModal(gid, rvid) {
   const g = state.inventory.find(x => x.id === gid); if (!g) return;
   const v = g.variants.find(x => x.id === rvid); if (!v) return;
-  if (!curStore()) { openStoreModal(); return; }
+  if (!curStores().length) { openStoreModal(); return; }
   const cur = getLink(g, v);
-  linkModal = { gid, rvid, q: '', vid: cur ? cur.vid : null, pack: cur ? cur.pack : 1 };
+  linkModal = { gid, rvid, q: '', vid: cur ? cur.vid : null, host: cur ? cur.host : null, pack: cur ? cur.pack : 1 };
+  const stores = curStores();
   showModal(`
-    <div class="modal-title">Link to a ${esc(storeName())} product</div>
+    <div class="modal-title">Link to a supplier product</div>
     <div style="font-size:13px;margin-bottom:10px"><strong>${esc(g.name)}</strong>${v.label ? ' · ' + esc(v.label) : ''} <span class="sup-sub">— priced per ${esc(g.unit)}${v.bundleQty > 0 ? `, bundles of ${v.bundleQty}` : ''}${effectiveCost(v) ? `, currently ${money(effectiveCost(v))} per ${esc(g.unit)}` : ''}</span></div>
-    <div class="fg"><label>Search the ${esc(storeName())} catalog</label><input type="text" id="lk-q" placeholder="e.g. C9 warm white, socket wire, clips" oninput="linkModal.q=this.value;renderLinkResults()" autocomplete="off"></div>
+    <div class="fg"><label>Search ${stores.length > 1 ? stores.map(o => esc(storeName(o))).join(' + ') : esc(storeName(stores[0]))}</label><input type="text" id="lk-q" placeholder="e.g. C9 warm white case, socket wire 1000, wedge clip" oninput="linkModal.q=this.value;renderLinkResults()" autocomplete="off"></div>
     <div id="lk-results" class="lk-results"></div>
     <div class="form-row" style="margin-top:12px">
       <div class="fg"><label>How many “${esc(g.unit)}” in one purchase?</label><input type="number" id="lk-pack" min="1" step="1" value="${linkModal.pack}" oninput="linkModal.pack=parseInt(this.value)||1;renderLinkSelected()"></div>
@@ -3010,29 +3063,36 @@ function openLinkModal(gid, rvid) {
 }
 function renderLinkResults() {
   const el = document.getElementById('lk-results'); if (!el || !linkModal) return;
-  if (!curCatalog()) { el.innerHTML = '<div class="lk-row sup-sub">Catalog not loaded yet.</div>'; return; }
+  const stores = curStores().filter(o => catalogs[hostKey(o)]);
+  if (!stores.length) { el.innerHTML = '<div class="lk-row sup-sub">Catalog not loaded yet.</div>'; return; }
   const terms = linkModal.q.toLowerCase().split(/\s+/).filter(Boolean);
   const out = [];
-  for (const [vid, { p, v }] of curIdx()) {
-    const hay = (p.title + ' ' + v.title + ' ' + (v.sku || '')).toLowerCase();
-    if (terms.length && !terms.every(t => hay.includes(t))) continue;
-    if (!terms.length && vid !== linkModal.vid) continue; // show only the current pick until the user types
-    out.push({ vid, p, v });
-    if (out.length >= 60) break;
+  outer: for (const o of stores) {
+    const key = hostKey(o);
+    for (const [vid, { p, v }] of idxFor(key)) {
+      const hay = (p.title + ' ' + v.title + ' ' + (v.sku || '')).toLowerCase();
+      if (terms.length && !terms.every(t => hay.includes(t))) continue;
+      if (!terms.length && vid !== linkModal.vid) continue; // show only the current pick until the user types
+      out.push({ vid, p, v, key });
+      if (out.length >= 60) break outer;
+    }
   }
   if (!out.length) { el.innerHTML = `<div class="lk-row sup-sub">${terms.length ? 'No matches.' : 'Type to search — product name, size, color or SKU.'}</div>`; return; }
-  el.innerHTML = out.map(r => { const y = dealerPrice(r.vid); return `<div class="lk-row ${r.vid === linkModal.vid ? 'sel' : ''}" onclick="pickLink(${r.vid})">
-      <span><strong>${esc(r.p.title)}</strong> <span class="sup-sub">${esc(r.v.title)}</span></span>
+  const multi = stores.length > 1;
+  el.innerHTML = out.map(r => { const y = dealerPriceIn(sup(), r.vid, r.key); return `<div class="lk-row ${r.vid === linkModal.vid ? 'sel' : ''}" onclick="pickLink(${r.vid},'${r.key}')">
+      <span>${multi ? `<span class="badge neutral" style="margin-right:6px">${esc(storeName(r.key))}</span>` : ''}<strong>${esc(r.p.title)}</strong> <span class="sup-sub">${esc(r.v.title)}</span></span>
       <span style="white-space:nowrap">${y != null ? `<strong>${money(y)}</strong> <span class="sup-sub">list ${money(r.v.price)}</span>` : money(r.v.price)}${r.v.available ? '' : ' <span style="color:#b91c1c">out</span>'}</span></div>`; }).join('');
 }
-function pickLink(vid) {
+function pickLink(vid, key) {
   if (!linkModal) return;
   linkModal.vid = vid;
-  const hit = curIdx().get(vid);
+  linkModal.host = key;
+  const hit = idxFor(key).get(vid);
   const g = state.inventory.find(x => x.id === linkModal.gid);
   const v = g && g.variants.find(x => x.id === linkModal.rvid);
   if (hit && v) {
-    const price = dealerPrice(vid) != null ? dealerPrice(vid) : hit.v.price;
+    const y = dealerPriceIn(sup(), vid, key);
+    const price = y != null ? y : hit.v.price;
     linkModal.pack = bestPack(v, hit, price);
     const pk = document.getElementById('lk-pack'); if (pk) pk.value = linkModal.pack;
   }
@@ -3040,19 +3100,19 @@ function pickLink(vid) {
 }
 function renderLinkSelected() {
   const el = document.getElementById('lk-selected'); if (!el || !linkModal) return;
-  const hit = linkModal.vid ? curIdx().get(linkModal.vid) : null;
+  const hit = linkModal.vid && linkModal.host ? idxFor(linkModal.host).get(linkModal.vid) : null;
   if (!hit) { el.innerHTML = '<span class="sup-sub">Nothing selected</span>'; return; }
   const g = state.inventory.find(x => x.id === linkModal.gid);
   const v = g && g.variants.find(x => x.id === linkModal.rvid);
-  const y = dealerPrice(linkModal.vid);
+  const y = dealerPriceIn(sup(), linkModal.vid, linkModal.host);
   const price = y != null ? y : hit.v.price;
   const pack = linkModal.pack || 1;
   const perUnit = price / pack;
-  el.innerHTML = `<strong>${money(perUnit)}</strong> per ${g ? esc(g.unit) : 'unit'}${v && v.bundleQty > 0 ? ` · ${money(perUnit * v.bundleQty)} per ${v.bundleQty}` : ''}<div class="sup-sub">${y != null ? 'your price' : 'list price'} ${money(price)} ÷ ${pack}</div>`;
+  el.innerHTML = `<strong>${money(perUnit)}</strong> per ${g ? esc(g.unit) : 'unit'}${v && v.bundleQty > 0 ? ` · ${money(perUnit * v.bundleQty)} per ${v.bundleQty}` : ''}<div class="sup-sub">${esc(storeName(linkModal.host))} ${y != null ? 'your price' : 'list price'} ${money(price)} ÷ ${pack}</div>`;
 }
 function saveLink() {
   if (!linkModal || !linkModal.vid) { alert('Pick a product first.'); return; }
-  sup().map[linkModal.rvid] = { vid: linkModal.vid, pack: Math.max(1, parseInt(linkModal.pack, 10) || 1) };
+  sup().map[linkModal.rvid] = { vid: linkModal.vid, pack: Math.max(1, parseInt(linkModal.pack, 10) || 1), host: linkModal.host || findHostFor(linkModal.vid, sup()) };
   linkModal = null; save(); closeModal(); render();
 }
 function unlinkVariant() {
@@ -3073,18 +3133,19 @@ function applyLive(gid, rvid) {
 function applyAllLive() {
   const todo = [];
   state.inventory.forEach(g => g.variants.forEach(v => { const li = liveInfo(g, v); if (li && li.link.ok && li.perUnit != null && (li.changed || !li.stored)) todo.push({ v, li }); }));
-  if (!todo.length) { alert('Nothing to update — every linked item already matches ' + storeName() + '.'); return; }
+  if (!todo.length) { alert('Nothing to update — every linked item already matches its supplier price.'); return; }
   const usingList = todo.some(t => t.li.yours == null);
-  const ok = confirm(`Update ${todo.length} stored cost${todo.length > 1 ? 's' : ''} to the current ${storeName()} price${usingList ? '?\n\nNote: some or all of these are PUBLIC LIST prices (your account prices have not been synced for them).' : 's from your account?'}`);
+  const ok = confirm(`Update ${todo.length} stored cost${todo.length > 1 ? 's' : ''} to the current supplier price${usingList ? '?\n\nNote: some or all of these are PUBLIC LIST prices (your account prices have not been synced for them).' : 's from your account?'}`);
   if (!ok) return;
   todo.forEach(t => setRallyUnitPrice(t.v, t.li.perUnit));
   save(); render();
 }
 
 /* ── Capturing YOUR prices: the bookmarklet ── */
-/* This function is stringified into a javascript: bookmark. It runs on the
-   supplier's site (same origin as their store, with Jason's login cookies),
-   reads the prices the store shows him, and posts them to the inventory tab. */
+/* This function is stringified into a javascript: bookmark (one per store).
+   It runs on the supplier's site (same origin as their store, with Jason's
+   login cookies), reads the prices the store shows him, and posts them to
+   the inventory tab. */
 function rallyPriceCollector(RALLY, HOST) {
   var H = location.hostname.toLowerCase();
   var bare = function (h) { return String(h || '').toLowerCase().replace(/^www\./, ''); };
@@ -3198,24 +3259,26 @@ function rallyPriceCollector(RALLY, HOST) {
     if (!w) fallback(); else send();
   })().catch(function (e) { log('Failed: ' + ((e && e.message) || e)); });
 }
-function bookmarkletHref() {
-  const code = '(' + rallyPriceCollector.toString() + ')(' + JSON.stringify(location.origin) + ',' + JSON.stringify(curHost()) + ')';
+function bookmarkletHref(origin) {
+  const code = '(' + rallyPriceCollector.toString() + ')(' + JSON.stringify(location.origin) + ',' + JSON.stringify(hostOf(origin)) + ')';
   return 'javascript:' + encodeURIComponent(code);
 }
-function openSyncHelp() {
-  if (!curStore()) { openStoreModal(); return; }
-  const name = storeName(), host = curHost();
+function openSyncHelp(origin) {
+  const stores = curStores();
+  if (!stores.length) { openStoreModal(); return; }
+  if (!origin) origin = stores[0];
+  const name = storeName(origin), host = hostOf(origin), key = hostKey(origin);
   showModal(`
     <div class="modal-title">Sync your ${esc(name)} account prices</div>
-    <div class="sup-sub" style="margin:-10px 0 14px">${esc(name)} shows your account pricing only while you're logged in, and Shopify logins use one-time email codes — so no server can fetch it for you. This one-click bookmark does it from your own browser in about ten seconds. No password is saved anywhere.</div>
+    <div class="sup-sub" style="margin:-10px 0 14px">${esc(name)} shows your account pricing only while you're logged in, and Shopify logins use one-time email codes — so no server can fetch it for you. This one-click bookmark does it from your own browser in about ten seconds. No password is saved anywhere.${stores.length > 1 ? ' Each store has its own bookmark.' : ''}</div>
     <div class="howto" style="margin-bottom:12px">
       <div style="font-weight:600;font-size:13px;margin-bottom:8px">Step 1 · Add the Rally bookmark (once per device, per store)</div>
-      <div style="font-size:13px;margin-bottom:8px"><strong>Computer:</strong> drag this button to your bookmarks bar →&nbsp; <a class="bm-link" href="${bookmarkletHref()}" onclick="if(!/${esc(bareHost(host).replace(/\./g, '\\.'))}/.test(location.hostname)){event.preventDefault();alert('Drag this to your bookmarks bar instead of clicking it. Then click the bookmark while you are on ${esc(host)}.');}" title="Drag me to the bookmarks bar">☁ Rally · Sync ${esc(name)} prices</a></div>
-      <div style="font-size:13px"><strong>iPhone / iPad:</strong> tap <button class="btn btn-xs" onclick="copyBookmarklet(this)">Copy bookmark code</button>, then in Safari bookmark any page, open Bookmarks → Edit, and paste the code in place of the bookmark's address.</div>
+      <div style="font-size:13px;margin-bottom:8px"><strong>Computer:</strong> drag this button to your bookmarks bar →&nbsp; <a class="bm-link" href="${bookmarkletHref(origin)}" onclick="if(!/${esc(key.replace(/\./g, '\\.'))}/.test(location.hostname)){event.preventDefault();alert('Drag this to your bookmarks bar instead of clicking it. Then click the bookmark while you are on ${esc(host)}.');}" title="Drag me to the bookmarks bar">☁ Rally · Sync ${esc(name)} prices</a></div>
+      <div style="font-size:13px"><strong>iPhone / iPad:</strong> tap <button class="btn btn-xs" onclick="copyBookmarklet(this,'${esc(origin)}')">Copy bookmark code</button>, then in Safari bookmark any page, open Bookmarks → Edit, and paste the code in place of the bookmark's address.</div>
     </div>
     <div class="howto" style="margin-bottom:12px">
       <div style="font-weight:600;font-size:13px;margin-bottom:8px">Step 2 · Open ${esc(name)}, log in, tap the bookmark</div>
-      <div style="font-size:13px"><a class="btn btn-sm" href="${esc(curStore())}/account/login" target="_blank" rel="noopener">Open ${esc(host)} ↗</a> &nbsp;Log in, then tap <strong>☁ Rally · Sync ${esc(name)} prices</strong> in your bookmarks. It reads the prices the store shows you and sends them back to this app (a tab of the inventory opens by itself).</div>
+      <div style="font-size:13px"><a class="btn btn-sm" href="${esc(origin)}/account/login" target="_blank" rel="noopener">Open ${esc(host)} ↗</a> &nbsp;Log in, then tap <strong>☁ Rally · Sync ${esc(name)} prices</strong> in your bookmarks. It reads the prices the store shows you and sends them back to this app (a tab of the inventory opens by itself).</div>
     </div>
     <div class="sup-sub">If the inventory tab can't be reached (pop-up blocked), the bookmark shows a Copy button — paste that text with <strong>Paste captured prices</strong> below.</div>
     <div class="modal-footer">
@@ -3224,8 +3287,8 @@ function openSyncHelp() {
     </div>
   `);
 }
-function copyBookmarklet(btn) {
-  const href = bookmarkletHref();
+function copyBookmarklet(btn, origin) {
+  const href = bookmarkletHref(origin);
   const done = () => { btn.textContent = 'Copied ✓'; setTimeout(() => { btn.textContent = 'Copy bookmark code'; }, 2500); };
   if (navigator.clipboard) navigator.clipboard.writeText(href).then(done, () => prompt('Copy this bookmark code:', href));
   else prompt('Copy this bookmark code:', href);
@@ -3245,33 +3308,33 @@ function ingestPasted() {
   let m;
   try { m = JSON.parse(document.getElementById('paste-prices').value.trim()); } catch (e) { alert('That text is not a price capture. Copy it again from the Rally bookmark.'); return; }
   const n = ingestDealerPrices(m);
-  if (!n) { alert('No prices found in that text.'); return; }
+  if (!n) return;
   closeModal();
 }
 
-/* Which divisions buy from this store origin (both may, if they share a supplier). */
+/* Which divisions buy from this store (both may, if they share a supplier). */
 function divisionsForOrigin(origin) {
-  const h = bareHost(hostOf(origin));
-  if (!h) return [];
-  return DIVISIONS.filter(d => { const s = state.divisions[d.id].supplier; return s && s.store && bareHost(hostOf(s.store)) === h; }).map(d => d.id);
+  const k = hostKey(origin);
+  if (!k) return [];
+  return DIVISIONS.filter(d => (supOf(d.id).stores || []).some(o => hostKey(o) === k)).map(d => d.id);
 }
 
 /* Store a capture in the synced state (compact: vid → [price, inStock, source])
-   for every division whose store matches; falls back to the active division. */
+   under the store's host, for every division buying from that store. */
 function ingestDealerPrices(m, divIds) {
-  if (!m || (m.type !== 'rally-supplier-prices' && m.type !== 'rally-minleon-prices') || !m.prices || typeof m.prices !== 'object') return 0;
+  if (!m || (m.type !== 'rally-supplier-prices' && m.type !== 'rally-minleon-prices') || !m.prices || typeof m.prices !== 'object') { alert('That text is not a price capture.'); return 0; }
   const prices = {}; let n = 0;
   Object.keys(m.prices).forEach(k => {
     const row = m.prices[k]; const id = Number(k); const p = Number(row && row[0]);
     if (!Number.isFinite(id) || !Number.isFinite(p) || p < 0) return;
     prices[id] = [+p.toFixed(2), row[1] ? 1 : 0, row[2] | 0]; n++;
   });
-  if (!n) return 0;
-  let targets = divIds && divIds.length ? divIds : divisionsForOrigin('https://' + (m.host || ''));
-  if (!targets.length && !m.host && m.type === 'rally-minleon-prices') targets = divisionsForOrigin(MINLEON_ORIGIN);
-  if (!targets.length) targets = [activeDiv];
+  if (!n) { alert('No prices found in that capture.'); return 0; }
+  const key = m.host ? bareHost(m.host) : (m.type === 'rally-minleon-prices' ? MINLEON_HOST : '');
+  const targets = divIds && divIds.length ? divIds : divisionsForOrigin('https://' + key);
+  if (!targets.length) { alert('None of your inventories buys from ' + (key || 'that store') + '. Connect the store first (Supplier prices → Add store).'); return 0; }
   targets.forEach(id => {
-    supOf(id).dealer = {
+    supOf(id).dealers[key] = {
       at: Number(m.at) || Date.now(),
       cid: m.cid ? String(m.cid).slice(0, 32) : null,
       loggedIn: !!m.loggedIn,
@@ -3282,19 +3345,17 @@ function ingestDealerPrices(m, divIds) {
     };
   });
   awaitingImport = false;
-  save(true); // push now — this tab is often closed seconds later
+  save(true); // push now — the import tab is often closed seconds later
   if (!targets.includes(activeDiv)) switchDivision(targets[0]); else render();
   showSupplierTab();
   return n;
 }
 
-function linkedHandlesFor(divId) {
+function linkedHandlesFor(divId, key) {
   const d = state.divisions[divId];
-  const s = supOf(divId);
-  if (!s.store) return [];
-  const idx = idxFor(hostOf(s.store));
+  const idx = idxFor(key);
   const out = [];
-  d.inventory.forEach(g => g.variants.forEach(v => { const l = getLink(g, v, divId); const hit = l && idx.get(l.vid); if (hit && !out.includes(hit.p.handle)) out.push(hit.p.handle); }));
+  d.inventory.forEach(g => g.variants.forEach(v => { const l = getLink(g, v, divId); if (!l || l.host !== key) return; const hit = idx.get(l.vid); if (hit && !out.includes(hit.p.handle)) out.push(hit.p.handle); }));
   return out;
 }
 function onSupplierMessage(e) {
@@ -3302,6 +3363,7 @@ function onSupplierMessage(e) {
   if (!m || (m.type !== 'rally-supplier-prices' && m.type !== 'rally-minleon-prices')) return;
   const divs = divisionsForOrigin(e.origin);
   if (!divs.length) return; // not one of our connected stores
+  if (!m.host) m.host = hostOf(e.origin);
   const n = ingestDealerPrices(m, divs);
   try { e.source.postMessage({ type: 'rally-received', n }, e.origin); } catch (_) {}
 }
@@ -3317,11 +3379,11 @@ function initSupplier() {
       try {
         if (!window.opener || window.opener.closed) return;
         DIVISIONS.forEach(d => {
-          const s = state.divisions[d.id].supplier;
-          if (!s || !s.store) return;
-          const h = hostOf(s.store);
-          const msg = { type: 'rally-ready', handles: linkedHandlesFor(d.id) };
-          ['https://' + h, 'https://www.' + bareHost(h), 'https://' + bareHost(h)].forEach(o => { try { window.opener.postMessage(msg, o); } catch (_) {} });
+          (supOf(d.id).stores || []).forEach(o => {
+            const key = hostKey(o);
+            const msg = { type: 'rally-ready', handles: linkedHandlesFor(d.id, key) };
+            ['https://' + hostOf(o), 'https://www.' + key, 'https://' + key].forEach(t => { try { window.opener.postMessage(msg, t); } catch (_) {} });
+          });
         });
       } catch (_) {}
     };

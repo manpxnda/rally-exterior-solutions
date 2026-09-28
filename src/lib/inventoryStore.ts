@@ -67,12 +67,15 @@ export async function readLatestInventory(): Promise<{ doc: InventoryDoc; versio
  */
 export function supplierOriginsIn(state: unknown): string[] {
   const out = new Set<string>();
-  const s = state as { divisions?: Record<string, { supplier?: { store?: unknown } }>; supplier?: { store?: unknown } } | null;
+  type Sup = { store?: unknown; stores?: unknown };
+  const s = state as { divisions?: Record<string, { supplier?: Sup }>; supplier?: Sup } | null;
   if (!s || typeof s !== "object") return [];
   const divs = s.divisions && typeof s.divisions === "object" ? Object.values(s.divisions) : [s];
   for (const d of divs) {
-    const store = d && typeof d === "object" ? d.supplier?.store : null;
-    if (typeof store === "string" && store) out.add(store);
+    const sup = d && typeof d === "object" ? d.supplier : null;
+    if (!sup) continue;
+    const list = Array.isArray(sup.stores) ? sup.stores : [sup.store];
+    for (const store of list) if (typeof store === "string" && store) out.add(store);
   }
   return [...out];
 }
