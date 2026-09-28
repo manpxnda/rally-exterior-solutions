@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/cron/minleon-catalog",
+      "path": "/api/cron/supplier-catalogs",
       "schedule": "0 11 * * *"
     }
   ]
