@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { blobConfigured } from "@/lib/inventoryStore";
+import { redisConfigured } from "@/lib/inventoryStore";
 import { MINLEON_ORIGIN, NotShopifyError, parseStoreOrigin, readLatestSnapshot, refreshSnapshot } from "@/lib/supplierCatalog";
 
 /**
@@ -35,8 +35,8 @@ function failed(err: unknown, what: string) {
 }
 
 export async function GET(req: Request) {
-  if (!blobConfigured()) {
-    return NextResponse.json({ ok: false, error: "Cloud storage is not configured." }, { status: 503, headers: noStore });
+  if (!redisConfigured()) {
+    return NextResponse.json({ ok: false, error: "Cloud sync is not configured." }, { status: 503, headers: noStore });
   }
   const raw = new URL(req.url).searchParams.get("store");
   const origin = parseStoreOrigin(raw || MINLEON_ORIGIN);
@@ -55,8 +55,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  if (!blobConfigured()) {
-    return NextResponse.json({ ok: false, error: "Cloud storage is not configured." }, { status: 503, headers: noStore });
+  if (!redisConfigured()) {
+    return NextResponse.json({ ok: false, error: "Cloud sync is not configured." }, { status: 503, headers: noStore });
   }
   let body: { action?: string; store?: string } = {};
   try {

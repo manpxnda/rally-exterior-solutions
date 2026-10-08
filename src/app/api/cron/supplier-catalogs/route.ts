@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { blobConfigured, readLatestInventory, supplierOriginsIn } from "@/lib/inventoryStore";
+import { redisConfigured, readLatestInventory, supplierOriginsIn } from "@/lib/inventoryStore";
 import { MINLEON_ORIGIN, NotShopifyError, hostOf, parseStoreOrigin, refreshSnapshot } from "@/lib/supplierCatalog";
 
 /**
@@ -22,14 +22,14 @@ export async function GET(req: Request) {
   if (!secret || auth !== `Bearer ${secret}`) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
-  if (!blobConfigured()) {
-    return NextResponse.json({ ok: false, error: "Cloud storage is not configured." }, { status: 503 });
+  if (!redisConfigured()) {
+    return NextResponse.json({ ok: false, error: "Cloud sync is not configured." }, { status: 503 });
   }
 
   const origins = new Set<string>([MINLEON_ORIGIN]);
   try {
     const latest = await readLatestInventory();
-    for (const o of supplierOriginsIn(latest?.doc.state)) {
+    for (const o of supplierOriginsIn(latest?.state)) {
       const parsed = parseStoreOrigin(o);
       if (parsed) origins.add(parsed);
     }

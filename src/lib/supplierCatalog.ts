@@ -1,5 +1,4 @@
-import { del, list, put } from "@vercel/blob";
-import { fetchBlobJson } from "@/lib/inventoryStore";
+import { catalogKey, readJson, redis } from "@/lib/inventoryStore";
 
 /**
  * SUPPLIER CATALOG SYNC (server side)
@@ -19,14 +18,12 @@ import { fetchBlobJson } from "@/lib/inventoryStore";
  * logins are passwordless (one-time email code), so the app's bookmarklet
  * captures those prices from Jason's own logged-in browser instead.
  *
- * Snapshots:  <prefix>catalog-<fetchedAt>.json   (newest wins; old ones pruned)
- *   prefix = "minleon/" for Minleon (kept from the first version), otherwise
- *   "supplier/<host>/". SUPPLIER_BLOB_PREFIX overrides the base for testing.
+ * Storage: one JSON snapshot per store in Upstash Redis, key
+ *   <REDIS_KEY_PREFIX>catalog:<bare host>   (see lib/inventoryStore.ts).
+ * Each refresh diffs against the stored snapshot and replaces it.
  */
 
 export const MINLEON_ORIGIN = "https://minleonpermanentlighting.com";
-const VERSION_RE = /catalog-(\d+)\.json$/;
-const KEEP_VERSIONS = 14; // two weeks of daily snapshots
 const USER_AGENT = "RallyInventoryBot/1.0 (+https://rallyexteriorsolutions.com; info@rallyexteriorsolutions.com)";
 
 export class NotShopifyError extends Error {}
@@ -71,8 +68,6 @@ export type CatalogSnapshot = {
   previousFetchedAt: number | null;
 };
 
-type Version = { pathname: string; url: string; fetchedAt: number };
-
 /* ------------------------------------------------------------------------ */
 /* Store address validation                                                  */
 /* ------------------------------------------------------------------------ */
@@ -100,11 +95,8 @@ export function hostOf(origin: string) {
   return origin.replace(/^https?:\/\//, "").replace(/\/.*$/, "");
 }
 
-function prefixFor(origin: string) {
-  const host = hostOf(origin);
-  const base = process.env.SUPPLIER_BLOB_PREFIX;
-  if (base) return `${base}${host}/`;
-  return host === hostOf(MINLEON_ORIGIN) ? "minleon/" : `supplier/${host}/`;
+function keyFor(origin: string) {
+  return catalogKey(hostOf(origin).replace(/^www\./, ""));
 }
 
 /* ------------------------------------------------------------------------ */
@@ -203,29 +195,18 @@ export function diffCatalogs(prev: CatalogProduct[] | null, next: CatalogProduct
 }
 
 /* ------------------------------------------------------------------------ */
-/* Blob storage (immutable versions, same pattern as the inventory state)    */
+/* Storage                                                                   */
 /* ------------------------------------------------------------------------ */
 
-async function listVersions(origin: string): Promise<Version[]> {
-  const { blobs } = await list({ prefix: `${prefixFor(origin)}catalog-`, limit: 1000 });
-  return blobs
-    .map((b) => ({ pathname: b.pathname, url: b.url, fetchedAt: Number((b.pathname.match(VERSION_RE) || [])[1] || 0) }))
-    .filter((v) => v.fetchedAt > 0)
-    .sort((a, b) => b.fetchedAt - a.fetchedAt);
-}
-
 export async function readLatestSnapshot(origin: string): Promise<CatalogSnapshot | null> {
-  const versions = await listVersions(origin);
-  for (const v of versions.slice(0, 3)) {
-    const doc = await fetchBlobJson<CatalogSnapshot>(v.url);
-    if (doc && Array.isArray(doc.products)) return { ...doc, store: doc.store || origin };
-  }
+  const doc = await readJson<CatalogSnapshot>(keyFor(origin));
+  if (doc && Array.isArray(doc.products)) return { ...doc, store: doc.store || origin };
   return null;
 }
 
 /**
- * Fetches the live catalog, diffs it against the newest stored snapshot, and
- * stores the result as a new version. Returns the new snapshot.
+ * Fetches the live catalog, diffs it against the stored snapshot, and
+ * replaces it. Returns the new snapshot.
  */
 export async function refreshSnapshot(origin: string): Promise<CatalogSnapshot> {
   const [products, previous] = await Promise.all([fetchShopifyCatalog(origin), readLatestSnapshot(origin)]);
@@ -237,22 +218,9 @@ export async function refreshSnapshot(origin: string): Promise<CatalogSnapshot> 
     productCount: products.length,
     variantCount: products.reduce((n, p) => n + p.variants.length, 0),
     products,
-    changes: diffCatalogs(previous?.products ?? null, products),
+    changes: diffCatalogs(previous?.products ?? null, products).slice(0, 500),
     previousFetchedAt: previous?.fetchedAt ?? null,
   };
-  await put(`${prefixFor(origin)}catalog-${fetchedAt}.json`, JSON.stringify(snapshot), {
-    access: "private",
-    addRandomSuffix: false,
-    allowOverwrite: true,
-    contentType: "application/json",
-  });
-  // Prune (best effort).
-  try {
-    const versions = await listVersions(origin);
-    const stale = versions.slice(KEEP_VERSIONS).map((v) => v.url);
-    if (stale.length) await del(stale);
-  } catch (e) {
-    console.error("[supplier] prune failed", e);
-  }
+  await redis().set(keyFor(origin), JSON.stringify(snapshot));
   return snapshot;
 }

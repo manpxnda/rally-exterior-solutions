@@ -63,7 +63,7 @@ const settled = (p) => p.waitForFunction(() => /Synced|Cloud|Offline|failed/.tes
   await page.waitForFunction(() => { try { return !!(catalogs['christmaslightcontractorsusa.com'] && catalogs['s4lights.com']); } catch (e) { return false; } }, null, { timeout: 120000 });
   await page.waitForTimeout(400);
   const xs = await page.evaluate(() => ({ nav: document.getElementById('nav-supplier').textContent, title: document.getElementById('sup-title').textContent, rows: document.getElementById('sup-alerts').innerText.replace(/\s+/g, ' '), clc: catalogs['christmaslightcontractorsusa.com'].productCount, s4: catalogs['s4lights.com'].productCount, cards: document.getElementById('sup-cards').innerText.replace(/\s+/g, ' ') }));
-  check('christmas: both stores connected and loaded (CLC USA 254, S4 433 products)', /Supplier prices/.test(xs.nav) && /Christmas Light Contractors USA/.test(xs.rows) && /S4 Lights/.test(xs.rows) && xs.clc === 254 && xs.s4 === 433 && /Stores\s*2/i.test(xs.cards), JSON.stringify(xs).slice(0, 300));
+  check('christmas: both stores connected and loaded (live catalogs; CLC USA was 254, S4 433 products on 2026-09-28)', /Supplier prices/.test(xs.nav) && /Christmas Light Contractors USA/.test(xs.rows) && /S4 Lights/.test(xs.rows) && xs.clc >= 150 && xs.s4 >= 300 && /Stores\s*2/i.test(xs.cards), JSON.stringify(xs).slice(0, 300));
   await page.screenshot({ path: path.join(OUT, '01-christmas-two-stores.png'), fullPage: false });
 
   // ── 4. Link across stores: C9 warm white → CLC USA case of 500; C7 → S4 single bulb
@@ -91,10 +91,11 @@ const settled = (p) => p.waitForFunction(() => /Synced|Cloud|Offline|failed/.tes
   check('C7 warm white linked to an S4 Lights single bulb (pack 1)', lk2 && lk2.pack === 1 && lk2.host === 's4lights.com', JSON.stringify(lk2));
   const c9row = await page.locator('#sup-body tr', { hasText: 'Warm white' }).first().innerText();
   const c7row = await page.locator('#sup-body tr', { hasText: 'C7 Bulbs' }).first().innerText();
-  check('rows show each store name and per-bulb list price', /Christmas Light Contractors USA/.test(c9row) && /\$0\.6[0-9]/.test(c9row) && /S4 Lights/.test(c7row) && /\$0\.89/.test(c7row), sq(c9row).slice(0, 160) + ' || ' + sq(c7row).slice(0, 120));
+  check('rows show each store name and a per-bulb list price', /Christmas Light Contractors USA/.test(c9row) && /\$0\.[0-9]{2}/.test(c9row) && /S4 Lights/.test(c7row) && /\$[0-9]\.[0-9]{2}/.test(c7row), sq(c9row).slice(0, 160) + ' || ' + sq(c7row).slice(0, 120));
+  const casePrice = await page.evaluate(() => catalogIdx['christmaslightcontractorsusa.com'].get(state.supplier.map['c1v1'].vid).v.price);
   await page.locator('#sup-body tr', { hasText: 'Warm white' }).first().locator('button:has-text("Apply")').click();
   const ap = await page.evaluate(() => { const v = state.inventory[0].variants[0]; return [v.unitCost, v.bundleCost]; });
-  check('Apply writes per-bulb + per-case cost (302.35 ÷ 500 → 0.6047 / 302.35)', Math.abs(ap[0] - 0.6047) < 0.0001 && Math.abs(ap[1] - 302.35) < 0.01, JSON.stringify(ap));
+  check(`Apply writes per-bulb + per-case cost (live case price $${casePrice} ÷ 500; was 302.35 on 2026-09-28)`, Math.abs(ap[0] - casePrice / 500) < 0.0001 && Math.abs(ap[1] - casePrice) < 0.01, JSON.stringify(ap));
   await page.screenshot({ path: path.join(OUT, '02-christmas-linked.png'), fullPage: true });
 
   // ── 5. Add / refuse / remove stores
@@ -148,7 +149,7 @@ const settled = (p) => p.waitForFunction(() => /Synced|Cloud|Offline|failed/.tes
   await fresh.goto(RALLY + '/inventory', { waitUntil: 'domcontentloaded' });
   await fresh.waitForFunction(() => { try { return state.divisions.permanent.inventory[0].variants[0].qty === 40; } catch (e) { return false; } }, null, { timeout: 20000 });
   const rt = await fresh.evaluate(() => ({ xmasStores: state.divisions.christmas.supplier.stores.length, xmasLinks: Object.keys(state.divisions.christmas.supplier.map).length, xmasDealers: Object.keys(state.divisions.christmas.supplier.dealers), cost: state.divisions.christmas.inventory[0].variants[0].unitCost }));
-  check('fresh device: stores, links, captures and costs all come down from the cloud, no prompt', dialogs === 0 && rt.xmasStores === 2 && rt.xmasLinks === 2 && rt.xmasDealers[0] === 'christmaslightcontractorsusa.com' && Math.abs(rt.cost - 0.6047) < 0.0001, JSON.stringify(rt));
+  check('fresh device: stores, links, captures and costs all come down from the cloud, no prompt', dialogs === 0 && rt.xmasStores === 2 && rt.xmasLinks === 2 && rt.xmasDealers[0] === 'christmaslightcontractorsusa.com' && Math.abs(rt.cost - casePrice / 500) < 0.0001, JSON.stringify(rt));
   const cron = await fresh.evaluate(async () => { const r = await fetch('/api/cron/supplier-catalogs', { headers: { authorization: 'Bearer testsecret' } }); return { status: r.status, body: await r.json() }; });
   check('cron refreshes every connected store (Minleon + CLC USA + S4)', cron.status === 200 && cron.body.ok && Object.keys(cron.body.stores).map(k => k.replace(/^www\./, '')).sort().join(',') === 'christmaslightcontractorsusa.com,minleonpermanentlighting.com,s4lights.com' && Object.values(cron.body.stores).every(v => v.ok), JSON.stringify(cron.body).slice(0, 220));
 
