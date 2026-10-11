@@ -44,6 +44,9 @@ const nextConfig = {
         destination: "https://g.page/r/CaY2UgCpz3LrEAI/review",
         permanent: false,
       },
+      // Printed QR code (bit.ly/4mv2wfG) points here → homepage. Temporary
+      // (307) so it can be repointed later without reprinting.
+      { source: "/christmas-light-installation", destination: "/", permanent: false },
       { source: "/contact-us", destination: "/contact", permanent: true },
       { source: "/contact-us.html", destination: "/contact", permanent: true },
       { source: "/house-washing", destination: "/services/house-washing", permanent: true },
