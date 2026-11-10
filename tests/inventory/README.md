@@ -11,6 +11,7 @@ account pricing is involved and nothing is purchased.
 | `fake-upstash.js` | in-memory Upstash REST stand-in used by the runs below | — |
 | `multi-store.e2e.js` | migration from the one-store shape, Permanent tab with a captured Minleon price, Christmas pre-connected to both suppliers, cross-store link search, pack maths, add / refuse / remove stores, a real bookmarklet run on CLC USA routed to the Christmas division only, same-device tab sync, fresh-device cloud pull, cron over every store, old-format Minleon capture routing | 20/20, 2026-10-08 (Redis) |
 | `job-sheet.e2e.js` | printable job sheets: buttons on project card / Reserve / Confirm, sheet content (materials, packs, shortfalls, notes, sign-off), print media hides the app, Print all reserved = one page per project | 15/15, 2026-10-08 |
+| `kits.e2e.js` | Kits category seeded once into the permanent division (24 Minleon kit variants with dealer prices + links, muted alerts), flag semantics, Inventory + price tab rendering | 12/12, 2026-11-10 |
 | `link-modal.e2e.js` | store-chooser pills, store-scoped search, one-off (Amazon) links: form, save, row, Apply, Update…, inventory chip, store removal leaves one-offs alone, cloud round trip, mobile screenshot | 16/16, 2026-10-08 (Redis) |
 
 Not preserved: the first Christmas suite (migration from the pre-division flat state, Christmas
@@ -43,6 +44,7 @@ done
 node tests/inventory/multi-store.e2e.js     # ~3 min (runs the bookmarklet on the live CLC USA site)
 node tests/inventory/link-modal.e2e.js      # ~1 min
 node tests/inventory/job-sheet.e2e.js       # ~30 s
+node tests/inventory/kits.e2e.js            # ~30 s
 
 # Afterwards: stop both servers (the fake store lives in memory, nothing to clean up).
 pkill -f "next start -p 3111"; pkill -f fake-upstash.js

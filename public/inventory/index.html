@@ -432,6 +432,7 @@ const DEFAULT_STORES = {
 
 const CATS_BY_DIV = {
   permanent: [
+    {id:'kits',       name:'Kits'},
     {id:'track',      name:'Track & Mounting'},
     {id:'lights',     name:'Lights'},
     {id:'wire',       name:'Extension Wire'},
@@ -603,13 +604,64 @@ function seedChristmas() {
   ];
 }
 
+/* Minleon kits (added 2026-11-10 at Jason's request): the Aluminum Track
+   Pebble Kits and the regular Pebble Channel Track-Only Kits, size × controller,
+   colour ignored (every colour is the same price — linked to the White variant
+   so the Supplier prices tab keeps checking them). Costs are Jason's Minleon
+   dealer prices as captured on 2026-11-10; the Minleon link keeps them current.
+   Seeded once into the permanent division (settings.kitsSeeded) — delete the
+   groups later if unwanted and they stay deleted. */
+const KIT_SEED = [
+  { id: 'k1', name: 'Aluminum Track Pebble Kit', note: 'Aluminum Track RGBW+2 Pebble Kits', variants: [
+      { id: 'k1v1', label: '100 ft · WEC Mini', vid: 51354602602663, cost: 1072.72 },
+      { id: 'k1v2', label: '100 ft · Dual Port WEC', vid: 51354602635431, cost: 1160.72 },
+      { id: 'k1v3', label: '100 ft · Control Box (WEC Mini)', vid: 51354602668199, cost: 1178.32 },
+      { id: 'k1v4', label: '150 ft · WEC Mini', vid: 51354603192487, cost: 1310.32 },
+      { id: 'k1v5', label: '150 ft · Dual Port WEC', vid: 51354603225255, cost: 1398.32 },
+      { id: 'k1v6', label: '150 ft · Control Box (WEC Mini)', vid: 51354603258023, cost: 1415.92 },
+      { id: 'k1v7', label: '200 ft · WEC Mini', vid: 51354603782311, cost: 1829.52 },
+      { id: 'k1v8', label: '200 ft · Dual Port WEC', vid: 51354603815079, cost: 1917.52 },
+      { id: 'k1v9', label: '200 ft · Control Box (WEC Mini)', vid: 51354603847847, cost: 1935.12 },
+      { id: 'k1v10', label: '400 ft · WEC Mini', vid: 51354604372135, cost: 3255.12 },
+      { id: 'k1v11', label: '400 ft · Dual Port WEC', vid: 51354604404903, cost: 3343.12 },
+      { id: 'k1v12', label: '400 ft · Control Box (WEC Mini)', vid: 51354604437671, cost: 3360.72 }
+  ] },
+  { id: 'k2', name: 'Pebble Channel Track-Only Kit', note: 'RGBW+2 Pebble Channel Track Only Kits', variants: [
+      { id: 'k2v1', label: '100 ft · WEC Mini', vid: 46626324775079, cost: 1055.12 },
+      { id: 'k2v2', label: '100 ft · Dual Port WEC', vid: 46663190577319, cost: 1143.12 },
+      { id: 'k2v3', label: '100 ft · Control Box (WEC Mini)', vid: 46626324742311, cost: 1143.12 },
+      { id: 'k2v4', label: '150 ft · WEC Mini', vid: 46626325102759, cost: 1363.12 },
+      { id: 'k2v5', label: '150 ft · Dual Port WEC', vid: 46663190741159, cost: 1451.12 },
+      { id: 'k2v6', label: '150 ft · Control Box (WEC Mini)', vid: 46626325069991, cost: 1451.12 },
+      { id: 'k2v7', label: '200 ft · WEC Mini', vid: 46626325430439, cost: 1741.52 },
+      { id: 'k2v8', label: '200 ft · Dual Port WEC', vid: 46663190904999, cost: 1829.52 },
+      { id: 'k2v9', label: '200 ft · Control Box (WEC Mini)', vid: 46626325397671, cost: 1829.52 },
+      { id: 'k2v10', label: '400 ft · WEC Mini', vid: 46626325758119, cost: 3431.12 },
+      { id: 'k2v11', label: '400 ft · Dual Port WEC', vid: 46663191068839, cost: 3519.12 },
+      { id: 'k2v12', label: '400 ft · Control Box (WEC Mini)', vid: 46626325725351, cost: 3519.12 }
+  ] },
+];
+function seedKits(div) {
+  if (!div || div.settings.kitsSeeded) return;
+  const sup = div.supplier;
+  KIT_SEED.forEach((k, i) => {
+    if (div.inventory.some(g => g.id === k.id)) return;
+    div.inventory.splice(i, 0, { id: k.id, name: k.name, cat: 'kits', unit: 'kit', taxPct: null, shippingEst: null,
+      variants: k.variants.map(v => ({ id: v.id, label: v.label, qty: 0, reserved: 0, reorderAt: 0, muteReorder: true, unitCost: v.cost, bundleQty: null, bundleCost: null })) });
+    k.variants.forEach(v => { if (!sup.map[v.id]) sup.map[v.id] = { vid: v.vid, pack: 1, host: 'minleonpermanentlighting.com' }; });
+  });
+  div.settings.kitsSeeded = true;
+}
+
 function defaultDivision(id) {
-  return {
+  const div = {
     settings: { taxPct: 6, shippingEst: 0 },
     inventory: id === 'christmas' ? seedChristmas() : seedPermanent(),
     projects: [], installs: [], wasteLog: [],
     supplier: { stores: (DEFAULT_STORES[id] || []).slice(), map: {}, dealers: {} },
   };
+  if (id === 'permanent') seedKits(div);
+  return div;
 }
 function normalizeSupplier(id, s) {
   const defaults = (DEFAULT_STORES[id] || []).slice();
@@ -633,14 +685,18 @@ function normalizeSupplier(id, s) {
 function normalizeDivision(id, d) {
   const base = defaultDivision(id);
   if (!d || typeof d !== 'object') return base;
-  return {
-    settings: Object.assign(base.settings, d.settings && typeof d.settings === 'object' ? d.settings : {}),
+  const settings = Object.assign({}, base.settings, d.settings && typeof d.settings === 'object' ? d.settings : {});
+  if (!(d.settings && d.settings.kitsSeeded)) delete settings.kitsSeeded; // the flag must come from the saved data, not the fresh default
+  const out = {
+    settings,
     inventory: Array.isArray(d.inventory) ? d.inventory : base.inventory,
     projects: Array.isArray(d.projects) ? d.projects : [],
     installs: Array.isArray(d.installs) ? d.installs : [],
     wasteLog: Array.isArray(d.wasteLog) ? d.wasteLog : [],
     supplier: normalizeSupplier(id, d.supplier),
   };
+  if (id === 'permanent') seedKits(out);
+  return out;
 }
 const DIV_FIELDS = ['settings', 'inventory', 'projects', 'installs', 'wasteLog', 'supplier'];
 /* Builds a state object from anything: null (fresh), the new
