@@ -270,6 +270,16 @@ tr.drag-over-bottom td{border-bottom:2px solid #1a1a1a!important}
   .js-page{border:none;border-radius:0;max-width:none;margin:0;padding:0}
   @page{margin:14mm}
 }
+
+/* Order-to-fulfill panel */
+.ord-panel{background:#fff;border:1px solid #e5e5e3;border-radius:10px;margin-bottom:16px;overflow:hidden}
+.ord-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 16px;cursor:pointer;flex-wrap:wrap}
+.ord-head h3{font-size:14px;font-weight:600}
+.ord-head .sub{font-size:12px;color:#888}
+.ord-table td.num,.ord-table th.num{text-align:right;white-space:nowrap}
+.ord-short{color:#b91c1c;font-weight:700}
+.ord-projects{font-size:11px;color:#888}
+.ord-total td{font-weight:700;background:#fafaf8;border-top:2px solid #1a1a1a}
 </style>
 </head>
 <body>
@@ -327,6 +337,7 @@ tr.drag-over-bottom td{border-bottom:2px solid #1a1a1a!important}
       <button class="btn btn-sm btn-primary" onclick="openAddProject()">+ New project</button>
     </div>
   </div>
+  <div id="proj-order"></div>
   <div id="proj-sort-bar" style="margin-bottom:16px"></div>
   <div id="proj-list"></div>
 </div>
@@ -1476,7 +1487,77 @@ function setProjSort(key) {
   renderProjects();
 }
 
+/* ── ORDER TO FULFILL OPEN PROJECTS ─────────────────────── */
+/* Across every open (not installed) project: what the plans need in total,
+   what is on hand (including what is already reserved for those same jobs),
+   and the difference = what to order. Costs use the stored per-unit cost
+   plus the item's tax %; shipping is per order and not included. */
+let ordOpen = true;
+try { ordOpen = localStorage.getItem('rally_ord_open') !== '0'; } catch (e) {}
+function toggleOrderPanel() { ordOpen = !ordOpen; try { localStorage.setItem('rally_ord_open', ordOpen ? '1' : '0'); } catch (e) {} renderOrderPanel(); }
+function orderToFulfill() {
+  const open = state.projects.filter(p => !state.installs.find(i => i.projectId === p.id));
+  const need = {}; // variantId → { g, v, needed, projects:Set }
+  open.forEach(p => (p.neededItems || []).forEach(pi => {
+    if (!(pi.qty > 0)) return;
+    const g = state.inventory.find(g => g.id === pi.groupId);
+    const v = g && g.variants.find(v => v.id === pi.variantId);
+    if (!g || !v) return;
+    const e = need[v.id] = need[v.id] || { g, v, needed: 0, projects: new Set() };
+    e.needed += pi.qty; e.projects.add(p.name);
+  }));
+  const rows = Object.values(need).map(e => {
+    const short = Math.max(0, e.needed - e.v.qty);
+    const packs = short > 0 && e.v.bundleQty > 0 ? Math.ceil(short / e.v.bundleQty) : null;
+    const orderQty = packs ? packs * e.v.bundleQty : short;
+    const cost = orderQty * effectiveCost(e.v) * (1 + tax(e.g));
+    return { ...e, short, packs, orderQty, cost };
+  }).filter(r => r.short > 0);
+  rows.sort((a, b) => CATS.findIndex(c => c.id === a.g.cat) - CATS.findIndex(c => c.id === b.g.cat) || a.g.name.localeCompare(b.g.name));
+  return { open: open.length, rows, total: rows.reduce((s, r) => s + r.cost, 0) };
+}
+function renderOrderPanel() {
+  const el = document.getElementById('proj-order');
+  if (!el) return;
+  const o = orderToFulfill();
+  if (!o.open) { el.innerHTML = ''; return; }
+  const head = `<div class="ord-head" onclick="toggleOrderPanel()">
+      <div><h3>📦 Order to fulfill open projects <span class="sub">— ${o.open} open project${o.open !== 1 ? 's' : ''}</span></h3>
+        <div class="sub">${o.rows.length ? `${o.rows.length} item${o.rows.length !== 1 ? 's' : ''} short · about ${money(o.total)} to order (with tax, before shipping)` : 'Everything the open projects need is on hand.'}</div></div>
+      <div style="display:flex;gap:6px;align-items:center">${o.rows.length ? `<button class="btn btn-xs" onclick="event.stopPropagation();copyOrderList()">Copy list</button>` : ''}<span style="color:#888">${ordOpen ? '▾' : '▸'}</span></div>
+    </div>`;
+  let body = '';
+  if (ordOpen && o.rows.length) {
+    let lastCat = null;
+    const trs = o.rows.map(r => {
+      const catRow = r.g.cat !== lastCat ? `<tr><td colspan="7" style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#555;background:#f3f3f1;padding:4px 11px">${esc(catName(r.g.cat))}</td></tr>` : '';
+      lastCat = r.g.cat;
+      const label = isSingle(r.g) ? r.g.name : `${r.g.name} — ${r.v.label}`;
+      return catRow + `<tr>
+        <td style="font-weight:500">${esc(label)}<div class="ord-projects">${[...r.projects].map(esc).join(' · ')}</div></td>
+        <td class="num">${r.needed} <span class="sup-sub">${esc(r.g.unit)}</span></td>
+        <td class="num">${r.v.qty}</td>
+        <td class="num ord-short">${r.short}</td>
+        <td class="num">${r.packs ? `${r.packs} × ${r.v.bundleQty} <span class="sup-sub">= ${r.orderQty}</span>` : '—'}</td>
+        <td class="num">${money(r.cost)}</td>
+      </tr>`;
+    }).join('');
+    body = `<div style="overflow-x:auto"><table class="ord-table">
+      <thead><tr><th>Item · which jobs</th><th class="num">All jobs need</th><th class="num">On hand</th><th class="num">Short</th><th class="num">Order (packs)</th><th class="num">Est. cost</th></tr></thead>
+      <tbody>${trs}<tr class="ord-total"><td colspan="5">Total to order</td><td class="num">${money(o.total)}</td></tr></tbody></table></div>`;
+  }
+  el.innerHTML = `<div class="ord-panel">${head}${body}</div>`;
+}
+function copyOrderList() {
+  const o = orderToFulfill();
+  const lines = o.rows.map(r => `${isSingle(r.g) ? r.g.name : r.g.name + ' — ' + r.v.label}: order ${r.packs ? r.packs + ' × ' + r.v.bundleQty + ' (' + r.orderQty + ' ' + r.g.unit + ')' : r.short + ' ' + r.g.unit} — short ${r.short} for ${[...r.projects].join(', ')}`);
+  const text = `Order to fulfill ${o.open} open project(s) — ${divName()} — ${new Date().toLocaleDateString()}\n` + lines.join('\n') + `\nEstimated ${money(o.total)} with tax, before shipping`;
+  const done = () => alert('Order list copied.');
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, () => prompt('Copy this list:', text)); else prompt('Copy this list:', text);
+}
+
 function renderProjects() {
+  renderOrderPanel();
   const sortBar = document.getElementById('proj-sort-bar');
   if (sortBar) {
     sortBar.innerHTML = `<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
