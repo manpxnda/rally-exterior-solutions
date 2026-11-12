@@ -1449,6 +1449,9 @@ function saveReceiveOrder() {
 /* ── PROJECTS ────────────────────────────────────────────── */
 let modalNeededItems = {};
 let projSort = 'date';
+let showInstalled = false;
+try { showInstalled = localStorage.getItem('rally_show_installed') === '1'; } catch (e) {}
+function toggleInstalled() { showInstalled = !showInstalled; try { localStorage.setItem('rally_show_installed', showInstalled ? '1' : '0'); } catch (e) {} renderProjects(); }
 
 function projEstCost(p) {
   return (p.neededItems || []).reduce((sum, pi) => {
@@ -1484,6 +1487,8 @@ function renderProjects() {
         {key:'waiting', label:'Waiting on stock'},
         {key:'cost',    label:'Material cost'},
       ].map(s => `<button class="pill ${projSort === s.key ? 'active' : ''}" onclick="setProjSort('${s.key}')">${s.label}</button>`).join('')}
+      <span style="flex:1"></span>
+      <button class="pill ${showInstalled ? 'active' : ''}" onclick="toggleInstalled()" title="Installed (closed-out) projects are hidden by default">${showInstalled ? 'Hide' : 'Show'} installed <span class="pill-count">${state.installs.length}</span></button>
     </div>`;
   }
 
@@ -1493,7 +1498,12 @@ function renderProjects() {
     return;
   }
 
-  const sorted = [...state.projects].sort((a, b) => {
+  const visible = showInstalled ? state.projects : state.projects.filter(p => !state.installs.find(i => i.projectId === p.id));
+  if (!visible.length) {
+    el.innerHTML = `<p style="color:#888;font-size:13px">No open projects — ${state.installs.length} installed project${state.installs.length !== 1 ? 's are' : ' is'} hidden. <a href="#" onclick="event.preventDefault();toggleInstalled()">Show installed</a></p>`;
+    return;
+  }
+  const sorted = [...visible].sort((a, b) => {
     const ai = state.installs.find(i => i.projectId === a.id);
     const bi = state.installs.find(i => i.projectId === b.id);
     if (projSort === 'date') {
@@ -1549,9 +1559,9 @@ function renderProjects() {
           if (isFullyReserved) {
             statusText = '✓ reserved'; statusColor = '#166534';
           } else if (isPartiallyReserved) {
-            statusText = reservedQty + ' reserved · ' + (pi.qty - reservedQty) + ' needs ordering'; statusColor = '#d97706';
+            statusText = reservedQty + ' reserved · ' + (pi.qty - reservedQty) + (canFulfill ? ' in stock — re-reserve' : ' needs ordering'); statusColor = canFulfill ? '#1e40af' : '#d97706';
           } else if (p.items.length > 0) {
-            statusText = 'needs ordering'; statusColor = '#dc2626';
+            statusText = canFulfill ? 'in stock — re-reserve' : 'needs ordering'; statusColor = canFulfill ? '#1e40af' : '#dc2626';
           } else if (canFulfill) {
             statusText = availForThis + ' avail'; statusColor = '#888';
           } else {
@@ -1582,7 +1592,10 @@ function renderProjects() {
           return rqty < pi.qty;
         }).length;
         if (needsOrderCount > 0) {
-          needsBadge = `<span class="badge warn">${needsOrderCount} item${needsOrderCount !== 1 ? 's' : ''} need ordering</span>`;
+          const stillShort = projShortCount(p); // short even after counting what stock can cover now
+          const topUp = needsOrderCount - stillShort;
+          needsBadge = (topUp > 0 ? `<span class="badge info">${topUp} item${topUp !== 1 ? 's' : ''} in stock — re-reserve</span>` : '')
+            + (stillShort > 0 ? `<span class="badge warn">${stillShort} item${stillShort !== 1 ? 's need' : ' needs'} ordering</span>` : '');
         }
       } else {
         const shortCount = projShortCount(p);
@@ -1605,7 +1618,8 @@ function renderProjects() {
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">${statusBadge}${needsBadge}
           ${!inst && p.items.some(i => i.qty > 0) ? `<button class="btn btn-xs" onclick="openJobSheet('${p.id}')" title="Printable load-out sheet">🖨 Job sheet</button>` : ''}
           ${!inst ? `<button class="btn btn-xs" onclick="openEditProjectPlan('${p.id}')">Edit plan</button>` : ''}
-          ${!inst ? `<button class="btn btn-xs btn-primary" onclick="reserveProject('${p.id}')">Reserve</button>` : ''}
+          ${!inst && hasNeeded && p.status !== 'reserved' && p.items.length > 0 && topUpCount(p) > 0 ? `<button class="btn btn-xs btn-primary" onclick="topUpReservation('${p.id}')" title="Reserve what the plan still needs from stock on hand">Reserve available</button>` : ''}
+          ${!inst ? `<button class="btn btn-xs ${p.items.length > 0 && topUpCount(p) > 0 ? '' : 'btn-primary'}" onclick="reserveProject('${p.id}')">Reserve</button>` : ''}
           <button class="btn btn-xs btn-danger" onclick="deleteProject('${p.id}')">✕</button>
         </div>
       </div>
@@ -1736,6 +1750,44 @@ function saveEditProjectPlan(pid) {
   save(); closeModal(); render();
 }
 
+/* Items whose plan is only partly reserved but can be completed from stock right now. */
+function topUpCount(p) {
+  return (p.neededItems || []).filter(pi => {
+    const g = state.inventory.find(g => g.id === pi.groupId);
+    const v = g && g.variants.find(v => v.id === pi.variantId);
+    if (!g || !v) return false;
+    const reservedQty = (p.items.find(ri => ri.groupId === pi.groupId && ri.variantId === pi.variantId) || {}).qty || 0;
+    return reservedQty < pi.qty && avail(v) > 0;
+  }).length;
+}
+/* One click: raise every partial reservation to what the plan needs, as far as stock allows. */
+function topUpReservation(pid) {
+  const proj = state.projects.find(p => p.id === pid);
+  if (!proj) return;
+  const topped = [], short = [];
+  (proj.neededItems || []).forEach(pi => {
+    const g = state.inventory.find(g => g.id === pi.groupId);
+    const v = g && g.variants.find(v => v.id === pi.variantId);
+    if (!g || !v) return;
+    let ri = proj.items.find(ri => ri.groupId === pi.groupId && ri.variantId === pi.variantId);
+    const have = ri ? ri.qty : 0;
+    const want = pi.qty - have;
+    if (want <= 0) return;
+    const add = Math.min(want, avail(v));
+    const name = isSingle(g) ? g.name : `${g.name} — ${v.label}`;
+    if (add > 0) {
+      if (!ri) { ri = { groupId: g.id, variantId: v.id, qty: 0 }; proj.items.push(ri); }
+      ri.qty += add; v.reserved += add;
+      topped.push(name + ' +' + add);
+    }
+    if (add < want) short.push(name + ': ' + (want - add) + ' ' + g.unit + ' still needed');
+  });
+  const allCovered = (proj.neededItems || []).every(pi => ((proj.items.find(ri => ri.groupId === pi.groupId && ri.variantId === pi.variantId) || {}).qty || 0) >= pi.qty);
+  proj.status = allCovered ? 'reserved' : 'planned';
+  save(); render();
+  alert((topped.length ? 'Reserved from stock:\n' + topped.join('\n') : 'Nothing could be added from stock.') + (short.length ? '\n\nStill short (order these):\n' + short.join('\n') : '\n\nEverything the plan needs is now reserved.'));
+}
+
 function deleteProject(id) {
   if (!confirm('Delete this project?')) return;
   const proj = state.projects.find(p => p.id === id);
@@ -1821,7 +1873,9 @@ function renderReserveForm() {
       const rows = entries.map(({ v, name }) => {
         const reservedItem = proj.items.find(pi => pi.groupId === g.id && pi.variantId === v.id);
         const neededItem = (proj.neededItems || []).find(pi => pi.groupId === g.id && pi.variantId === v.id);
-        const cur = reservedItem ? reservedItem.qty : (neededItem ? neededItem.qty : 0);
+        // Prefill with what the plan NEEDS (not just what was reserved so far) — a partial
+        // reservation made when stock was short tops up by simply saving again.
+        const cur = Math.max(reservedItem ? reservedItem.qty : 0, neededItem ? neededItem.qty : 0);
         const freeAvail = avail(v) + (reservedItem ? reservedItem.qty : 0);
         const isNeeded = !!neededItem;
         const hidden = !reserveShowAll && freeAvail === 0 && !isNeeded;
