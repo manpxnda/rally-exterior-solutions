@@ -14,6 +14,7 @@ account pricing is involved and nothing is purchased.
 | `kits.e2e.js` | Kits category seeded once into the permanent division (24 Minleon kit variants with dealer prices + links, muted alerts), flag semantics, Inventory + price tab rendering | 12/12, 2026-11-10 |
 | `reserve-topup.e2e.js` | partial reservation when stock is short → stock arrives → card says "in stock — re-reserve", Reserve form prefills the plan quantity, one-click "Reserve available" tops up; installed projects hidden by default with a remembered toggle | 10/10, 2026-11-12 |
 | `order-panel.e2e.js` | "Order to fulfill open projects" panel: totals across open jobs vs on hand, pack rounding, tax-inclusive cost, Copy list, collapse, reacts to Receive order and Confirm install | 9/9, 2026-11-12 |
+| `mobile-buy.e2e.js` | phone layout at 390px (no page-wide horizontal scroll on every tab, trimmed inventory columns, 16px inputs, scrollable nav) + Buy links on inventory / Reorder / order-panel rows (store product page + variant, one-off URL, none when unlinked); desktop keeps all columns | 19/19, 2026-11-13 |
 | `link-modal.e2e.js` | store-chooser pills, store-scoped search, one-off (Amazon) links: form, save, row, Apply, Update…, inventory chip, store removal leaves one-offs alone, cloud round trip, mobile screenshot | 16/16, 2026-10-08 (Redis) |
 
 Not preserved: the first Christmas suite (migration from the pre-division flat state, Christmas
@@ -49,6 +50,7 @@ node tests/inventory/job-sheet.e2e.js       # ~30 s
 node tests/inventory/kits.e2e.js            # ~30 s
 node tests/inventory/reserve-topup.e2e.js   # ~40 s
 node tests/inventory/order-panel.e2e.js     # ~30 s
+node tests/inventory/mobile-buy.e2e.js      # ~40 s
 
 # Afterwards: stop both servers (the fake store lives in memory, nothing to clean up).
 pkill -f "next start -p 3111"; pkill -f fake-upstash.js

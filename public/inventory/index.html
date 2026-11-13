@@ -280,6 +280,70 @@ tr.drag-over-bottom td{border-bottom:2px solid #1a1a1a!important}
 .ord-short{color:#b91c1c;font-weight:700}
 .ord-projects{font-size:11px;color:#888}
 .ord-total td{font-weight:700;background:#fafaf8;border-top:2px solid #1a1a1a}
+
+/* Buy links */
+.buy-link{display:inline-block;margin-left:8px;padding:1px 7px;border-radius:5px;font-size:11px;font-weight:600;color:#1e40af;background:#eff6ff;border:1px solid #bfdbfe;text-decoration:none;white-space:nowrap;vertical-align:middle}
+.buy-link:hover{background:#dbeafe}
+.buy-link-lg{font-size:12px;padding:3px 9px}
+
+/* ── Phone layout ─────────────────────────────────────────── */
+@media (max-width:760px){
+  body{font-size:15px}
+  .topbar{padding:10px 14px;gap:8px}
+  .brand{font-size:14px}.brand span{display:block;margin:0;font-size:11px}
+  .topbar-actions{width:100%;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+  .topbar-actions .btn,.sync-pill{flex:0 0 auto}
+  .container{padding:12px 12px 90px}
+  .div-switch{margin-bottom:10px}
+  .nav{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;gap:2px;padding:3px;margin-bottom:12px;scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  .nav button{flex:0 0 auto;padding:9px 12px;font-size:14px}
+  h2{font-size:18px}
+  .toolbar{gap:8px}
+  .cards{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px}
+  .card{padding:10px 12px}.card .value{font-size:19px}
+  .cat-pills{gap:5px;margin-bottom:14px}
+  .pill{padding:7px 12px;font-size:13px}
+  .btn{padding:9px 13px;font-size:14px}
+  .btn-sm{padding:7px 11px;font-size:13px}
+  .btn-xs{padding:6px 9px;font-size:12px}
+  input[type=number],input[type=text],input[type=date],select,textarea{font-size:16px;padding:9px 10px} /* 16px stops iOS zooming in */
+  .qty-input{width:74px!important}.ro-input{width:62px!important}
+  .step-input{width:58px;height:38px;font-size:16px}.step-btn{width:38px;height:38px;font-size:18px}
+  table{font-size:14px}
+  th{padding:7px 8px}td{padding:9px 8px}
+  /* Inventory tables: keep Item · Stock · Avail · Unit cost · actions; drop the rest */
+  #inv-body th:nth-child(2),#inv-body td:nth-child(2),
+  #inv-body th:nth-child(4),#inv-body td:nth-child(4),
+  #inv-body th:nth-child(6),#inv-body td:nth-child(6),
+  #inv-body th:nth-child(8),#inv-body td:nth-child(8),
+  #inv-body th:nth-child(9),#inv-body td:nth-child(9),
+  #inv-body th:nth-child(10),#inv-body td:nth-child(10){display:none} /* Status duplicates the red/green Avail number */
+  #inv-body th:first-child{min-width:0!important}
+  #inv-body td:first-child{word-break:break-word}
+  .drag-handle{display:none}
+  .tag{display:block;margin:2px 0 0;width:max-content}
+  .cat-head{flex-wrap:wrap;gap:4px}.cat-stats{gap:10px;flex-wrap:wrap}
+  .buy-link{display:block;width:max-content;margin:4px 0 0}
+  /* Everything else scrolls sideways inside its own box instead of the page */
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .sup-table{min-width:640px}
+  .reorder-item{flex-direction:column;align-items:stretch;gap:8px}
+  .reorder-item > div:last-child{flex-direction:row!important;justify-content:space-between;align-items:center!important}
+  .res-row{grid-template-columns:1fr auto;grid-template-areas:"name avail" "stepper stepper";gap:6px 10px}
+  .res-row-name{grid-area:name}.res-row-avail{grid-area:avail;min-width:0}.res-row .stepper{grid-area:stepper}
+  .res-project-bar{flex-direction:column;align-items:stretch}
+  .res-project-bar .fg{max-width:none}
+  .modal-overlay{padding:0;align-items:flex-end}
+  .modal{max-width:none;max-height:92vh;border-radius:14px 14px 0 0;padding:18px 16px 24px}
+  .form-row{grid-template-columns:1fr 1fr}
+  .ve-head{display:none}
+  .ve-row{grid-template-columns:1fr 1fr;grid-auto-rows:auto;gap:6px;padding:10px}
+  .ve-row input{font-size:16px}
+  .ord-head h3{font-size:14px}
+  .js-preview{max-height:50vh}
+  .div-btn{padding:8px 6px;font-size:13px}
+}
 </style>
 </head>
 <body>
@@ -993,7 +1057,7 @@ function renderVariantRows(g) {
     const isLast = i === g.variants.length - 1;
     const availClass = av === 0 ? 'avail-zero' : v.reserved > 0 ? 'avail-partial' : 'avail-ok';
     return `<tr class="v-row ${isLast ? 'v-last' : ''}">
-      <td>${v.label}</td>
+      <td>${v.label}${buyLink(g, v)}</td>
       <td style="color:#888">${g.unit}</td>
       <td><input class="qty-input" type="number" min="0" value="${v.qty}" onchange="setQty('${g.id}','${v.id}',this.value)" onclick="event.stopPropagation()"></td>
       <td style="color:#888;font-size:12px">${v.reserved > 0 ? v.reserved : '—'}</td>
@@ -1014,7 +1078,7 @@ function renderItemRow(g, v) {
   const est = reorderEst(g, v);
   const availClass = av === 0 ? 'avail-zero' : v.reserved > 0 ? 'avail-partial' : 'avail-ok';
   return `<tr class="i-row" data-gid="${g.id}" data-cat="${g.cat}" draggable="true" ondragstart="invDragStart(event,'${g.id}')" ondragend="invDragEnd(event)">
-    <td style="font-weight:500"><span class="drag-handle">⠿</span>${g.name}</td>
+    <td style="font-weight:500"><span class="drag-handle">⠿</span>${g.name}${buyLink(g, v)}</td>
     <td style="color:#888">${g.unit}</td>
     <td><input class="qty-input" type="number" min="0" value="${v.qty}" onchange="setQty('${g.id}','${v.id}',this.value)"></td>
     <td style="color:#888;font-size:12px">${v.reserved > 0 ? v.reserved : '—'}</td>
@@ -1206,7 +1270,7 @@ function renderReorder() {
           }
           return `<div class="reorder-item">
             <div>
-              <div class="reorder-name">${name}</div>
+              <div class="reorder-name">${name}${buyLink(g, v, 'buy-link-lg')}</div>
               <div class="reorder-meta">Stock: ${v.qty} · Reorder at: ${v.reorderAt} · ${reorderDetail}</div>
             </div>
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
@@ -1534,7 +1598,7 @@ function renderOrderPanel() {
       lastCat = r.g.cat;
       const label = isSingle(r.g) ? r.g.name : `${r.g.name} — ${r.v.label}`;
       return catRow + `<tr>
-        <td style="font-weight:500">${esc(label)}<div class="ord-projects">${[...r.projects].map(esc).join(' · ')}</div></td>
+        <td style="font-weight:500">${esc(label)}${buyLink(r.g, r.v)}<div class="ord-projects">${[...r.projects].map(esc).join(' · ')}</div></td>
         <td class="num">${r.needed} <span class="sup-sub">${esc(r.g.unit)}</span></td>
         <td class="num">${r.v.qty}</td>
         <td class="num ord-short">${r.short}</td>
@@ -3223,6 +3287,24 @@ function storeRowHtml(origin) {
       <button class="btn btn-xs btn-ghost" onclick="removeStore('${esc(origin)}')" title="Remove this store from the ${esc(divName())} inventory">✕</button>
     </div>
   </div>`;
+}
+
+/* Where to buy one item: its linked supplier product page (or the one-off URL). */
+function buyUrl(g, v) {
+  const link = getLink(g, v);
+  if (!link || !link.ok) return null;
+  if (link.manual) return link.url || null;
+  const hit = link.host ? idxFor(link.host).get(link.vid) : null;
+  const origin = link.host ? storeOriginFor(link.host) : null;
+  if (!hit || !origin) return null;
+  return `${origin}/products/${hit.p.handle}?variant=${link.vid}`;
+}
+function buyLink(g, v, cls) {
+  const url = buyUrl(g, v);
+  if (!url) return '';
+  const link = getLink(g, v);
+  const where = link.manual ? link.source : storeName(link.host);
+  return `<a class="buy-link ${cls || ''}" href="${esc(url)}" target="_blank" rel="noopener" title="Order from ${esc(where)}" onclick="event.stopPropagation()">🛒 Buy</a>`;
 }
 
 function renderSupplier() {
