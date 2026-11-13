@@ -344,6 +344,10 @@ tr.drag-over-bottom td{border-bottom:2px solid #1a1a1a!important}
   .js-preview{max-height:50vh}
   .div-btn{padding:8px 6px;font-size:13px}
 }
+
+.inst-link{color:#1a1a1a;text-decoration:none;border-bottom:1px dotted #888}
+.inst-link:hover{border-bottom-color:#1a1a1a;color:#1e40af}
+.ie-table td.num,.ie-table th.num{text-align:right;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -2429,6 +2433,7 @@ function saveInstall(pid) {
   const notes         = document.getElementById('conf-notes')?.value.trim() || '';
 
   let totalCost = 0, returnedUnits = 0;
+  const lines = []; // what was actually used, with the unit cost at the time
 
   proj.items.forEach(pi => {
     const g = state.inventory.find(g => g.id === pi.groupId);
@@ -2438,6 +2443,7 @@ function saveInstall(pid) {
     const leftover = Math.max(0, pi.qty - actual);
     totalCost    += actual * effectiveCost(v);
     returnedUnits += leftover;
+    if (actual > 0) lines.push({ groupId: g.id, variantId: v.id, qty: actual, cost: effectiveCost(v), reserved: pi.qty });
     // Release reservation; only deduct what was actually used — leftovers stay in qty
     v.reserved = Math.max(0, v.reserved - pi.qty);
     v.qty      = Math.max(0, v.qty - actual);
@@ -2449,11 +2455,14 @@ function saveInstall(pid) {
     if (!g || !v) return;
     totalCost += ex.qty * effectiveCost(v);
     v.qty = Math.max(0, v.qty - ex.qty);
+    const same = lines.find(l => l.variantId === v.id);
+    if (same) same.qty += ex.qty; else lines.push({ groupId: g.id, variantId: v.id, qty: ex.qty, cost: effectiveCost(v), extra: true });
   });
 
   state.installs.push({
     projectId: pid,
     date: actualDate, notes,
+    lines,
     totalCost,
     footage: actualFootage,
     costPerFoot: actualFootage ? totalCost / actualFootage : 0,
@@ -2472,6 +2481,154 @@ function saveInstall(pid) {
       <div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Cost / ft</div><div style="font-size:20px;font-weight:700">${cpfStr}</div></div>
       ${notes ? `<div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Notes</div><div style="font-size:13px;color:#555">${esc(notes)}</div></div>` : ''}
     </div>`;
+}
+
+/* ── INSTALL DETAIL (view + edit a closed job) ────────────── */
+/* Installs confirmed after 2026-11-13 carry `lines` (item, qty used, unit cost
+   at the time). Older installs only stored totals, so their lines are rebuilt
+   from the project's reserved quantities and shown as estimates; stock is
+   only adjusted for edits when the user leaves "adjust stock" ticked. */
+let instEdit = null;
+function installLines(inst, proj) {
+  if (Array.isArray(inst.lines) && inst.lines.length) return { lines: inst.lines.map(l => ({ ...l })), recorded: true };
+  const lines = (proj.items || []).filter(pi => pi.qty > 0).map(pi => {
+    const g = state.inventory.find(g => g.id === pi.groupId);
+    const v = g && g.variants.find(v => v.id === pi.variantId);
+    return { groupId: pi.groupId, variantId: pi.variantId, qty: pi.qty, cost: v ? effectiveCost(v) : 0, reserved: pi.qty };
+  });
+  return { lines, recorded: false };
+}
+function openInstallDetail(pid) {
+  const proj = state.projects.find(p => p.id === pid);
+  const inst = state.installs.find(i => i.projectId === pid);
+  if (!proj || !inst) return;
+  const { lines, recorded } = installLines(inst, proj);
+  instEdit = { pid, lines, recorded, adjustStock: recorded, date: inst.date || '', footage: inst.footage || 0, notes: inst.notes || '', addGroup: '', addVariant: '', addQty: 1 };
+  showModal(`
+    <div class="modal-title">${esc(proj.name)} <span class="sup-sub" style="font-weight:400">— installed job</span></div>
+    <div class="sup-sub" style="margin:-10px 0 12px">${esc(proj.address || 'No address')}${proj.notes ? ' · ' + esc(proj.notes) : ''}</div>
+    <div class="form-row">
+      <div class="fg"><label>Install date</label><input type="date" id="ie-date" value="${esc(instEdit.date)}" oninput="instEdit.date=this.value"></div>
+      <div class="fg"><label>Actual footage (ft)</label><input type="number" id="ie-footage" min="0" value="${instEdit.footage}" oninput="instEdit.footage=parseInt(this.value)||0;renderInstallTotals()"></div>
+      <div class="fg full"><label>Notes</label><input type="text" id="ie-notes" value="${esc(instEdit.notes)}" oninput="instEdit.notes=this.value"></div>
+    </div>
+    ${recorded ? '' : `<div class="alert alert-info" style="margin:8px 0 10px">This job was closed before per-item usage was recorded, so the quantities below are what was <strong>reserved</strong> for it and the recorded total was ${money(inst.totalCost || 0)}. Correct them to what was actually used if you know.</div>`}
+    <div class="sec-label">Product used</div>
+    <div class="tbl-wrap" style="margin-bottom:10px;overflow-x:auto"><table class="ie-table">
+      <thead><tr><th>Item</th><th class="num">Used</th><th class="num">Unit cost</th><th class="num">Line</th><th></th></tr></thead>
+      <tbody id="ie-lines"></tbody>
+    </table></div>
+    <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px">
+      <div style="flex:2;min-width:150px"><label class="sup-sub" style="display:block;margin-bottom:4px">Add an item</label>
+        <select id="ie-add-group" onchange="instEdit.addGroup=this.value;instEdit.addVariant='';renderInstallAddVariant()"><option value="">— Select —</option>${state.inventory.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('')}</select></div>
+      <div id="ie-add-var" style="flex:1;min-width:120px"></div>
+      <div style="flex-shrink:0"><label class="sup-sub" style="display:block;margin-bottom:4px">Qty</label><input type="number" id="ie-add-qty" min="1" value="1" style="width:70px" oninput="instEdit.addQty=parseInt(this.value)||1"></div>
+      <button class="btn btn-sm" onclick="addInstallLine()">+ Add</button>
+    </div>
+    <div id="ie-totals" style="background:#f5f5f3;border:1px solid #e5e5e3;border-radius:10px;padding:12px 16px;display:flex;gap:24px;flex-wrap:wrap;margin-bottom:12px"></div>
+    <label style="display:flex;gap:8px;align-items:center;font-size:13px;margin-bottom:4px"><input type="checkbox" id="ie-adjust" ${instEdit.adjustStock ? 'checked' : ''} onchange="instEdit.adjustStock=this.checked" style="width:auto"> Adjust stock on hand by any quantity changes${recorded ? '' : ' <span class="sup-sub">(off by default — stock was already reduced by the real usage when this job was closed)</span>'}</label>
+    <div class="modal-footer">
+      <button class="btn btn-danger" onclick="reopenInstall('${pid}')" title="Undo the close-out: puts the job back in Projects as reserved and returns the used quantities to stock">Reopen job</button>
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveInstallDetail()">Save changes</button>
+    </div>
+  `);
+  renderInstallLines();
+  renderInstallTotals();
+}
+function renderInstallLines() {
+  const el = document.getElementById('ie-lines'); if (!el || !instEdit) return;
+  el.innerHTML = instEdit.lines.map((l, i) => {
+    const g = state.inventory.find(g => g.id === l.groupId);
+    const v = g && g.variants.find(v => v.id === l.variantId);
+    const label = g ? (isSingle(g) ? g.name : `${g.name} — ${v ? v.label : '?'}`) : '(deleted item)';
+    return `<tr>
+      <td style="font-weight:500">${esc(label)}<div class="sup-sub">${g ? esc(g.unit) : ''}${l.extra ? ' · added at close-out' : ''}${l.reserved != null && l.reserved !== l.qty ? ` · ${l.reserved} reserved` : ''}</div></td>
+      <td class="num"><input type="number" min="0" value="${l.qty}" style="width:80px;text-align:right" oninput="instEdit.lines[${i}].qty=Math.max(0,parseInt(this.value)||0);renderInstallTotals()"></td>
+      <td class="num"><input type="number" min="0" step="0.0001" value="${l.cost}" style="width:96px;text-align:right" oninput="instEdit.lines[${i}].cost=parseFloat(this.value)||0;renderInstallTotals()"></td>
+      <td class="num" id="ie-line-${i}">${money(l.qty * l.cost)}</td>
+      <td><button class="btn btn-xs btn-danger" onclick="instEdit.lines.splice(${i},1);renderInstallLines();renderInstallTotals()">✕</button></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" class="sup-sub">No product recorded.</td></tr>';
+}
+function renderInstallAddVariant() {
+  const wrap = document.getElementById('ie-add-var'); if (!wrap || !instEdit) return;
+  const g = state.inventory.find(g => g.id === instEdit.addGroup);
+  if (!g || isSingle(g)) { wrap.innerHTML = ''; return; }
+  wrap.innerHTML = `<label class="sup-sub" style="display:block;margin-bottom:4px">Variant</label><select id="ie-add-variant" onchange="instEdit.addVariant=this.value">${g.variants.map(v => `<option value="${v.id}">${esc(v.label)}</option>`).join('')}</select>`;
+  instEdit.addVariant = g.variants[0].id;
+}
+function addInstallLine() {
+  if (!instEdit || !instEdit.addGroup) return;
+  const g = state.inventory.find(g => g.id === instEdit.addGroup); if (!g) return;
+  const vid = isSingle(g) ? g.variants[0].id : (instEdit.addVariant || g.variants[0].id);
+  const v = g.variants.find(v => v.id === vid); if (!v) return;
+  const qty = Math.max(1, instEdit.addQty || 1);
+  const same = instEdit.lines.find(l => l.variantId === vid);
+  if (same) same.qty += qty; else instEdit.lines.push({ groupId: g.id, variantId: vid, qty, cost: effectiveCost(v), extra: true });
+  instEdit.addGroup = ''; instEdit.addVariant = ''; instEdit.addQty = 1;
+  const sel = document.getElementById('ie-add-group'); if (sel) sel.value = '';
+  const q = document.getElementById('ie-add-qty'); if (q) q.value = 1;
+  renderInstallAddVariant(); renderInstallLines(); renderInstallTotals();
+}
+function installTotals(lines, footage) {
+  const total = lines.reduce((s, l) => s + (l.qty || 0) * (l.cost || 0), 0);
+  return { total, cpf: footage > 0 ? total / footage : 0 };
+}
+function renderInstallTotals() {
+  if (!instEdit) return;
+  instEdit.lines.forEach((l, i) => { const el = document.getElementById('ie-line-' + i); if (el) el.textContent = money(l.qty * l.cost); });
+  const t = installTotals(instEdit.lines, instEdit.footage);
+  const el = document.getElementById('ie-totals'); if (!el) return;
+  el.innerHTML = `<div><div class="sup-sub" style="text-transform:uppercase;letter-spacing:.05em">Material cost</div><div style="font-size:20px;font-weight:700">${money(t.total)}</div></div>
+    <div><div class="sup-sub" style="text-transform:uppercase;letter-spacing:.05em">Footage</div><div style="font-size:20px;font-weight:700">${instEdit.footage || 0} ft</div></div>
+    <div><div class="sup-sub" style="text-transform:uppercase;letter-spacing:.05em">Cost / ft</div><div style="font-size:20px;font-weight:700">${t.cpf ? money(t.cpf) : '—'}</div></div>
+    <div class="sup-sub" style="align-self:center">Stored costs only — no tax or shipping.</div>`;
+}
+function saveInstallDetail() {
+  if (!instEdit) return;
+  const inst = state.installs.find(i => i.projectId === instEdit.pid); if (!inst) return;
+  const lines = instEdit.lines.filter(l => l.qty > 0).map(l => ({ groupId: l.groupId, variantId: l.variantId, qty: l.qty, cost: +(+l.cost).toFixed(4), ...(l.reserved != null ? { reserved: l.reserved } : {}), ...(l.extra ? { extra: true } : {}) }));
+  if (instEdit.adjustStock) {
+    // Stock moves by the difference between what the record said before and what it says now.
+    const before = {}; (instEdit.recorded ? inst.lines : []).forEach(l => { before[l.variantId] = (before[l.variantId] || 0) + l.qty; });
+    const after = {}; lines.forEach(l => { after[l.variantId] = (after[l.variantId] || 0) + l.qty; });
+    new Set([...Object.keys(before), ...Object.keys(after)]).forEach(vid => {
+      const delta = (after[vid] || 0) - (before[vid] || 0);
+      if (!delta) return;
+      const g = state.inventory.find(g => g.variants.some(v => v.id === vid));
+      const v = g && g.variants.find(v => v.id === vid);
+      if (v) v.qty = Math.max(0, v.qty - delta);
+    });
+  }
+  const t = installTotals(lines, instEdit.footage);
+  Object.assign(inst, { lines, date: instEdit.date || inst.date, footage: instEdit.footage, notes: instEdit.notes, totalCost: t.total, costPerFoot: t.cpf });
+  instEdit = null;
+  save(); closeModal(); render();
+}
+function reopenInstall(pid) {
+  const proj = state.projects.find(p => p.id === pid);
+  const inst = state.installs.find(i => i.projectId === pid);
+  if (!proj || !inst) return;
+  const { lines, recorded } = installLines(inst, proj);
+  if (!confirm(`Reopen ${proj.name}? The job goes back to Projects as reserved${recorded ? ', the used quantities return to stock and are reserved again' : ' with its original reservations'}. Its cost record is removed.`)) return;
+  if (recorded) {
+    lines.forEach(l => {
+      const g = state.inventory.find(g => g.id === l.groupId);
+      const v = g && g.variants.find(v => v.id === l.variantId);
+      if (v) v.qty += l.qty;
+    });
+  }
+  // Re-reserve what the project had reserved at close-out
+  proj.items.forEach(pi => {
+    const g = state.inventory.find(g => g.id === pi.groupId);
+    const v = g && g.variants.find(v => v.id === pi.variantId);
+    if (v) v.reserved += pi.qty;
+  });
+  proj.status = proj.items.length ? 'reserved' : 'planned';
+  state.installs = state.installs.filter(i => i !== inst);
+  instEdit = null;
+  save(); closeModal(); render();
 }
 
 /* ── REPORTS ─────────────────────────────────────────────── */
@@ -2494,7 +2651,7 @@ function renderReports() {
     tbody.innerHTML = insts.map(inst => {
       const p = state.projects.find(p => p.id === inst.projectId) || {};
       return `<tr>
-        <td style="font-weight:500">${p.name || 'Unknown'}</td>
+        <td style="font-weight:500"><a href="#" class="inst-link" onclick="event.preventDefault();openInstallDetail('${inst.projectId}')">${esc(p.name || 'Unknown')}</a></td>
         <td style="color:#888">${p.address || ''}</td>
         <td style="color:#888">${inst.date}</td>
         <td>${inst.footage} ft</td>
